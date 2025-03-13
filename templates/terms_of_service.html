@@ -1,0 +1,526 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Service - fashionCORE{% endblock %}
+
+{% block additional_head %}
+<style>
+    .policy-section {
+        padding: 6rem 0;
+    }
+    
+    .policy-container {
+        max-width: 90rem;
+        margin: 0 auto;
+    }
+    
+    .policy-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+    
+    .policy-header h1 {
+        font-size: 4.2rem;
+        margin-bottom: 1.6rem;
+    }
+    
+    .policy-header p {
+        color: var(--text-secondary);
+        font-size: 1.8rem;
+        max-width: 70rem;
+        margin: 0 auto;
+    }
+    
+    .policy-content {
+        background-color: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 4rem;
+    }
+    
+    .policy-content h2 {
+        font-size: 2.8rem;
+        margin: 3.2rem 0 1.6rem;
+        color: var(--primary-color);
+        border-bottom: 1px solid var(--gray-lighter);
+        padding-bottom: 1rem;
+    }
+    
+    .policy-content h2:first-of-type {
+        margin-top: 0;
+    }
+    
+    .policy-content h3 {
+        font-size: 2.2rem;
+        margin: 2.4rem 0 1.2rem;
+        color: var(--text-primary);
+    }
+    
+    .policy-content p {
+        margin-bottom: 1.6rem;
+        line-height: 1.7;
+        font-size: 1.6rem;
+    }
+    
+    .policy-content ul, 
+    .policy-content ol {
+        margin-bottom: 1.6rem;
+        padding-left: 2.4rem;
+    }
+    
+    .policy-content li {
+        margin-bottom: 0.8rem;
+        line-height: 1.7;
+        font-size: 1.6rem;
+    }
+    
+    .policy-content strong {
+        font-weight: 600;
+    }
+    
+    .policy-content a {
+        color: var(--primary-color);
+        text-decoration: underline;
+    }
+    
+    .policy-meta {
+        margin-top: 2.4rem;
+        padding-top: 2.4rem;
+        border-top: 1px solid var(--gray-lighter);
+        color: var(--text-secondary);
+        font-size: 1.4rem;
+    }
+    
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        margin-bottom: 2.4rem;
+    }
+    
+    .policy-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .policy-table th,
+    .policy-table td {
+        padding: 1.2rem 1.6rem;
+        text-align: left;
+        border: 1px solid var(--gray-lighter);
+    }
+    
+    .policy-table th {
+        background-color: var(--bg-tertiary);
+        font-weight: 600;
+    }
+    
+    .policy-table tr:nth-child(even) {
+        background-color: var(--bg-secondary);
+    }
+    
+    .back-to-top {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 5rem;
+        height: 5rem;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s ease;
+        opacity: 0;
+        visibility: hidden;
+        z-index: 100;
+    }
+    
+    .back-to-top.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .back-to-top:hover {
+        transform: translateY(-0.5rem);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .effective-date {
+        font-style: italic;
+        margin-bottom: 3.2rem;
+        color: var(--text-secondary);
+    }
+    
+    .table-of-contents {
+        background-color: var(--bg-secondary);
+        padding: 2.4rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 3.2rem;
+    }
+    
+    .table-of-contents h3 {
+        margin-top: 0;
+        margin-bottom: 1.6rem;
+    }
+    
+    .table-of-contents ol {
+        counter-reset: item;
+        list-style-type: none;
+        padding-left: 0;
+    }
+    
+    .table-of-contents li {
+        counter-increment: item;
+        margin-bottom: 0.8rem;
+    }
+    
+    .table-of-contents li::before {
+        content: counter(item) ". ";
+        color: var(--primary-color);
+        font-weight: bold;
+    }
+    
+    .table-of-contents a {
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    
+    .table-of-contents a:hover {
+        color: var(--primary-color);
+        padding-left: 0.5rem;
+    }
+    
+    .important-notice {
+        background-color: rgba(67, 97, 238, 0.1);
+        border-left: 4px solid var(--primary-color);
+        padding: 2rem;
+        margin-bottom: 2.4rem;
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    }
+    
+    .important-notice h3 {
+        margin-top: 0;
+        color: var(--primary-color);
+    }
+    
+    @media (max-width: 768px) {
+        .policy-content {
+            padding: 2.4rem;
+        }
+        
+        .policy-header h1 {
+            font-size: 3.2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="policy-section">
+    <div class="container policy-container">
+        <div class="policy-header">
+            <h1>Terms of Service</h1>
+            <p>Please read these terms carefully before using our services</p>
+        </div>
+        
+        <div class="policy-content">
+            <p class="effective-date">Last Updated: March 13, 2025</p>
+            
+            <div class="important-notice">
+                <h3>Important Notice</h3>
+                <p>These Terms of Service contain an arbitration agreement and class action waiver that requires you to arbitrate claims you may have against fashionCORE on an individual basis. By agreeing to these Terms of Service, you waive your right to participate in a class action lawsuit or class-wide arbitration.</p>
+            </div>
+            
+            <div class="table-of-contents">
+                <h3>Table of Contents</h3>
+                <ol>
+                    <li><a href="#acceptance">Acceptance of Terms</a></li>
+                    <li><a href="#changes">Changes to Terms</a></li>
+                    <li><a href="#account">Account Registration and Security</a></li>
+                    <li><a href="#services">Description of Services</a></li>
+                    <li><a href="#conduct">User Conduct and Acceptable Use</a></li>
+                    <li><a href="#content">User Content</a></li>
+                    <li><a href="#ownership">Intellectual Property Rights</a></li>
+                    <li><a href="#payments">Payments and Subscriptions</a></li>
+                    <li><a href="#termination">Termination</a></li>
+                    <li><a href="#disclaimers">Disclaimers</a></li>
+                    <li><a href="#limitation">Limitation of Liability</a></li>
+                    <li><a href="#indemnification">Indemnification</a></li>
+                    <li><a href="#dispute">Dispute Resolution</a></li>
+                    <li><a href="#governing">Governing Law</a></li>
+                    <li><a href="#general">General Provisions</a></li>
+                    <li><a href="#contact">Contact Information</a></li>
+                </ol>
+            </div>
+            
+            <h2 id="acceptance">1. Acceptance of Terms</h2>
+            <p>Welcome to fashionCORE. These Terms of Service ("Terms") govern your access to and use of the fashionCORE website, mobile applications, and other online services (collectively, the "Services") provided by Ameezara Creation ("fashionCORE," "we," "us," or "our").</p>
+            
+            <p>By accessing or using the Services, you agree to be bound by these Terms and our Privacy Policy, which is incorporated by reference. If you do not agree to these Terms, you may not access or use the Services.</p>
+            
+            <p>You represent and warrant that you are at least 18 years of age, or if you are under 18 years of age, you have the consent of your parent or guardian to use the Services in accordance with these Terms. If you are accessing the Services on behalf of a company, organization, or other entity, you represent and warrant that you have the authority to bind that entity to these Terms.</p>
+            
+            <h2 id="changes">2. Changes to Terms</h2>
+            <p>We may modify, update, or replace these Terms at any time at our sole discretion. If we make changes, we will provide notice by posting the updated Terms on the Services and updating the "Last Updated" date. Your continued use of the Services after the effective date of the revised Terms constitutes your acceptance of such changes.</p>
+            
+            <p>For material changes, we may provide additional notice, such as sending you an email notification. If you do not agree to the revised Terms, you must stop using the Services.</p>
+            
+            <h2 id="account">3. Account Registration and Security</h2>
+            <p>To access certain features of the Services, you may need to register for an account. When registering, you agree to provide accurate, current, and complete information about yourself.</p>
+            
+            <h3>Account Security</h3>
+            <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to:</p>
+            <ul>
+                <li>Create a strong password and keep it confidential</li>
+                <li>Limit access to your account and mobile device</li>
+                <li>Log out of your account at the end of each session</li>
+                <li>Notify us immediately at security@fashioncore.com if you suspect any unauthorized use of your account or security breach</li>
+            </ul>
+            
+            <p>We reserve the right to disable any user account at any time if, in our opinion, you have failed to comply with any provisions of these Terms or if activities occur on your account that we determine to be illegal, harmful to others, or potentially damaging to our Services or reputation.</p>
+            
+            <h2 id="services">4. Description of Services</h2>
+            <p>fashionCORE offers a virtual try-on platform that allows users to visualize clothing items on themselves or on professional models using advanced image processing technology. Our Services include, but are not limited to:</p>
+            
+            <ul>
+                <li><strong>Personal Virtual Try-On:</strong> Upload your photo to see how clothing items would look on you</li>
+                <li><strong>Business Virtual Try-On:</strong> Apply clothing items to professional models for marketing purposes</li>
+                <li><strong>E-commerce Functionality:</strong> Browse, purchase, and manage orders of fashion products</li>
+                <li><strong>API Services:</strong> Enterprise integration solutions for businesses</li>
+            </ul>
+            
+            <h3>Service Limitations</h3>
+            <p>Our virtual try-on technology has certain limitations and may not perfectly represent how clothing will actually look or fit in real life. The Services are provided for visualization purposes only, and actual products may differ in appearance, fit, color, or other aspects when physically worn.</p>
+            
+            <h3>Service Modifications</h3>
+            <p>We reserve the right to modify, suspend, or discontinue any part of the Services without prior notice or liability. We may also impose limits on certain features and services or restrict your access to parts or all of the Services without notice or liability.</p>
+            
+            <h2 id="conduct">5. User Conduct and Acceptable Use</h2>
+            <p>When using our Services, you agree not to:</p>
+            
+            <ul>
+                <li>Violate any applicable law, regulation, or these Terms</li>
+                <li>Use the Services for any illegal, harmful, fraudulent, infringing, or objectionable purposes</li>
+                <li>Upload, post, or share any content that is illegal, offensive, harmful, infringing, or violates the rights of others</li>
+                <li>Attempt to circumvent any technological measure implemented by us to protect the Services</li>
+                <li>Use the Services to transmit malware, viruses, or other harmful code</li>
+                <li>Interfere with the proper functioning of the Services or place an unreasonable load on our infrastructure</li>
+                <li>Attempt to gain unauthorized access to our systems or other users' accounts</li>
+                <li>Use the Services to collect or harvest user information without consent</li>
+                <li>Impersonate any person or entity or misrepresent your affiliation with a person or entity</li>
+                <li>Engage in any activity that would constitute a breach of privacy</li>
+                <li>Use the Services to generate, upload, or share sexually explicit images or content involving minors</li>
+                <li>Reproduce, duplicate, copy, sell, resell, or exploit any portion of the Services without our express permission</li>
+            </ul>
+            
+            <p>We reserve the right to investigate and take appropriate legal action against anyone who, in our sole discretion, violates this provision, including removing content, terminating accounts, and reporting violators to law enforcement authorities.</p>
+            
+            <h2 id="content">6. User Content</h2>
+            <p>"User Content" refers to any content that you upload, submit, or otherwise make available through the Services, including photos for virtual try-on, product reviews, and feedback.</p>
+            
+            <h3>Ownership of User Content</h3>
+            <p>You retain ownership rights in your User Content. By submitting User Content, you grant us a worldwide, non-exclusive, royalty-free, sublicensable, and transferable license to use, reproduce, distribute, prepare derivative works of, display, and perform your User Content in connection with operating and providing the Services.</p>
+            
+            <h3>Content Restrictions</h3>
+            <p>You represent and warrant that:</p>
+            <ul>
+                <li>You own or have the necessary rights to your User Content and to grant the licenses described in these Terms</li>
+                <li>Your User Content does not violate the privacy rights, publicity rights, copyright, contractual rights, or any other rights of any person or entity</li>
+                <li>Your User Content does not contain material that is defamatory, obscene, offensive, harassing, or otherwise objectionable</li>
+            </ul>
+            
+            <h3>Virtual Try-On Images</h3>
+            <p>For images you upload for virtual try-on purposes:</p>
+            <ul>
+                <li>You must have the right to use and share any images you upload</li>
+                <li>You should only upload photos of yourself or individuals who have given you permission to use their likeness</li>
+                <li>Do not upload photos of minors without parental consent</li>
+                <li>We process these images to provide the virtual try-on functionality; see our Privacy Policy for information on how we handle your images</li>
+            </ul>
+            
+            <h3>Content Monitoring and Removal</h3>
+            <p>We do not actively monitor User Content but reserve the right to review and remove any User Content that violates these Terms or that we believe, in our sole discretion, is inappropriate or potentially harmful.</p>
+            
+            <h2 id="ownership">7. Intellectual Property Rights</h2>
+            <p>The Services, including all content, features, and functionality (including but not limited to text, graphics, logos, button icons, images, audio clips, data compilations, and software), are owned by fashionCORE, our licensors, or other providers and are protected by copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.</p>
+            
+            <h3>License to Use the Services</h3>
+            <p>Subject to these Terms, we grant you a limited, non-exclusive, non-transferable, and revocable license to access and use the Services for your personal, non-commercial use or, if applicable, for authorized business purposes in accordance with any business agreements you may have with us.</p>
+            
+            <h3>Restrictions</h3>
+            <p>You may not:</p>
+            <ul>
+                <li>Reproduce, distribute, modify, create derivative works of, publicly display, publicly perform, republish, download, store, or transmit any content from the Services, except as permitted by these Terms</li>
+                <li>Delete or alter any copyright, trademark, or other proprietary notices</li>
+                <li>Decompile, disassemble, reverse engineer, or attempt to derive the source code of the Services</li>
+                <li>Use any robot, spider, or other automatic device, process, or means to access the Services for any purpose</li>
+                <li>Use the Services in any manner that could disable, overburden, damage, or impair the site or interfere with any other party's use of the Services</li>
+            </ul>
+            
+            <h3>Trademarks</h3>
+            <p>The fashionCORE name, logo, and all related names, logos, product and service names, designs, and slogans are trademarks of fashionCORE or its affiliates or licensors. You may not use such marks without our prior written permission.</p>
+            
+            <h2 id="payments">8. Payments and Subscriptions</h2>
+            <p>We offer various paid services, including virtual try-on credits, subscription plans, and products for purchase. By making a purchase or subscribing to a paid service, you agree to pay all applicable fees.</p>
+            
+            <h3>Pricing and Payment Terms</h3>
+            <p>All prices are in Indian Rupees (INR) unless otherwise specified. We reserve the right to change prices at any time. You agree to pay all charges at the prices then in effect for your purchases and any applicable shipping fees, and you authorize us to charge your chosen payment provider for any such amounts.</p>
+            
+            <h3>Subscriptions</h3>
+            <p>If you purchase a subscription, your subscription will automatically renew at the end of the applicable subscription period unless you cancel it prior to the renewal date. You can cancel your subscription at any time through your account settings or by contacting customer support.</p>
+            
+            <h3>Refunds</h3>
+            <p>Our refund policy for different types of purchases is as follows:</p>
+            <ul>
+                <li><strong>Product Purchases:</strong> Physical products may be returned within 14 days of delivery. The item must be unused, in its original packaging, and in the same condition that you received it.</li>
+                <li><strong>Virtual Try-On Credits:</strong> Credits are non-refundable once used. Unused credits may be refunded within 7 days of purchase.</li>
+                <li><strong>Subscription Plans:</strong> For monthly plans, no prorated refunds are provided for cancellations. For annual plans, prorated refunds may be available at our discretion.</li>
+            </ul>
+            
+            <p>To request a refund, please contact customer support at support@fashioncore.com.</p>
+            
+            <h2 id="termination">9. Termination</h2>
+            <p>We may terminate or suspend your account and access to the Services immediately, without prior notice or liability, for any reason, including if you breach these Terms. Upon termination, your right to use the Services will immediately cease.</p>
+            
+            <p>You may terminate your account at any time by contacting us at support@fashioncore.com or through your account settings.</p>
+            
+            <p>All provisions of these Terms which by their nature should survive termination shall survive, including, without limitation, ownership provisions, warranty disclaimers, indemnity, and limitations of liability.</p>
+            
+            <h2 id="disclaimers">10. Disclaimers</h2>
+            <p>THE SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.</p>
+            
+            <p>We do not warrant that:</p>
+            <ul>
+                <li>The Services will meet your specific requirements</li>
+                <li>The Services will be uninterrupted, timely, secure, or error-free</li>
+                <li>The results that may be obtained from the use of the Services will be accurate or reliable</li>
+                <li>The quality of any products, services, information, or other material purchased or obtained by you through the Services will meet your expectations</li>
+                <li>Any errors in the Services will be corrected</li>
+            </ul>
+            
+            <h3>Virtual Try-On Disclaimer</h3>
+            <p>Our virtual try-on technology provides an approximation of how garments may appear on a person or model. The actual appearance, fit, color, texture, and other aspects of the physical garment may differ from the virtual representation. We make no guarantees about the accuracy of the virtual try-on results.</p>
+            
+            <h2 id="limitation">11. Limitation of Liability</h2>
+            <p>TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL FASHIONCORE, ITS AFFILIATES, OR THEIR RESPECTIVE DIRECTORS, OFFICERS, EMPLOYEES, AGENTS, OR SERVICE PROVIDERS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM:</p>
+            
+            <ul>
+                <li>YOUR ACCESS TO OR USE OF OR INABILITY TO ACCESS OR USE THE SERVICES</li>
+                <li>ANY CONDUCT OR CONTENT OF ANY THIRD PARTY ON THE SERVICES</li>
+                <li>ANY CONTENT OBTAINED FROM THE SERVICES</li>
+                <li>UNAUTHORIZED ACCESS, USE, OR ALTERATION OF YOUR TRANSMISSIONS OR CONTENT</li>
+            </ul>
+            
+            <p>IN NO EVENT SHALL OUR TOTAL LIABILITY TO YOU FOR ALL CLAIMS ARISING FROM OR RELATED TO THE SERVICES EXCEED THE GREATER OF (1) THE AMOUNT PAID BY YOU TO FASHIONCORE IN THE 12 MONTHS PRIOR TO THE EVENT GIVING RISE TO THE LIABILITY, OR (2) ₹5,000.</p>
+            
+            <p>THE LIMITATIONS OF THIS SECTION SHALL APPLY TO ANY THEORY OF LIABILITY, WHETHER BASED ON WARRANTY, CONTRACT, STATUTE, TORT (INCLUDING NEGLIGENCE), OR OTHERWISE, AND WHETHER OR NOT FASHIONCORE HAS BEEN INFORMED OF THE POSSIBILITY OF ANY SUCH DAMAGE.</p>
+            
+            <h2 id="indemnification">12. Indemnification</h2>
+            <p>You agree to defend, indemnify, and hold harmless fashionCORE, its affiliates, and their respective directors, officers, employees, and agents from and against any claims, liabilities, damages, judgments, awards, losses, costs, expenses, or fees (including reasonable attorneys' fees) arising out of or relating to:</p>
+            <ul>
+                <li>Your violation of these Terms</li>
+                <li>Your User Content</li>
+                <li>Your use of the Services</li>
+                <li>Your violation of any third-party right, including without limitation any intellectual property right, publicity, confidentiality, property, or privacy right</li>
+            </ul>
+            
+            <h2 id="dispute">13. Dispute Resolution</h2>
+            <h3>Arbitration Agreement</h3>
+            <p>You and fashionCORE agree to resolve any disputes through binding arbitration rather than in court, except that you may assert claims in small claims court if your claims qualify.</p>
+            
+            <h3>No Class Actions</h3>
+            <p>YOU AND FASHIONCORE AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS OR REPRESENTATIVE PROCEEDING.</p>
+            
+            <h3>Arbitration Procedures</h3>
+            <p>The arbitration will be conducted by the Indian Arbitration Association under its Commercial Arbitration Rules. The arbitration will be conducted in Mumbai, India, unless you and fashionCORE agree otherwise. The arbitrator's award shall be final and binding and may be entered as a judgment in any court of competent jurisdiction.</p>
+            
+            <h3>Opt-Out</h3>
+            <p>You can opt out of this arbitration agreement within 30 days of the date you first agreed to these Terms by sending a written notice to legal@fashioncore.com with the subject line "Arbitration Opt-Out" and including your name and address.</p>
+            
+            <h2 id="governing">14. Governing Law</h2>
+            <p>These Terms and your use of the Services shall be governed by and construed in accordance with the laws of India, without giving effect to any choice or conflict of law provision.</p>
+            
+            <p>Any legal suit, action, or proceeding arising out of, or related to, these Terms or the Services shall be instituted exclusively in the courts of Mumbai, India, although we retain the right to bring any suit, action, or proceeding against you for breach of these Terms in your country of residence or any other relevant country.</p>
+            
+            <h2 id="general">15. General Provisions</h2>
+            <h3>Entire Agreement</h3>
+            <p>These Terms, our Privacy Policy, and any other agreements expressly incorporated by reference herein constitute the entire agreement between you and fashionCORE concerning your use of the Services.</p>
+            
+            <h3>Waiver and Severability</h3>
+            <p>Our failure to exercise or enforce any right or provision of these Terms shall not operate as a waiver of such right or provision. If any provision of these Terms is held to be invalid, illegal, or unenforceable for any reason, such provision shall be eliminated or limited to the minimum extent necessary, and the remaining provisions will continue in full force and effect.</p>
+            
+            <h3>Assignment</h3>
+            <p>You may not assign or transfer these Terms, by operation of law or otherwise, without our prior written consent. We may assign these Terms in connection with a merger, acquisition, corporate reorganization, or sale of all or substantially all of our assets without your consent.</p>
+            
+            <h3>Force Majeure</h3>
+            <p>We will not be liable for any failure or delay in performance resulting from causes beyond our reasonable control, including but not limited to acts of God, natural disasters, pandemic, war, terrorism, riots, civil unrest, government action, labor disputes, or internet service disruptions.</p>
+            
+            <h3>Relationship of the Parties</h3>
+            <p>Nothing in these Terms is intended to or will create any form of partnership, joint venture, agency, franchise, sales representative, or employment relationship between you and fashionCORE.</p>
+            
+            <h2 id="contact">16. Contact Information</h2>
+            <p>If you have any questions, concerns, or feedback about these Terms, please contact us at:</p>
+            
+            <p>
+                <strong>fashionCORE</strong><br>
+                Address: 123 Fashion Avenue, Mumbai 400001, India<br>
+                Email: legal@fashioncore.com<br>
+                Phone: +91 22 1234 5678
+            </p>
+            
+            <div class="policy-meta">
+                <p>© 2025 fashionCORE. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Back to Top Button -->
+<a href="#" id="backToTop" class="back-to-top">
+    <i class="fas fa-arrow-up"></i>
+</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Back to Top Button Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Smooth scroll for table of contents links
+        document.querySelectorAll('.table-of-contents a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

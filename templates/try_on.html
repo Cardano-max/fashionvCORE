@@ -1,0 +1,698 @@
+{% extends "base.html" %}
+
+{% block title %}Virtual Try-On - fashionCORE{% endblock %}
+
+{% block additional_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- Try-On Header -->
+<section class="page-header">
+    <div class="container">
+        <h1>Virtual Try-On</h1>
+        <p>See how clothes look on you without trying them on physically</p>
+    </div>
+</section>
+
+<!-- Try-On Process Section -->
+<section id="try-on-section" class="try-on-process">
+    <div class="container">
+        <div class="workflow-steps">
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="step-number">1</div>
+                <h3>Upload Your Photo</h3>
+                <p>Add a front-facing photo of yourself</p>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-tshirt"></i>
+                </div>
+                <div class="step-number">2</div>
+                <h3>Select Garment</h3>
+                <p>Choose or upload a garment</p>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <div class="step-number">3</div>
+                <h3>See Result</h3>
+                <p>View and share your virtual try-on</p>
+            </div>
+        </div>
+        
+        <div class="upload-section">
+            <div class="upload-cards">
+                <!-- Person Upload Card -->
+                <div class="upload-card">
+                    <div class="card-header">
+                        <h3>Person Image</h3>
+                        <span class="info-tooltip" data-tooltip="Upload a front-facing photo with clear lighting">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </div>
+                    <div class="upload-area" id="personUploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <p>Drag & drop your photo here</p>
+                        <span class="or">or</span>
+                        <button class="btn btn-secondary" id="personBrowseBtn">Browse Files</button>
+                        <input type="file" id="personImageInput" accept="image/*" style="display: none;">
+                    </div>
+                    <div id="personPreviewContainer" class="preview-container" style="display: none;">
+                        <div class="preview-actions">
+                            <button id="personEditBtn" class="action-btn edit-btn"><i class="fas fa-crop"></i> Edit</button>
+                            <button id="personRemoveBtn" class="action-btn remove-btn"><i class="fas fa-trash"></i> Remove</button>
+                        </div>
+                        <div id="personPreview" class="image-preview"></div>
+                    </div>
+                </div>
+                
+                <!-- Garment Upload Card -->
+                <div class="upload-card">
+                    <div class="card-header">
+                        <h3>Garment Image</h3>
+                        <span class="info-tooltip" data-tooltip="Upload a garment on plain background">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </div>
+                    {% if product %}
+                    <!-- If a specific product is selected -->
+                    <div id="selectedGarmentContainer" class="preview-container">
+                        <div class="preview-actions">
+                            <button id="garmentRemoveBtn" class="action-btn remove-btn"><i class="fas fa-trash"></i> Remove</button>
+                        </div>
+                        <div id="garmentPreview" class="image-preview">
+                            <img src="{{ url_for('static', filename='images/' + product.image_path) }}" alt="{{ product.name }}">
+                        </div>
+                        <input type="hidden" id="productId" value="{{ product.id }}">
+                    </div>
+                    <div class="upload-area" id="garmentUploadArea" style="display: none;">
+                        <div class="upload-icon">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <p>Drag & drop garment here</p>
+                        <span class="or">or</span>
+                        <button class="btn btn-secondary" id="garmentBrowseBtn">Browse Files</button>
+                        <input type="file" id="garmentImageInput" accept="image/*" style="display: none;">
+                    </div>
+                    {% else %}
+                    <!-- If no product is selected -->
+                    <div class="upload-area" id="garmentUploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <p>Drag & drop garment here</p>
+                        <span class="or">or</span>
+                        <button class="btn btn-secondary" id="garmentBrowseBtn">Browse Files</button>
+                        <input type="file" id="garmentImageInput" accept="image/*" style="display: none;">
+                    </div>
+                    <div id="garmentPreviewContainer" class="preview-container" style="display: none;">
+                        <div class="preview-actions">
+                            <button id="garmentEditBtn" class="action-btn edit-btn"><i class="fas fa-crop"></i> Edit</button>
+                            <button id="garmentRemoveBtn" class="action-btn remove-btn"><i class="fas fa-trash"></i> Remove</button>
+                        </div>
+                        <div id="garmentPreview" class="image-preview"></div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Generate Button Section -->
+            <div class="generate-section">
+                <button id="generateBtn" class="btn btn-primary btn-large" disabled>
+                    <i class="fas fa-magic"></i> Generate Try-On
+                </button>
+                <p id="statusMessage" class="status-message"></p>
+                <div class="free-trial-info">
+                    {% if current_user.is_authenticated %}
+                        <p><i class="fas fa-info-circle"></i> You have <span class="highlight">{{ current_user.credits }}</span> try-on credits remaining</p>
+                    {% else %}
+                        <p><i class="fas fa-info-circle"></i> <a href="{{ url_for('login') }}">Log in</a> or <a href="{{ url_for('register') }}">sign up</a> to get 3 free try-ons</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Result Section -->
+<section id="resultSection" class="result-section" style="display: none;">
+    <div class="container">
+        <div class="section-header">
+            <h2>Your Try-On Result</h2>
+            <p>See how the garment looks on you</p>
+        </div>
+        
+        <div class="result-container">
+            <div class="result-comparison">
+                <div class="comparison-item original">
+                    <h4>Original</h4>
+                    <div id="originalPersonContainer" class="image-container"></div>
+                </div>
+                <div class="comparison-item result">
+                    <h4>Result</h4>
+                    <div class="image-container">
+                        <img id="resultImage" class="result-image" alt="Try-on result">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="result-actions">
+                <button id="downloadBtn" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <button id="shareBtn" class="btn btn-secondary">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
+                <button id="tryAgainBtn" class="btn btn-outline">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+                {% if product %}
+                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-shopping-cart"></i> Buy This Item
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Image Cropper Modal -->
+<div id="cropperModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Adjust Image</h3>
+            <button class="close-btn" id="closeModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="cropper-container">
+                <img id="cropperImage" src="">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cropCancelBtn" class="btn btn-outline">Cancel</button>
+            <button id="cropApplyBtn" class="btn btn-primary">Apply</button>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div id="shareModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Share Your Result</h3>
+            <button class="close-btn" id="closeShareModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="share-options">
+                <button class="share-option facebook">
+                    <i class="fab fa-facebook-f"></i> Facebook
+                </button>
+                <button class="share-option twitter">
+                    <i class="fab fa-twitter"></i> Twitter
+                </button>
+                <button class="share-option instagram">
+                    <i class="fab fa-instagram"></i> Instagram
+                </button>
+                <button class="share-option whatsapp">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+            </div>
+            <div class="share-link">
+                <p>Or copy this link:</p>
+                <div class="link-container">
+                    <input type="text" id="shareLink" readonly>
+                    <button id="copyLinkBtn" class="btn btn-secondary btn-small">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <p id="loadingMessage">Processing your images...</p>
+    <p id="loadingSubMessage">This may take a minute</p>
+</div>
+
+<!-- Error Message -->
+<div id="error-message" class="error-message"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const personUploadArea = document.getElementById('personUploadArea');
+        const personBrowseBtn = document.getElementById('personBrowseBtn');
+        const personImageInput = document.getElementById('personImageInput');
+        const personPreviewContainer = document.getElementById('personPreviewContainer');
+        const personPreview = document.getElementById('personPreview');
+        const personEditBtn = document.getElementById('personEditBtn');
+        const personRemoveBtn = document.getElementById('personRemoveBtn');
+        
+        const garmentUploadArea = document.getElementById('garmentUploadArea');
+        const garmentBrowseBtn = document.getElementById('garmentBrowseBtn');
+        const garmentImageInput = document.getElementById('garmentImageInput');
+        const garmentPreviewContainer = document.getElementById('garmentPreviewContainer') || document.getElementById('selectedGarmentContainer');
+        const garmentPreview = document.getElementById('garmentPreview');
+        const garmentEditBtn = document.getElementById('garmentEditBtn');
+        const garmentRemoveBtn = document.getElementById('garmentRemoveBtn');
+        
+        const generateBtn = document.getElementById('generateBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const resultSection = document.getElementById('resultSection');
+        const resultImage = document.getElementById('resultImage');
+        const originalPersonContainer = document.getElementById('originalPersonContainer');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const tryAgainBtn = document.getElementById('tryAgainBtn');
+        
+        const cropperModal = document.getElementById('cropperModal');
+        const closeModal = document.getElementById('closeModal');
+        const cropperImage = document.getElementById('cropperImage');
+        const cropCancelBtn = document.getElementById('cropCancelBtn');
+        const cropApplyBtn = document.getElementById('cropApplyBtn');
+        
+        const shareModal = document.getElementById('shareModal');
+        const closeShareModal = document.getElementById('closeShareModal');
+        const shareLink = document.getElementById('shareLink');
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const loadingSubMessage = document.getElementById('loadingSubMessage');
+        const errorMessage = document.getElementById('error-message');
+        
+        const productId = document.getElementById('productId')?.value;
+        
+        // State
+        let personImage = null;
+        let garmentImage = null;
+        let currentEditingImage = null;
+        let cropper = null;
+        
+        // Check if product is pre-selected
+        if (document.getElementById('selectedGarmentContainer')) {
+            const garmentImg = garmentPreview.querySelector('img');
+            if (garmentImg) {
+                // Convert the pre-selected product image to a File object
+                fetch(garmentImg.src)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        garmentImage = new File([blob], "product-garment.jpg", { type: "image/jpeg" });
+                        checkCanGenerate();
+                    })
+                    .catch(error => {
+                        console.error("Error converting image to File:", error);
+                    });
+            }
+        }
+        
+        // Upload handlers
+        function setupUpload(uploadArea, browseBtn, input, previewContainer, preview, editBtn, removeBtn, imageType) {
+            // Click to browse
+            if (browseBtn) {
+                browseBtn.addEventListener('click', () => {
+                    input.click();
+                });
+            }
+            
+            // Drag and drop
+            if (uploadArea) {
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+                
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+                
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    if (e.dataTransfer.files.length > 0) {
+                        handleImageUpload(e.dataTransfer.files[0], imageType);
+                    }
+                });
+            }
+            
+            // File input change
+            if (input) {
+                input.addEventListener('change', () => {
+                    if (input.files.length > 0) {
+                        handleImageUpload(input.files[0], imageType);
+                    }
+                });
+            }
+            
+            // Edit button
+            if (editBtn) {
+                editBtn.addEventListener('click', () => {
+                    openCropperModal(imageType);
+                });
+            }
+            
+            // Remove button
+            if (removeBtn) {
+                removeBtn.addEventListener('click', () => {
+                    if (imageType === 'person') {
+                        personImage = null;
+                        personPreviewContainer.style.display = 'none';
+                        personUploadArea.style.display = 'flex';
+                    } else {
+                        garmentImage = null;
+                        garmentPreviewContainer.style.display = 'none';
+                        if (garmentUploadArea) {
+                            garmentUploadArea.style.display = 'flex';
+                        }
+                    }
+                    checkCanGenerate();
+                });
+            }
+        }
+        
+        function handleImageUpload(file, imageType) {
+            if (!file.type.match('image.*')) {
+                showStatus('Please upload an image file', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    if (imageType === 'person') {
+                        personImage = file;
+                        personPreview.innerHTML = '';
+                        const previewImg = document.createElement('img');
+                        previewImg.src = e.target.result;
+                        previewImg.alt = 'Person preview';
+                        personPreview.appendChild(previewImg);
+                        personPreviewContainer.style.display = 'block';
+                        personUploadArea.style.display = 'none';
+                    } else {
+                        garmentImage = file;
+                        garmentPreview.innerHTML = '';
+                        const previewImg = document.createElement('img');
+                        previewImg.src = e.target.result;
+                        previewImg.alt = 'Garment preview';
+                        garmentPreview.appendChild(previewImg);
+                        garmentPreviewContainer.style.display = 'block';
+                        if (garmentUploadArea) {
+                            garmentUploadArea.style.display = 'none';
+                        }
+                    }
+                    checkCanGenerate();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Cropper functionality
+        function openCropperModal(imageType) {
+            currentEditingImage = imageType;
+            
+            const imgSrc = imageType === 'person' 
+                ? personPreview.querySelector('img').src 
+                : garmentPreview.querySelector('img').src;
+            
+            cropperImage.src = imgSrc;
+            cropperModal.style.display = 'block';
+            document.body.classList.add('modal-open');
+            
+            // Initialize cropper
+            if (cropper) {
+                cropper.destroy();
+            }
+            
+            cropper = new Cropper(cropperImage, {
+                aspectRatio: NaN,
+                viewMode: 1,
+                autoCropArea: 0.8,
+                zoomable: true,
+                scalable: true,
+                rotatable: true
+            });
+        }
+        
+        // Apply crop
+        cropApplyBtn.addEventListener('click', () => {
+            if (!cropper) return;
+            
+            const canvas = cropper.getCroppedCanvas({
+                maxWidth: 1024,
+                maxHeight: 1024
+            });
+            
+            if (canvas) {
+                const dataUrl = canvas.toDataURL('image/jpeg');
+                
+                // Convert data URL to File object
+                fetch(dataUrl)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        const file = new File([blob], "cropped-image.jpg", { type: "image/jpeg" });
+                        
+                        if (currentEditingImage === 'person') {
+                            personImage = file;
+                            personPreview.innerHTML = '';
+                            const previewImg = document.createElement('img');
+                            previewImg.src = dataUrl;
+                            personPreview.appendChild(previewImg);
+                        } else {
+                            garmentImage = file;
+                            garmentPreview.innerHTML = '';
+                            const previewImg = document.createElement('img');
+                            previewImg.src = dataUrl;
+                            garmentPreview.appendChild(previewImg);
+                        }
+                    });
+            }
+            
+            closeCropperModal();
+        });
+        
+        // Close cropper modal
+        function closeCropperModal() {
+            cropperModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        }
+        
+        closeModal.addEventListener('click', closeCropperModal);
+        cropCancelBtn.addEventListener('click', closeCropperModal);
+        
+        // Check if can generate
+        function checkCanGenerate() {
+            generateBtn.disabled = !(personImage && garmentImage);
+            if (personImage && garmentImage) {
+                generateBtn.classList.add('active');
+            } else {
+                generateBtn.classList.remove('active');
+            }
+        }
+        
+        // Generate button click
+        generateBtn.addEventListener('click', () => {
+            if (!personImage || !garmentImage) return;
+            
+            loadingOverlay.style.display = 'flex';
+            loadingMessage.textContent = 'Processing your images...';
+            loadingSubMessage.textContent = 'This may take up to a minute';
+            
+            // Save person image for comparison
+            if (personImage) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    originalPersonContainer.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = 'Original person';
+                    originalPersonContainer.appendChild(img);
+                };
+                reader.readAsDataURL(personImage);
+            }
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('person_image', personImage);
+            formData.append('garment_image', garmentImage);
+            
+            // Add product ID if available
+            if (productId) {
+                formData.append('product_id', productId);
+            }
+            
+            // Send API request
+            fetch('/api/try-on', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || `Server responded with ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                loadingOverlay.style.display = 'none';
+                
+                if (data.status === 'success') {
+                    resultImage.src = data.result_url;
+                    resultSection.style.display = 'block';
+                    
+                    // Set share link
+                    shareLink.value = window.location.origin + data.result_url;
+                    
+                    // Scroll to result
+                    resultSection.scrollIntoView({ behavior: 'smooth' });
+                    
+                    showStatus('Try-on successful!', 'success');
+                    
+                    // Update credits display if authenticated
+                    const creditsDisplay = document.querySelector('.free-trial-info .highlight');
+                    if (creditsDisplay) {
+                        const currentCredits = parseInt(creditsDisplay.textContent);
+                        if (!isNaN(currentCredits)) {
+                            creditsDisplay.textContent = currentCredits - 1;
+                        }
+                    }
+                } else {
+                    showError('Error: ' + (data.message || 'Failed to process images'));
+                }
+            })
+            .catch(error => {
+                console.error("API Error:", error);
+                loadingOverlay.style.display = 'none';
+                showError('Error: ' + error.message);
+            });
+        });
+        
+        // Show status message
+        function showStatus(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message ' + type;
+            
+            // Clear after 5 seconds
+            setTimeout(() => {
+                statusMessage.textContent = '';
+                statusMessage.className = 'status-message';
+            }, 5000);
+        }
+        
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            
+            // Clear after 5 seconds
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Download button
+        downloadBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.href = resultImage.src;
+            link.download = 'fashionCORE-virtual-try-on.png';
+            link.click();
+        });
+        
+        // Share button
+        shareBtn.addEventListener('click', () => {
+            shareModal.style.display = 'block';
+            document.body.classList.add('modal-open');
+        });
+        
+        // Close share modal
+        closeShareModal.addEventListener('click', () => {
+            shareModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        });
+        
+        // Copy link button
+        copyLinkBtn.addEventListener('click', () => {
+            shareLink.select();
+            document.execCommand('copy');
+            copyLinkBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyLinkBtn.textContent = 'Copy';
+            }, 2000);
+        });
+        
+        // Try again button
+        tryAgainBtn.addEventListener('click', () => {
+            resultSection.style.display = 'none';
+            document.getElementById('try-on-section').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Share options
+        document.querySelectorAll('.share-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const url = encodeURIComponent(shareLink.value);
+                const resultUrl = resultImage.src;
+                let shareUrl = '';
+                
+                if (option.classList.contains('facebook')) {
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+                } else if (option.classList.contains('twitter')) {
+                    shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${encodeURIComponent('Check out my virtual try-on with fashionCORE!')}`;
+                } else if (option.classList.contains('instagram')) {
+                    // Show message about Instagram
+                    alert('To share on Instagram, please download the image and upload it to your Instagram account.');
+                    return;
+                } else if (option.classList.contains('whatsapp')) {
+                    shareUrl = `https://wa.me/?text=${encodeURIComponent('Check out my virtual try-on with fashionCORE! ' + shareLink.value)}`;
+                }
+                
+                if (shareUrl) {
+                    window.open(shareUrl, '_blank');
+                }
+            });
+        });
+        
+        // Setup upload handlers
+        setupUpload(
+            personUploadArea, personBrowseBtn, personImageInput, 
+            personPreviewContainer, personPreview, personEditBtn, personRemoveBtn, 
+            'person'
+        );
+        
+        setupUpload(
+            garmentUploadArea, garmentBrowseBtn, garmentImageInput, 
+            garmentPreviewContainer, garmentPreview, garmentEditBtn, garmentRemoveBtn, 
+            'garment'
+        );
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === cropperModal) {
+                closeCropperModal();
+            }
+            if (e.target === shareModal) {
+                shareModal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+        });
+    });
+</script>
+{% endblock %}

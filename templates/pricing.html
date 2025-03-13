@@ -1,0 +1,736 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing - fashionCORE{% endblock %}
+
+{% block additional_head %}
+<style>
+    .pricing-section {
+        padding: 4rem 0;
+    }
+    
+    .pricing-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .pricing-header h1 {
+        margin-bottom: 1rem;
+    }
+    
+    .pricing-header p {
+        max-width: 700px;
+        margin: 0 auto;
+        color: var(--gray);
+    }
+    
+    .pricing-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 3rem;
+    }
+    
+    .toggle-label {
+        font-weight: 500;
+        margin: 0 1rem;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--gray-light);
+        transition: var(--transition-fast);
+        border-radius: 34px;
+    }
+    
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: var(--white);
+        transition: var(--transition-fast);
+        border-radius: 50%;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: var(--primary-color);
+    }
+    
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(26px);
+    }
+    
+    .toggle-discount {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        background-color: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-left: 0.5rem;
+    }
+    
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .pricing-card {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 2rem;
+        transition: transform var(--transition-medium), box-shadow var(--transition-medium);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .pricing-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .pricing-card.popular {
+        border: 2px solid var(--primary-color);
+        transform: scale(1.05);
+    }
+    
+    .pricing-card.popular:hover {
+        transform: translateY(-10px) scale(1.05);
+    }
+    
+    .popular-tag {
+        position: absolute;
+        top: 1.5rem;
+        right: -3rem;
+        background-color: var(--primary-color);
+        color: var(--white);
+        padding: 0.5rem 3rem;
+        transform: rotate(45deg);
+        font-weight: 600;
+        font-size: 0.85rem;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .plan-name {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .plan-description {
+        color: var(--gray);
+        margin-bottom: 1.5rem;
+        min-height: 48px;
+    }
+    
+    .plan-price {
+        display: flex;
+        align-items: baseline;
+        margin-bottom: 0.5rem;
+    }
+    
+    .price-amount {
+        font-size: 3rem;
+        font-weight: 600;
+        line-height: 1;
+    }
+    
+    .price-currency {
+        font-size: 1.5rem;
+        margin-right: 0.25rem;
+    }
+    
+    .price-period {
+        color: var(--gray);
+        margin-left: 0.5rem;
+    }
+    
+    .price-note {
+        color: var(--gray);
+        font-size: 0.85rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .price-note-highlight {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 2rem;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+    
+    .feature-icon {
+        color: var(--success);
+        margin-right: 0.75rem;
+    }
+    
+    .feature-icon.disabled {
+        color: var(--gray-light);
+    }
+    
+    .feature-text {
+        font-size: 0.95rem;
+    }
+    
+    .plan-button {
+        width: 100%;
+    }
+    
+    .business-section {
+        padding: 6rem 0;
+        background-color: var(--gray-lighter);
+    }
+    
+    .business-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .business-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .business-header h2 {
+        margin-bottom: 1rem;
+    }
+    
+    .business-header p {
+        max-width: 700px;
+        margin: 0 auto;
+        color: var(--gray);
+    }
+    
+    .business-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .business-feature {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+        transition: transform var(--transition-fast);
+    }
+    
+    .business-feature:hover {
+        transform: translateY(-5px);
+    }
+    
+    .business-feature-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(67, 97, 238, 0.1);
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .business-feature h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .business-feature p {
+        color: var(--gray);
+        font-size: 0.95rem;
+        margin-bottom: 0;
+    }
+    
+    .business-cta {
+        text-align: center;
+        margin-top: 4rem;
+    }
+    
+    .business-cta h3 {
+        margin-bottom: 1rem;
+    }
+    
+    .business-cta p {
+        max-width: 600px;
+        margin: 0 auto 2rem;
+        color: var(--gray);
+    }
+    
+    .faq-section {
+        padding: 6rem 0;
+    }
+    
+    .faq-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .faq-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .faq-item {
+        margin-bottom: 1rem;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+    
+    .faq-question {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        background-color: var(--white);
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color var(--transition-fast);
+    }
+    
+    .faq-question:hover {
+        background-color: var(--gray-lighter);
+    }
+    
+    .faq-icon {
+        transition: transform var(--transition-fast);
+    }
+    
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height var(--transition-medium), padding var(--transition-fast);
+        background-color: var(--white);
+    }
+    
+    .faq-content {
+        padding: 0 1.5rem;
+        color: var(--gray);
+    }
+    
+    .faq-item.active .faq-question {
+        background-color: var(--primary-color);
+        color: var(--white);
+    }
+    
+    .faq-item.active .faq-icon {
+        transform: rotate(180deg);
+        color: var(--white);
+    }
+    
+    .faq-item.active .faq-answer {
+        max-height: 500px;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .pricing-card.popular {
+            transform: none;
+        }
+        
+        .pricing-card.popular:hover {
+            transform: translateY(-10px);
+        }
+        
+        .business-features {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Pricing Section -->
+<section class="pricing-section">
+    <div class="container">
+        <div class="pricing-header">
+            <h1>Simple, Transparent Pricing</h1>
+            <p>Choose the plan that's right for you or your business</p>
+        </div>
+        
+        <div class="pricing-toggle">
+            <span class="toggle-label">Monthly</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="billingToggle">
+                <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label">Yearly</span>
+            <span class="toggle-discount">Save 20%</span>
+        </div>
+        
+        <div class="pricing-grid">
+            <!-- Basic Plan -->
+            <div class="pricing-card">
+                <h2 class="plan-name">Basic</h2>
+                <p class="plan-description">Perfect for individuals who want to try the service</p>
+                
+                <div class="plan-price monthly-price">
+                    <span class="price-currency">₹</span>
+                    <span class="price-amount">499</span>
+                    <span class="price-period">/month</span>
+                </div>
+                <div class="plan-price yearly-price" style="display: none;">
+                    <span class="price-currency">₹</span>
+                    <span class="price-amount">4,799</span>
+                    <span class="price-period">/year</span>
+                </div>
+                
+                <p class="price-note">Includes <span class="price-note-highlight">50 try-ons</span> per month</p>
+                
+                <ul class="plan-features">
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">50 try-ons per month</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">Save try-on history</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">Standard image quality</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">Email support</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-times-circle feature-icon disabled"></i>
+                        <span class="feature-text">API access</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-times-circle feature-icon disabled"></i>
+                        <span class="feature-text">Custom branding</span>
+                    </li>
+                </ul>
+                
+                <a href="#" class="btn btn-outline plan-button">Choose Basic</a>
+            </div>
+            
+            <!-- Pro Plan -->
+            <div class="pricing-card popular">
+                <div class="popular-tag">Popular</div>
+                <h2 class="plan-name">Pro</h2>
+                <p class="plan-description">Great for small businesses and fashion designers</p>
+                
+                <div class="plan-price monthly-price">
+                    <span class="price-currency">₹</span>
+                    <span class="price-amount">1,299</span>
+                    <span class="price-period">/month</span>
+                </div>
+                <div class="plan-price yearly-price" style="display: none;">
+                    <span class="price-currency">₹</span>
+                    <span class="price-amount">12,470</span>
+                    <span class="price-period">/year</span>
+                </div>
+                
+                <p class="price-note">Includes <span class="price-note-highlight">200 try-ons</span> per month</p>
+                
+                <ul class="plan-features">
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">200 try-ons per month</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">Save try-on history</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">High-quality images</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">Priority email support</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">Basic API access</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-times-circle feature-icon disabled"></i>
+                        <span class="feature-text">Custom branding</span>
+                    </li>
+                </ul>
+                
+                <a href="#" class="btn btn-primary plan-button">Choose Pro</a>
+            </div>
+            
+            <!-- Enterprise Plan -->
+            <div class="pricing-card">
+                <h2 class="plan-name">Enterprise</h2>
+                <p class="plan-description">For larger businesses with custom requirements</p>
+                
+                <div class="plan-price monthly-price">
+                    <span class="price-currency">₹</span>
+                    <span class="price-amount">2,999</span>
+                    <span class="price-period">/month</span>
+                </div>
+                <div class="plan-price yearly-price" style="display: none;">
+                    <span class="price-currency">₹</span>
+                    <span class="price-amount">28,790</span>
+                    <span class="price-period">/year</span>
+                </div>
+                
+                <p class="price-note">Includes <span class="price-note-highlight">1000 try-ons</span> per month</p>
+                
+                <ul class="plan-features">
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">1000 try-ons per month</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">Save try-on history</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">Ultra HD image quality</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">24/7 priority support</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">Full API access</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span class="feature-text">Custom branding</span>
+                    </li>
+                </ul>
+                
+                <a href="#" class="btn btn-outline plan-button">Choose Enterprise</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Business Section -->
+<section class="business-section">
+    <div class="container business-container">
+        <div class="business-header">
+            <h2>fashionCORE for Business</h2>
+            <p>Integrate virtual try-on into your business workflow</p>
+        </div>
+        
+        <div class="business-features">
+            <div class="business-feature">
+                <div class="business-feature-icon">
+                    <i class="fas fa-store"></i>
+                </div>
+                <h3>Retail Solutions</h3>
+                <p>Enhance your in-store experience with virtual try-on kiosks or integrate with your existing systems.</p>
+            </div>
+            
+            <div class="business-feature">
+                <div class="business-feature-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <h3>E-commerce Integration</h3>
+                <p>Integrate virtual try-on directly into your e-commerce platform to reduce returns and increase conversions.</p>
+            </div>
+            
+            <div class="business-feature">
+                <div class="business-feature-icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h3>API Access</h3>
+                <p>Use our robust API to integrate virtual try-on capabilities into your custom applications and platforms.</p>
+            </div>
+            
+            <div class="business-feature">
+                <div class="business-feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Analytics</h3>
+                <p>Gain insights into customer preferences and behaviors with comprehensive analytics and reporting.</p>
+            </div>
+            
+            <div class="business-feature">
+                <div class="business-feature-icon">
+                    <i class="fas fa-paint-brush"></i>
+                </div>
+                <h3>Custom Branding</h3>
+                <p>Customize the try-on experience with your brand colors, logos, and design elements.</p>
+            </div>
+            
+            <div class="business-feature">
+                <div class="business-feature-icon">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h3>Dedicated Support</h3>
+                <p>Get personalized support and training for your team to maximize the value of virtual try-on.</p>
+            </div>
+        </div>
+        
+        <div class="business-cta">
+            <h3>Need a custom solution for your business?</h3>
+            <p>Our team can help you develop a tailored solution that meets your specific requirements and integrates seamlessly with your existing systems.</p>
+            <a href="#" class="btn btn-primary btn-large">Contact Sales</a>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section">
+    <div class="container">
+        <div class="faq-header">
+            <h2>Frequently Asked Questions</h2>
+        </div>
+        
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>How does the virtual try-on work?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-content">
+                        <p>Our virtual try-on technology uses AI to analyze your uploaded image and the garment you want to try on. It then creates a realistic visualization of how the garment would look on you, accounting for body proportions, fabric draping, and color matching.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Are my images kept private and secure?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-content">
+                        <p>Yes, we take privacy very seriously. Your images are securely stored and only used for the purpose of generating try-on results. We do not share your images with third parties, and you can delete them from our system at any time.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Can I cancel my subscription at any time?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-content">
+                        <p>Yes, you can cancel your subscription at any time. If you cancel, you'll still have access to your subscription until the end of your current billing period. We don't offer refunds for partial billing periods.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>What if I use up all my monthly try-ons?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-content">
+                        <p>If you use all your monthly try-ons, you can purchase additional credits or upgrade to a higher plan. Additional credits are available in packs of 10, 50, or 100, with discounted rates for larger packs.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Can I integrate the try-on feature into my own website?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-content">
+                        <p>Yes, our Pro and Enterprise plans include API access that allows you to integrate the virtual try-on feature into your own website or application. We provide comprehensive documentation and support to help with the integration process.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Do you offer discounts for non-profits or educational institutions?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-content">
+                        <p>Yes, we offer special pricing for non-profit organizations, educational institutions, and fashion startups. Please contact our sales team for more information about our discount programs.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle between monthly and yearly pricing
+        const billingToggle = document.getElementById('billingToggle');
+        const monthlyPrices = document.querySelectorAll('.monthly-price');
+        const yearlyPrices = document.querySelectorAll('.yearly-price');
+        
+        billingToggle.addEventListener('change', function() {
+            if (this.checked) {
+                // Yearly
+                monthlyPrices.forEach(price => price.style.display = 'none');
+                yearlyPrices.forEach(price => price.style.display = 'flex');
+            } else {
+                // Monthly
+                monthlyPrices.forEach(price => price.style.display = 'flex');
+                yearlyPrices.forEach(price => price.style.display = 'none');
+            }
+        });
+        
+        // FAQ accordion
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            
+            question.addEventListener('click', () => {
+                // Close all other items
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.classList.remove('active');
+                    }
+                });
+                
+                // Toggle active class
+                item.classList.toggle('active');
+            });
+        });
+    });
+</script>
+{% endblock %}

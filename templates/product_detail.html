@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - fashionCORE{% endblock %}
+
+{% block additional_head %}
+<style>
+    .product-detail-section {
+        padding: 4rem 0;
+    }
+    
+    .product-detail-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+    }
+    
+    .product-gallery {
+        position: relative;
+    }
+    
+    .product-main-image {
+        width: 100%;
+        height: 500px;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--gray-light);
+        background-color: var(--white);
+    }
+    
+    .product-main-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+    }
+    
+    .product-info-container {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .product-category {
+        color: var(--gray);
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .product-title {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .product-brand {
+        color: var(--gray);
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .product-price {
+        font-size: 1.8rem;
+        color: var(--primary-color);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+    
+    .product-description {
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+    
+    .product-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .product-meta {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--gray-light);
+    }
+    
+    .meta-item {
+        display: flex;
+        margin-bottom: 0.5rem;
+    }
+    
+    .meta-label {
+        width: 120px;
+        color: var(--gray);
+    }
+    
+    .related-products {
+        margin-top: 4rem;
+    }
+    
+    .related-products h3 {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+        .product-detail-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Product Detail Section -->
+<section class="product-detail-section">
+    <div class="container">
+        <div class="product-detail-container">
+            <!-- Product Gallery -->
+            <div class="product-gallery">
+                <div class="product-main-image">
+                    <img src="{{ url_for('static', filename='images/' + product.image_path) }}" alt="{{ product.name }}">
+                </div>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="product-info-container">
+                <p class="product-category">{{ product.category }}</p>
+                <h1 class="product-title">{{ product.name }}</h1>
+                <p class="product-brand">By {{ product.brand }}</p>
+                <p class="product-price">₹{{ "%.2f"|format(product.price) }}</p>
+                
+                <div class="product-description">
+                    {{ product.description }}
+                </div>
+                
+                <div class="product-actions">
+                    <a href="{{ url_for('try_on_page', product_id=product.id) }}" class="btn btn-primary btn-large">
+                        <i class="fas fa-tshirt"></i> Try It On
+                    </a>
+                    <button class="btn btn-secondary btn-large add-to-cart-btn" 
+                            data-product-id="{{ product.id }}"
+                            data-product-name="{{ product.name }}"
+                            data-product-price="{{ product.price }}"
+                            data-product-image="{{ product.image_path }}">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                </div>
+                
+                <div class="product-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Stock:</span>
+                        <span class="meta-value">{{ product.stock }} Available</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Category:</span>
+                        <span class="meta-value">{{ product.category }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Brand:</span>
+                        <span class="meta-value">{{ product.brand }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Related Products -->
+        {% if related_products %}
+        <div class="related-products">
+            <h3>You May Also Like</h3>
+            <div class="products-grid">
+                {% for related in related_products %}
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="{{ url_for('static', filename='images/' + related.image_path) }}" alt="{{ related.name }}">
+                        <div class="product-overlay">
+                            <div class="product-overlay-buttons">
+                                <a href="{{ url_for('try_on_page', product_id=related.id) }}" class="btn btn-secondary btn-small">Try On</a>
+                                <a href="{{ url_for('product_detail', product_id=related.id) }}" class="btn btn-primary btn-small">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h4>{{ related.name }}</h4>
+                        <p class="product-brand">{{ related.brand }}</p>
+                        <p class="product-price">₹{{ "%.2f"|format(related.price) }}</p>
+                        <p class="product-desc">{{ related.description|truncate(50) }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add to cart functionality
+        const addToCartBtn = document.querySelector('.add-to-cart-btn');
+        
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                const productName = this.getAttribute('data-product-name');
+                const productPrice = parseFloat(this.getAttribute('data-product-price'));
+                const productImage = this.getAttribute('data-product-image');
+                
+                // Get existing cart from localStorage
+                let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+                
+                // Check if item already exists in cart
+                const existingItemIndex = cartItems.findIndex(item => item.id === productId);
+                
+                if (existingItemIndex > -1) {
+                    // Update quantity if item exists
+                    cartItems[existingItemIndex].quantity += 1;
+                } else {
+                    // Add new item if it doesn't exist
+                    cartItems.push({
+                        id: productId,
+                        name: productName,
+                        price: productPrice,
+                        image: productImage,
+                        quantity: 1
+                    });
+                }
+                
+                // Save updated cart
+                localStorage.setItem('cartItems', JSON.stringify(cartItems));
+                
+                // Update cart count in header
+                const cartCountElement = document.getElementById('cart-count');
+                if (cartCountElement) {
+                    const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+                    cartCountElement.textContent = totalItems;
+                }
+                
+                // Show notification
+                alert(`${productName} added to cart!`);
+            });
+        }
+    });
+</script>
+{% endblock %}

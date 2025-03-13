@@ -1,0 +1,876 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Admin Dashboard{% endblock %}
+
+{% block additional_head %}
+<style>
+    .admin-section {
+        padding: 2rem 0;
+    }
+    
+    .admin-container {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 2rem;
+    }
+    
+    .admin-sidebar {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+    }
+    
+    .admin-content {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+    }
+    
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .admin-title {
+        margin-bottom: 0;
+    }
+    
+    .admin-nav {
+        margin-bottom: 1.5rem;
+    }
+    
+    .admin-nav-title {
+        font-size: 0.9rem;
+        color: var(--gray);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .admin-nav-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .admin-nav-item {
+        margin-bottom: 0.5rem;
+    }
+    
+    .admin-nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: var(--gray-dark);
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+    }
+    
+    .admin-nav-link:hover {
+        background-color: var(--gray-lighter);
+        color: var(--primary-color);
+    }
+    
+    .admin-nav-link.active {
+        background-color: var(--primary-color);
+        color: var(--white);
+    }
+    
+    .admin-nav-link i {
+        margin-right: 0.75rem;
+    }
+    
+    .user-filters {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-box {
+        display: flex;
+        align-items: center;
+        max-width: 400px;
+    }
+    
+    .search-input {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md) 0 0 var(--radius-md);
+        flex-grow: 1;
+    }
+    
+    .search-btn {
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    }
+    
+    .filter-dropdown {
+        position: relative;
+        margin-right: 1rem;
+    }
+    
+    .filter-btn {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background-color: var(--white);
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+    }
+    
+    .filter-btn i {
+        margin-left: 0.5rem;
+    }
+    
+    .filter-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 200px;
+        background-color: var(--white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        padding: 1rem;
+        z-index: 10;
+        display: none;
+    }
+    
+    .filter-menu.show {
+        display: block;
+    }
+    
+    .filter-option {
+        margin-bottom: 0.5rem;
+    }
+    
+    .filter-option label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .filter-option input {
+        margin-right: 0.5rem;
+    }
+    
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .user-table th,
+    .user-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .user-table th {
+        background-color: var(--gray-lighter);
+        font-weight: 600;
+    }
+    
+    .user-table tbody tr:hover {
+        background-color: rgba(67, 97, 238, 0.05);
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 0.75rem;
+        background-color: var(--gray-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: var(--gray-dark);
+    }
+    
+    .user-name {
+        font-weight: 600;
+    }
+    
+    .user-email {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+    
+    .user-role {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .role-admin {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+    }
+    
+    .role-user {
+        background-color: rgba(67, 97, 238, 0.1);
+        color: var(--primary-color);
+    }
+    
+    .user-status {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+    
+    .status-active {
+        background-color: var(--success);
+    }
+    
+    .status-inactive {
+        background-color: var(--gray);
+    }
+    
+    .user-actions {
+        display: flex;
+        align-items: center;
+    }
+    
+    .user-actions .btn {
+        margin-right: 0.5rem;
+    }
+    
+    .user-actions .btn:last-child {
+        margin-right: 0;
+    }
+    
+    .credits-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        background-color: var(--gray-lighter);
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+    
+    .page-item {
+        margin: 0 0.25rem;
+    }
+    
+    .page-link {
+        display: block;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-sm);
+        color: var(--gray-dark);
+        transition: all var(--transition-fast);
+    }
+    
+    .page-link:hover {
+        background-color: var(--gray-lighter);
+        color: var(--primary-color);
+    }
+    
+    .page-link.active {
+        background-color: var(--primary-color);
+        color: var(--white);
+        border-color: var(--primary-color);
+    }
+    
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .modal.show {
+        display: flex;
+    }
+    
+    .modal-content {
+        width: 100%;
+        max-width: 600px;
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .modal-title {
+        margin-bottom: 0;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        padding: 1.5rem;
+        border-top: 1px solid var(--gray-light);
+    }
+    
+    .modal-footer .btn {
+        margin-left: 0.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md);
+        transition: border-color var(--transition-fast);
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .form-check-input {
+        margin-right: 0.5rem;
+    }
+    
+    .form-check-label {
+        font-size: 0.9rem;
+    }
+    
+    @media (max-width: 992px) {
+        .admin-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .admin-sidebar {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="container">
+        <div class="admin-container">
+            <!-- Admin Sidebar -->
+            <div class="admin-sidebar">
+                <div class="admin-nav">
+                    <h3 class="admin-nav-title">Main</h3>
+                    <ul class="admin-nav-list">
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="admin-nav">
+                    <h3 class="admin-nav-title">Management</h3>
+                    <ul class="admin-nav-list">
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_products') }}" class="admin-nav-link">
+                                <i class="fas fa-tshirt"></i>
+                                Products
+                            </a>
+                        </li>
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_orders') }}" class="admin-nav-link">
+                                <i class="fas fa-shopping-cart"></i>
+                                Orders
+                            </a>
+                        </li>
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_users') }}" class="admin-nav-link active">
+                                <i class="fas fa-users"></i>
+                                Users
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="admin-nav">
+                    <h3 class="admin-nav-title">System</h3>
+                    <ul class="admin-nav-list">
+                        <li class="admin-nav-item">
+                            <a href="#" class="admin-nav-link">
+                                <i class="fas fa-cog"></i>
+                                Settings
+                            </a>
+                        </li>
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('logout') }}" class="admin-nav-link">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Admin Content -->
+            <div class="admin-content">
+                <div class="admin-header">
+                    <h1 class="admin-title">Users</h1>
+                    <div class="admin-actions">
+                        <button class="btn btn-primary" id="addUserBtn">
+                            <i class="fas fa-plus"></i> Add User
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- User Filters -->
+                <div class="user-filters">
+                    <div class="search-box">
+                        <input type="text" class="search-input" placeholder="Search users...">
+                        <button class="btn btn-primary search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="filter-options">
+                        <div class="filter-dropdown">
+                            <button class="filter-btn">
+                                Role <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="filter-menu">
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="all" checked> All
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="admin"> Admin
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="user"> User
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-dropdown">
+                            <button class="filter-btn">
+                                Status <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="filter-menu">
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="all" checked> All
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="active"> Active
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="inactive"> Inactive
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Users Table -->
+                <div class="table-responsive">
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Credits</th>
+                                <th>Joined Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">
+                                            {{ user.username[0]|upper }}
+                                        </div>
+                                        <div>
+                                            <div class="user-name">{{ user.username }}</div>
+                                            <div class="user-email">{{ user.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="user-role role-{{ 'admin' if user.is_admin else 'user' }}">
+                                        {{ 'Admin' if user.is_admin else 'User' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <!-- For demo purposes, all users are active -->
+                                    <div>
+                                        <span class="user-status status-active"></span>
+                                        Active
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="credits-badge">{{ user.credits }}</span>
+                                </td>
+                                <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+                                <td>
+                                    <div class="user-actions">
+                                        <button class="btn btn-sm btn-outline edit-user-btn" data-id="{{ user.id }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary add-credits-btn" data-id="{{ user.id }}">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-user-btn" data-id="{{ user.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="pagination">
+                    <div class="page-item">
+                        <a href="#" class="page-link">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </div>
+                    <div class="page-item">
+                        <a href="#" class="page-link active">1</a>
+                    </div>
+                    <div class="page-item">
+                        <a href="#" class="page-link">2</a>
+                    </div>
+                    <div class="page-item">
+                        <a href="#" class="page-link">3</a>
+                    </div>
+                    <div class="page-item">
+                        <a href="#" class="page-link">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Add/Edit User Modal -->
+<div class="modal" id="userModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modalTitle">Add User</h2>
+            <button class="modal-close" id="modalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="userForm">
+                <input type="hidden" id="userId" name="id">
+                
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" name="username" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-control">
+                    <small class="form-text text-muted">Leave blank to keep current password (when editing)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="credits" class="form-label">Try-On Credits</label>
+                    <input type="number" id="credits" name="credits" class="form-control" min="0" value="3" required>
+                </div>
+                
+                <div class="form-check">
+                    <input type="checkbox" id="isAdmin" name="is_admin" class="form-check-input">
+                    <label for="isAdmin" class="form-check-label">Admin User</label>
+                </div>
+                
+                <div class="form-check">
+                    <input type="checkbox" id="isActive" name="is_active" class="form-check-input" checked>
+                    <label for="isActive" class="form-check-label">Active User</label>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="cancelBtn">Cancel</button>
+            <button class="btn btn-primary" id="saveUserBtn">Save User</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Credits Modal -->
+<div class="modal" id="creditsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Add Credits</h2>
+            <button class="modal-close" id="creditsModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="creditsUserId">
+            <div class="form-group">
+                <label for="creditsAmount" class="form-label">Number of Credits to Add</label>
+                <input type="number" id="creditsAmount" class="form-control" min="1" value="10">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="cancelCreditsBtn">Cancel</button>
+            <button class="btn btn-primary" id="addCreditsBtn">Add Credits</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Confirmation Modal -->
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Confirm Delete</h2>
+            <button class="modal-close" id="deleteModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+            <input type="hidden" id="deleteUserId">
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="cancelDeleteBtn">Cancel</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn">Delete User</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const filterMenus = document.querySelectorAll('.filter-menu');
+        const addUserBtn = document.getElementById('addUserBtn');
+        const editUserBtns = document.querySelectorAll('.edit-user-btn');
+        const addCreditsBtns = document.querySelectorAll('.add-credits-btn');
+        const deleteUserBtns = document.querySelectorAll('.delete-user-btn');
+        const userModal = document.getElementById('userModal');
+        const creditsModal = document.getElementById('creditsModal');
+        const deleteModal = document.getElementById('deleteModal');
+        const modalClose = document.getElementById('modalClose');
+        const creditsModalClose = document.getElementById('creditsModalClose');
+        const deleteModalClose = document.getElementById('deleteModalClose');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const cancelCreditsBtn = document.getElementById('cancelCreditsBtn');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const saveUserBtn = document.getElementById('saveUserBtn');
+        const addCreditsBtn = document.getElementById('addCreditsBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const modalTitle = document.getElementById('modalTitle');
+        const userForm = document.getElementById('userForm');
+        const creditsUserId = document.getElementById('creditsUserId');
+        const deleteUserId = document.getElementById('deleteUserId');
+        
+        // Filter dropdowns
+        filterBtns.forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                // Toggle clicked menu
+                filterMenus[index].classList.toggle('show');
+                
+                // Close other menus
+                filterMenus.forEach((menu, menuIndex) => {
+                    if (menuIndex !== index) {
+                        menu.classList.remove('show');
+                    }
+                });
+            });
+        });
+        
+        // Close filter menus when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-dropdown')) {
+                filterMenus.forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+        
+        // Add User Button
+        addUserBtn.addEventListener('click', () => {
+            modalTitle.textContent = 'Add User';
+            userForm.reset();
+            userForm.elements.id.value = '';
+            userForm.elements.credits.value = '3';
+            userForm.elements.is_active.checked = true;
+            userModal.classList.add('show');
+        });
+        
+        // Edit User Buttons
+        editUserBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const userId = btn.getAttribute('data-id');
+                modalTitle.textContent = 'Edit User';
+                
+                // In a real app, you would fetch user data from server
+                // This is just a simplified example
+                const userRow = btn.closest('tr');
+                const username = userRow.querySelector('.user-name').textContent;
+                const email = userRow.querySelector('.user-email').textContent;
+                const isAdmin = userRow.querySelector('.user-role').textContent.trim() === 'Admin';
+                const credits = userRow.querySelector('.credits-badge').textContent;
+                
+                // Set form values
+                userForm.elements.id.value = userId;
+                userForm.elements.username.value = username;
+                userForm.elements.email.value = email;
+                userForm.elements.password.value = '';
+                userForm.elements.credits.value = credits;
+                userForm.elements.is_admin.checked = isAdmin;
+                userForm.elements.is_active.checked = true;
+                
+                userModal.classList.add('show');
+            });
+        });
+        
+        // Add Credits Buttons
+        addCreditsBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const userId = btn.getAttribute('data-id');
+                creditsUserId.value = userId;
+                creditsModal.classList.add('show');
+            });
+        });
+        
+        // Delete User Buttons
+        deleteUserBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const userId = btn.getAttribute('data-id');
+                deleteUserId.value = userId;
+                deleteModal.classList.add('show');
+            });
+        });
+        
+        // Close Modals
+        modalClose.addEventListener('click', () => {
+            userModal.classList.remove('show');
+        });
+        
+        creditsModalClose.addEventListener('click', () => {
+            creditsModal.classList.remove('show');
+        });
+        
+        deleteModalClose.addEventListener('click', () => {
+            deleteModal.classList.remove('show');
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            userModal.classList.remove('show');
+        });
+        
+        cancelCreditsBtn.addEventListener('click', () => {
+            creditsModal.classList.remove('show');
+        });
+        
+        cancelDeleteBtn.addEventListener('click', () => {
+            deleteModal.classList.remove('show');
+        });
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === userModal) {
+                userModal.classList.remove('show');
+            }
+            if (e.target === creditsModal) {
+                creditsModal.classList.remove('show');
+            }
+            if (e.target === deleteModal) {
+                deleteModal.classList.remove('show');
+            }
+        });
+        
+        // Save User
+        saveUserBtn.addEventListener('click', () => {
+            // In a real app, you would send form data to server
+            alert('User saved successfully!');
+            userModal.classList.remove('show');
+        });
+        
+        // Add Credits
+        addCreditsBtn.addEventListener('click', () => {
+            // In a real app, you would send add credits request to server
+            const userId = creditsUserId.value;
+            const creditsAmount = document.getElementById('creditsAmount').value;
+            alert(`Added ${creditsAmount} credits to user ID ${userId}`);
+            creditsModal.classList.remove('show');
+        });
+        
+        // Confirm Delete User
+        confirmDeleteBtn.addEventListener('click', () => {
+            // In a real app, you would send delete request to server
+            const userId = deleteUserId.value;
+            alert(`User ID ${userId} deleted successfully!`);
+            deleteModal.classList.remove('show');
+        });
+    });
+</script>
+{% endblock %}

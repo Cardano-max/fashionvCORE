@@ -1,0 +1,577 @@
+{% extends "base.html" %}
+
+{% block title %}About Us - fashionCORE{% endblock %}
+
+{% block additional_head %}
+<style>
+    .about-section {
+        padding: 4rem 0;
+    }
+    
+    .about-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .about-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .about-header h1 {
+        margin-bottom: 1rem;
+    }
+    
+    .about-header p {
+        max-width: 700px;
+        margin: 0 auto;
+        color: var(--gray);
+    }
+    
+    .about-section-content {
+        margin-bottom: 5rem;
+    }
+    
+    .about-section-content:last-child {
+        margin-bottom: 0;
+    }
+    
+    .about-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+    }
+    
+    .about-grid.reverse {
+        grid-template-columns: 1fr 1fr;
+        direction: rtl;
+    }
+    
+    .about-grid.reverse .about-text {
+        direction: ltr;
+    }
+    
+    .about-image {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .about-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    
+    .about-text h2 {
+        margin-bottom: 1.5rem;
+        font-size: 2rem;
+    }
+    
+    .about-text p {
+        margin-bottom: 1.5rem;
+        line-height: 1.7;
+    }
+    
+    .about-text p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .mission-section {
+        background-color: var(--gray-lighter);
+        padding: 5rem 0;
+        text-align: center;
+    }
+    
+    .mission-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+        font-size: 3rem;
+        color: var(--primary-color);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .mission-title {
+        margin-bottom: 1.5rem;
+        font-size: 2.5rem;
+    }
+    
+    .mission-text {
+        max-width: 800px;
+        margin: 0 auto;
+        font-size: 1.25rem;
+        line-height: 1.7;
+        color: var(--gray-dark);
+    }
+    
+    .values-section {
+        padding: 5rem 0;
+    }
+    
+    .values-title {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .value-card {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 2rem;
+        transition: transform var(--transition-fast);
+    }
+    
+    .value-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .value-icon {
+        width: 60px;
+        height: 60px;
+        background-color: rgba(67, 97, 238, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        color: var(--primary-color);
+        font-size: 1.75rem;
+    }
+    
+    .value-title {
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+    
+    .value-text {
+        color: var(--gray);
+        line-height: 1.7;
+    }
+    
+    .team-section {
+        background-color: var(--gray-lighter);
+        padding: 5rem 0;
+    }
+    
+    .team-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .team-header h2 {
+        margin-bottom: 1rem;
+    }
+    
+    .team-header p {
+        max-width: 700px;
+        margin: 0 auto;
+        color: var(--gray);
+    }
+    
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+    
+    .team-member {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: transform var(--transition-fast);
+    }
+    
+    .team-member:hover {
+        transform: translateY(-10px);
+    }
+    
+    .member-image {
+        height: 300px;
+        overflow: hidden;
+    }
+    
+    .member-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform var(--transition-medium);
+    }
+    
+    .team-member:hover .member-image img {
+        transform: scale(1.05);
+    }
+    
+    .member-info {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .member-name {
+        margin-bottom: 0.5rem;
+        font-size: 1.25rem;
+    }
+    
+    .member-role {
+        color: var(--primary-color);
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .member-bio {
+        color: var(--gray);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    
+    .member-social {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+    
+    .social-link {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: var(--gray-lighter);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gray-dark);
+        transition: all var(--transition-fast);
+    }
+    
+    .social-link:hover {
+        background-color: var(--primary-color);
+        color: var(--white);
+    }
+    
+    .contact-section {
+        padding: 5rem 0;
+    }
+    
+    .contact-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .contact-header h2 {
+        margin-bottom: 1rem;
+    }
+    
+    .contact-header p {
+        max-width: 700px;
+        margin: 0 auto;
+        color: var(--gray);
+    }
+    
+    .contact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .contact-card {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 2rem;
+        text-align: center;
+        transition: transform var(--transition-fast);
+    }
+    
+    .contact-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .contact-icon {
+        width: 60px;
+        height: 60px;
+        background-color: rgba(67, 97, 238, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        color: var(--primary-color);
+        font-size: 1.75rem;
+    }
+    
+    .contact-title {
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+    }
+    
+    .contact-info {
+        margin-bottom: 1.5rem;
+        color: var(--gray);
+    }
+    
+    .contact-action .btn {
+        width: 100%;
+    }
+    
+    @media (max-width: 768px) {
+        .about-grid,
+        .about-grid.reverse {
+            grid-template-columns: 1fr;
+            direction: ltr;
+            gap: 2rem;
+        }
+        
+        .mission-text {
+            font-size: 1.1rem;
+        }
+        
+        .values-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- About Header -->
+<section class="about-section">
+    <div class="container about-container">
+        <div class="about-header">
+            <h1>About fashionCORE</h1>
+            <p>Reimagining the way people shop for clothes using AI technology</p>
+        </div>
+        
+        <!-- Our Story -->
+        <div class="about-section-content">
+            <div class="about-grid">
+                <div class="about-image">
+                    <img src="{{ url_for('static', filename='images/samples/about-story.jpg') }}" alt="Our Story">
+                </div>
+                <div class="about-text">
+                    <h2>Our Story</h2>
+                    <p>Founded in 2020, fashionCORE was born out of a simple observation: people love shopping for clothes online but struggle with the uncertainty of how they'll look in them. Our founder, Kaushal Shah, experienced this frustration firsthand while managing his family's traditional garment business in India.</p>
+                    <p>With a background in both fashion and technology, Kaushal assembled a team of AI experts and fashion industry veterans to develop a solution. After two years of research and development, we launched our first virtual try-on platform, focusing initially on traditional Indian wear.</p>
+                    <p>Today, fashionCORE serves thousands of customers and businesses worldwide, helping them make more confident fashion decisions through our innovative AI-powered technology.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Vision -->
+        <div class="about-section-content">
+            <div class="about-grid reverse">
+                <div class="about-image">
+                    <img src="{{ url_for('static', filename='images/samples/about-vision.jpg') }}" alt="Our Vision">
+                </div>
+                <div class="about-text">
+                    <h2>Our Vision</h2>
+                    <p>At fashionCORE, we envision a future where the boundary between online and offline shopping disappears. A world where anyone can confidently purchase clothing online, knowing exactly how it will look on them.</p>
+                    <p>We're working towards a seamless shopping experience where virtual try-on is an integral part of every fashion purchase, reducing returns, increasing customer satisfaction, and making fashion more accessible to everyone.</p>
+                    <p>Our technology is continuously evolving, with ongoing research in AI, computer vision, and 3D modeling to create increasingly realistic and personalized virtual try-on experiences.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mission Section -->
+<section class="mission-section">
+    <div class="container">
+        <div class="mission-icon">
+            <i class="fas fa-bullseye"></i>
+        </div>
+        <h2 class="mission-title">Our Mission</h2>
+        <p class="mission-text">To revolutionize the fashion shopping experience by leveraging AI technology, making it more personalized, convenient, and sustainable for both consumers and businesses.</p>
+    </div>
+</section>
+
+<!-- Values Section -->
+<section class="values-section">
+    <div class="container">
+        <h2 class="values-title">Our Values</h2>
+        
+        <div class="values-grid">
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h3 class="value-title">Innovation</h3>
+                <p class="value-text">We constantly push the boundaries of what's possible with AI and fashion technology, never settling for the status quo.</p>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="value-title">Customer-Centric</h3>
+                <p class="value-text">We build our products with the customer in mind, focusing on solving real problems and creating genuine value.</p>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3 class="value-title">Privacy & Security</h3>
+                <p class="value-text">We treat customer data with the utmost respect, ensuring privacy and security in everything we do.</p>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3 class="value-title">Sustainability</h3>
+                <p class="value-text">We're committed to reducing fashion's environmental footprint by helping reduce returns and waste through better purchase decisions.</p>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <h3 class="value-title">Integrity</h3>
+                <p class="value-text">We operate with transparency and honesty in all our business practices and partnerships.</p>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-infinity"></i>
+                </div>
+                <h3 class="value-title">Continuous Improvement</h3>
+                <p class="value-text">We never stop learning and improving, constantly refining our technology and services based on feedback and new insights.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Team Section -->
+<section class="team-section">
+    <div class="container">
+        <div class="team-header">
+            <h2>Meet Our Team</h2>
+            <p>The passionate individuals behind fashionCORE's success</p>
+        </div>
+        
+        <div class="team-grid">
+            <div class="team-member">
+                <div class="member-image">
+                    <img src="{{ url_for('static', filename='images/samples/Ceo.jpeg') }}" alt="Uzair Ali">
+                </div>
+                <div class="member-info">
+                    <h3 class="member-name">Kaushal Shah</h3>
+                    <div class="member-role">Founder & CEO</div>
+                    <p class="member-bio">With over 15 years in the Indian fashion industry and a passion for technology, Kaushal bridges the gap between traditional fashion and cutting-edge AI.</p>
+                    <div class="member-social">
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="team-member">
+                <div class="member-image">
+                    <img src="{{ url_for('static', filename='images/samples/team-priya.jpg') }}" alt="Priya Sharma">
+                </div>
+                <div class="member-info">
+                    <h3 class="member-name">Priya Sharma</h3>
+                    <div class="member-role">Chief Technology Officer</div>
+                    <p class="member-bio">A computer vision expert with a Ph.D. from IIT Delhi, Priya leads our AI research and development, driving our technology forward.</p>
+                    <div class="member-social">
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="team-member">
+                <div class="member-image">
+                    <img src="{{ url_for('static', filename='images/samples/team-rajesh.jpg') }}" alt="Rajesh Mehta">
+                </div>
+                <div class="member-info">
+                    <h3 class="member-name">Rajesh Mehta</h3>
+                    <div class="member-role">Chief Operating Officer</div>
+                    <p class="member-bio">With extensive experience in e-commerce operations, Rajesh ensures that our services run smoothly and efficiently for all our customers.</p>
+                    <div class="member-social">
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="team-member">
+                <div class="member-image">
+                    <img src="{{ url_for('static', filename='images/samples/team-neha.jpg') }}" alt="Neha Singh">
+                </div>
+                <div class="member-info">
+                    <h3 class="member-name">Neha Singh</h3>
+                    <div class="member-role">Chief Design Officer</div>
+                    <p class="member-bio">A fashion designer with over a decade of experience, Neha ensures that our technology maintains the artistic integrity of fashion.</p>
+                    <div class="member-social">
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="contact-section">
+    <div class="container">
+        <div class="contact-header">
+            <h2>Get in Touch</h2>
+            <p>Have questions or want to learn more about fashionCORE? We'd love to hear from you!</p>
+        </div>
+        
+        <div class="contact-grid">
+            <div class="contact-card">
+                <div class="contact-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h3 class="contact-title">Email Us</h3>
+                <p class="contact-info">For general inquiries, support, and business opportunities.</p>
+                <div class="contact-action">
+                    <a href="mailto:info@fashioncore.com" class="btn btn-outline">info@fashioncore.com</a>
+                </div>
+            </div>
+            
+            <div class="contact-card">
+                <div class="contact-icon">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+                <h3 class="contact-title">Call Us</h3>
+                <p class="contact-info">Available Monday to Friday, 9 AM to 6 PM IST.</p>
+                <div class="contact-action">
+                    <a href="tel:+918012345678" class="btn btn-outline">+91 801 234 5678</a>
+                </div>
+            </div>
+            
+            <div class="contact-card">
+                <div class="contact-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <h3 class="contact-title">Visit Us</h3>
+                <p class="contact-info">Our headquarters are located in Mumbai, India.</p>
+                <div class="contact-action">
+                    <a href="#" class="btn btn-outline">View Office Location</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

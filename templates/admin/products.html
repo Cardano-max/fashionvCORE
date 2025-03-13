@@ -1,0 +1,767 @@
+{% extends "base.html" %}
+
+{% block title %}Product Management - Admin Dashboard{% endblock %}
+
+{% block additional_head %}
+<style>
+    .admin-section {
+        padding: 2rem 0;
+    }
+    
+    .admin-container {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 2rem;
+    }
+    
+    .admin-sidebar {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+    }
+    
+    .admin-content {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+    }
+    
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .admin-title {
+        margin-bottom: 0;
+    }
+    
+    .admin-nav {
+        margin-bottom: 1.5rem;
+    }
+    
+    .admin-nav-title {
+        font-size: 0.9rem;
+        color: var(--gray);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .admin-nav-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .admin-nav-item {
+        margin-bottom: 0.5rem;
+    }
+    
+    .admin-nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: var(--gray-dark);
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+    }
+    
+    .admin-nav-link:hover {
+        background-color: var(--gray-lighter);
+        color: var(--primary-color);
+    }
+    
+    .admin-nav-link.active {
+        background-color: var(--primary-color);
+        color: var(--white);
+    }
+    
+    .admin-nav-link i {
+        margin-right: 0.75rem;
+    }
+    
+    .product-filters {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-box {
+        display: flex;
+        align-items: center;
+        max-width: 400px;
+    }
+    
+    .search-input {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md) 0 0 var(--radius-md);
+        flex-grow: 1;
+    }
+    
+    .search-btn {
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    }
+    
+    .filter-dropdown {
+        position: relative;
+        margin-right: 1rem;
+    }
+    
+    .filter-btn {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background-color: var(--white);
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+    }
+    
+    .filter-btn i {
+        margin-left: 0.5rem;
+    }
+    
+    .filter-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 200px;
+        background-color: var(--white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        padding: 1rem;
+        z-index: 10;
+        display: none;
+    }
+    
+    .filter-menu.show {
+        display: block;
+    }
+    
+    .filter-option {
+        margin-bottom: 0.5rem;
+    }
+    
+    .filter-option label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .filter-option input {
+        margin-right: 0.5rem;
+    }
+    
+    .product-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .product-table th,
+    .product-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .product-table th {
+        background-color: var(--gray-lighter);
+        font-weight: 600;
+    }
+    
+    .product-table tbody tr:hover {
+        background-color: rgba(67, 97, 238, 0.05);
+    }
+    
+    .product-image {
+        width: 60px;
+        height: 60px;
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        border: 1px solid var(--gray-light);
+    }
+    
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    
+    .product-actions {
+        display: flex;
+        align-items: center;
+    }
+    
+    .product-actions .btn {
+        margin-right: 0.5rem;
+    }
+    
+    .product-actions .btn:last-child {
+        margin-right: 0;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+    
+    .page-item {
+        margin: 0 0.25rem;
+    }
+    
+    .page-link {
+        display: block;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-sm);
+        color: var(--gray-dark);
+        transition: all var(--transition-fast);
+    }
+    
+    .page-link:hover {
+        background-color: var(--gray-lighter);
+        color: var(--primary-color);
+    }
+    
+    .page-link.active {
+        background-color: var(--primary-color);
+        color: var(--white);
+        border-color: var(--primary-color);
+    }
+    
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .modal.show {
+        display: flex;
+    }
+    
+    .modal-content {
+        width: 100%;
+        max-width: 600px;
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .modal-title {
+        margin-bottom: 0;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        padding: 1.5rem;
+        border-top: 1px solid var(--gray-light);
+    }
+    
+    .modal-footer .btn {
+        margin-left: 0.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md);
+        transition: border-color var(--transition-fast);
+    }
+    
+    @media (max-width: 992px) {
+        .admin-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .admin-sidebar {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="container">
+        <div class="admin-container">
+            <!-- Admin Sidebar -->
+            <div class="admin-sidebar">
+                <div class="admin-nav">
+                    <h3 class="admin-nav-title">Main</h3>
+                    <ul class="admin-nav-list">
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="admin-nav">
+                    <h3 class="admin-nav-title">Management</h3>
+                    <ul class="admin-nav-list">
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_products') }}" class="admin-nav-link active">
+                                <i class="fas fa-tshirt"></i>
+                                Products
+                            </a>
+                        </li>
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_orders') }}" class="admin-nav-link">
+                                <i class="fas fa-shopping-cart"></i>
+                                Orders
+                            </a>
+                        </li>
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_users') }}" class="admin-nav-link">
+                                <i class="fas fa-users"></i>
+                                Users
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="admin-nav">
+                    <h3 class="admin-nav-title">System</h3>
+                    <ul class="admin-nav-list">
+                        <li class="admin-nav-item">
+                            <a href="#" class="admin-nav-link">
+                                <i class="fas fa-cog"></i>
+                                Settings
+                            </a>
+                        </li>
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('logout') }}" class="admin-nav-link">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Admin Content -->
+            <div class="admin-content">
+                <div class="admin-header">
+                    <h1 class="admin-title">Products</h1>
+                    <div class="admin-actions">
+                        <button class="btn btn-primary" id="addProductBtn">
+                            <i class="fas fa-plus"></i> Add Product
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Product Filters -->
+                <div class="product-filters">
+                    <div class="search-box">
+                        <input type="text" class="search-input" placeholder="Search products...">
+                        <button class="btn btn-primary search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="filter-options">
+                        <div class="filter-dropdown">
+                            <button class="filter-btn">
+                                Category <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="filter-menu">
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="all" checked> All
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="saree"> Saree
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="lehenga"> Lehenga
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="kurti"> Kurti
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="anarkali"> Anarkali
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="checkbox" value="sharara"> Sharara
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-dropdown">
+                            <button class="filter-btn">
+                                Sort By <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="filter-menu">
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="radio" name="sort" value="newest" checked> Newest First
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="radio" name="sort" value="oldest"> Oldest First
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="radio" name="sort" value="price-asc"> Price: Low to High
+                                    </label>
+                                </div>
+                                <div class="filter-option">
+                                    <label>
+                                        <input type="radio" name="sort" value="price-desc"> Price: High to Low
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Products Table -->
+                <div class="table-responsive">
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Brand</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                            <tr>
+                                <td>{{ product.id }}</td>
+                                <td>
+                                    <div class="product-image">
+                                        <img src="{{ url_for('static', filename='images/' + product.image_path) }}" alt="{{ product.name }}">
+                                    </div>
+                                </td>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.category }}</td>
+                                <td>{{ product.brand }}</td>
+                                <td>₹{{ "%.2f"|format(product.price) }}</td>
+                                <td>{{ product.stock }}</td>
+                                <td>
+                                    <div class="product-actions">
+                                        <button class="btn btn-sm btn-outline edit-product-btn" data-id="{{ product.id }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-product-btn" data-id="{{ product.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="pagination">
+                    <div class="page-item">
+                        <a href="#" class="page-link">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </div>
+                    <div class="page-item">
+                        <a href="#" class="page-link active">1</a>
+                    </div>
+                    <div class="page-item">
+                        <a href="#" class="page-link">2</a>
+                    </div>
+                    <div class="page-item">
+                        <a href="#" class="page-link">3</a>
+                    </div>
+                    <div class="page-item">
+                        <a href="#" class="page-link">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Add/Edit Product Modal -->
+<div class="modal" id="productModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modalTitle">Add Product</h2>
+            <button class="modal-close" id="modalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="productForm">
+                <input type="hidden" id="productId" name="id">
+                
+                <div class="form-group">
+                    <label for="productName" class="form-label">Product Name</label>
+                    <input type="text" id="productName" name="name" class="form-control" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="productCategory" class="form-label">Category</label>
+                        <select id="productCategory" name="category" class="form-control" required>
+                            <option value="">Select Category</option>
+                            <option value="Saree">Saree</option>
+                            <option value="Lehenga">Lehenga</option>
+                            <option value="Kurti">Kurti</option>
+                            <option value="Anarkali">Anarkali</option>
+                            <option value="Sharara">Sharara</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productBrand" class="form-label">Brand</label>
+                        <input type="text" id="productBrand" name="brand" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="productPrice" class="form-label">Price (₹)</label>
+                        <input type="number" id="productPrice" name="price" step="0.01" min="0" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productStock" class="form-label">Stock</label>
+                        <input type="number" id="productStock" name="stock" min="0" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="productDescription" class="form-label">Description</label>
+                    <textarea id="productDescription" name="description" rows="4" class="form-control" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="productImage" class="form-label">Product Image</label>
+                    <input type="file" id="productImage" name="image" class="form-control" accept="image/*">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="cancelBtn">Cancel</button>
+            <button class="btn btn-primary" id="saveProductBtn">Save Product</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Confirm Delete</h2>
+            <button class="modal-close" id="deleteModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete this product? This action cannot be undone.</p>
+            <input type="hidden" id="deleteProductId">
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="cancelDeleteBtn">Cancel</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn">Delete Product</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const filterMenus = document.querySelectorAll('.filter-menu');
+        const addProductBtn = document.getElementById('addProductBtn');
+        const editProductBtns = document.querySelectorAll('.edit-product-btn');
+        const deleteProductBtns = document.querySelectorAll('.delete-product-btn');
+        const productModal = document.getElementById('productModal');
+        const deleteModal = document.getElementById('deleteModal');
+        const modalClose = document.getElementById('modalClose');
+        const deleteModalClose = document.getElementById('deleteModalClose');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const saveProductBtn = document.getElementById('saveProductBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const modalTitle = document.getElementById('modalTitle');
+        const productForm = document.getElementById('productForm');
+        const deleteProductId = document.getElementById('deleteProductId');
+        
+        // Filter dropdowns
+        filterBtns.forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                // Toggle clicked menu
+                filterMenus[index].classList.toggle('show');
+                
+                // Close other menus
+                filterMenus.forEach((menu, menuIndex) => {
+                    if (menuIndex !== index) {
+                        menu.classList.remove('show');
+                    }
+                });
+            });
+        });
+        
+        // Close filter menus when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-dropdown')) {
+                filterMenus.forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+        
+        // Add Product Button
+        addProductBtn.addEventListener('click', () => {
+            modalTitle.textContent = 'Add Product';
+            productForm.reset();
+            productForm.elements.id.value = '';
+            productModal.classList.add('show');
+        });
+        
+        // Edit Product Buttons
+        editProductBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const productId = btn.getAttribute('data-id');
+                modalTitle.textContent = 'Edit Product';
+                
+                // In a real app, you would fetch product data from server
+                // This is just a simplified example
+                const productRow = btn.closest('tr');
+                const name = productRow.cells[2].textContent;
+                const category = productRow.cells[3].textContent;
+                const brand = productRow.cells[4].textContent;
+                const price = productRow.cells[5].textContent.replace('₹', '');
+                const stock = productRow.cells[6].textContent;
+                
+                // Set form values
+                productForm.elements.id.value = productId;
+                productForm.elements.name.value = name;
+                productForm.elements.category.value = category;
+                productForm.elements.brand.value = brand;
+                productForm.elements.price.value = price;
+                productForm.elements.stock.value = stock;
+                
+                productModal.classList.add('show');
+            });
+        });
+        
+        // Delete Product Buttons
+        deleteProductBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const productId = btn.getAttribute('data-id');
+                deleteProductId.value = productId;
+                deleteModal.classList.add('show');
+            });
+        });
+        
+        // Close Modals
+        modalClose.addEventListener('click', () => {
+            productModal.classList.remove('show');
+        });
+        
+        deleteModalClose.addEventListener('click', () => {
+            deleteModal.classList.remove('show');
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            productModal.classList.remove('show');
+        });
+        
+        cancelDeleteBtn.addEventListener('click', () => {
+            deleteModal.classList.remove('show');
+        });
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === productModal) {
+                productModal.classList.remove('show');
+            }
+            if (e.target === deleteModal) {
+                deleteModal.classList.remove('show');
+            }
+        });
+        
+        // Save Product
+        saveProductBtn.addEventListener('click', () => {
+            // In a real app, you would send form data to server
+            alert('Product saved successfully!');
+            productModal.classList.remove('show');
+        });
+        
+        // Confirm Delete
+        confirmDeleteBtn.addEventListener('click', () => {
+            // In a real app, you would send delete request to server
+            const productId = deleteProductId.value;
+            alert(`Product ID ${productId} deleted successfully!`);
+            deleteModal.classList.remove('show');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}fashionCORE - Virtual Try-On Experience{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Virtual Try-On Experience</h1>
+        <p>See how clothes look on you without trying them on physically.</p>
+        <a href="{{ url_for('try_on_generic') }}" class="btn btn-primary btn-large">Try Now</a>
+    </div>
+</section>
+
+<!-- Try-On Process Section -->
+<section id="try-on-section" class="try-on-process">
+    <div class="container">
+        <div class="section-header">
+            <h2>How It Works</h2>
+            <p>Experience the future of online shopping with our AI-powered virtual try-on</p>
+        </div>
+        
+        <div class="workflow-steps">
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="step-number">1</div>
+                <h3>Upload Your Photo</h3>
+                <p>Add a front-facing photo of yourself</p>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-tshirt"></i>
+                </div>
+                <div class="step-number">2</div>
+                <h3>Select Garment</h3>
+                <p>Choose or upload a garment</p>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <div class="step-number">3</div>
+                <h3>See Result</h3>
+                <p>View and share your virtual try-on</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products Section -->
+<section class="sample-products">
+    <div class="container">
+        <div class="section-header">
+            <h2>Featured Collection</h2>
+            <p>Experience our premium ethnic wear collection</p>
+        </div>
+        
+        <div class="products-grid">
+            {% for product in featured_products %}
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="{{ url_for('static', filename='images/' + product.image_path) }}" alt="{{ product.name }}">
+                    <div class="product-overlay">
+                        <a href="{{ url_for('try_on_page', product_id=product.id) }}" class="btn btn-secondary btn-small">Try On</a>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h4>{{ product.name }}</h4>
+                    <p class="product-brand">{{ product.brand }}</p>
+                    <p class="product-price">₹{{ "%.2f"|format(product.price) }}</p>
+                    <p class="product-desc">{{ product.description|truncate(50) }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="more-products">
+            <a href="{{ url_for('products') }}" class="btn btn-outline btn-large">View Full Collection</a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features">
+    <div class="container">
+        <div class="section-header">
+            <h2>Key Features</h2>
+            <p>Why choose our virtual try-on solution</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Secure Image Processing</h3>
+                <p>Your images are processed securely and never shared with third parties</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>Fast Results</h3>
+                <p>Get your virtual try-on results in seconds</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h3>API Integration</h3>
+                <p>Easily integrate try-on functionality into your website or app</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+                <h3>Social Sharing</h3>
+                <p>Share your try-on results directly to social media</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h2>Ready to revolutionize your shopping experience?</h2>
+            <p>Sign up now and get 3 free try-ons</p>
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-large">Sign Up for Free</a>
+        </div>
+    </div>
+</section>
+
+<!-- CEO & Company Overview Section -->
+<section class="ceo-section">
+    <div class="container">
+        <div class="ceo-grid">
+            <div class="ceo-image">
+                <img src="{{ url_for('static', filename='images/samples/Ceo.jpeg') }}" alt="Uzair Ali - CEO">
+            </div>
+            <div class="ceo-content">
+                <h2>Leadership</h2>
+                <h3>Uzair Ali</h3>
+                <p class="ceo-title">Sales Director & Founder, Ameezara Creation</p>
+                <p class="ceo-description">
+                    With over a decade of experience in the Indian fashion industry, Kaushal Shah has revolutionized 
+                    the traditional ethnic wear market through innovative virtual try-on technology. Under his leadership, 
+                    Ameezara Creation has become a premier manufacturer of exclusive sarees and lehengas, serving 
+                    clients across the globe.
+                </p>
+                <div class="ceo-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">500+</span>
+                        <span class="stat-label">Global Partners</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">893</span>
+                        <span class="stat-label">Followers</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">15+</span>
+                        <span class="stat-label">Years Experience</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testimonials Section -->
+        <div class="testimonials">
+            <h3>What Our Clients Say</h3>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">★★★★★</div>
+                    <p class="testimonial-text">
+                        "Ameezara Creation has transformed how we showcase our ethnic wear collection. Their virtual try-on technology is revolutionary!"
+                    </p>
+                    <div class="testimonial-author">
+                        <p class="author-name">Priya Patel</p>
+                        <p class="author-title">Fashion Boutique Owner, Mumbai</p>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">★★★★★</div>
+                    <p class="testimonial-text">
+                        "The quality of their sarees and lehengas is unmatched. Working with Kaushal and his team has been exceptional."
+                    </p>
+                    <div class="testimonial-author">
+                        <p class="author-name">Rajesh Mehta</p>
+                        <p class="author-title">Retail Chain Director, Delhi</p>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">★★★★★</div>
+                    <p class="testimonial-text">
+                        "Their innovative approach to traditional wear has helped us reach customers worldwide."
+                    </p>
+                    <div class="testimonial-author">
+                        <p class="author-name">Sarah Johnson</p>
+                        <p class="author-title">International Distributor, UK</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

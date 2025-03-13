@@ -1,0 +1,892 @@
+{% extends "base.html" %}
+
+{% block title %}API Documentation - fashionCORE{% endblock %}
+
+{% block additional_head %}
+<style>
+    .api-section {
+        padding: 4rem 0;
+    }
+    
+    .api-container {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .api-sidebar {
+        position: sticky;
+        top: 100px;
+        height: calc(100vh - 100px);
+        overflow-y: auto;
+        padding-right: 1rem;
+        padding-bottom: 2rem;
+    }
+    
+    .api-content {
+        min-width: 0;
+    }
+    
+    .api-nav {
+        margin-bottom: 2rem;
+    }
+    
+    .api-nav-title {
+        font-size: 0.9rem;
+        color: var(--gray);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .api-nav-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .api-nav-item {
+        margin-bottom: 0.5rem;
+    }
+    
+    .api-nav-link {
+        display: block;
+        padding: 0.5rem 0.75rem;
+        color: var(--gray-dark);
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+        font-size: 0.95rem;
+    }
+    
+    .api-nav-link:hover {
+        background-color: var(--gray-lighter);
+        color: var(--primary-color);
+    }
+    
+    .api-nav-link.active {
+        background-color: var(--primary-color);
+        color: var(--white);
+    }
+    
+    .api-header {
+        margin-bottom: 3rem;
+    }
+    
+    .api-header p {
+        max-width: 800px;
+        color: var(--gray);
+    }
+    
+    .api-section-content {
+        margin-bottom: 4rem;
+    }
+    
+    .api-section-content:last-child {
+        margin-bottom: 0;
+    }
+    
+    .api-section-title {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .api-subsection {
+        margin-bottom: 2.5rem;
+    }
+    
+    .api-subsection:last-child {
+        margin-bottom: 0;
+    }
+    
+    .api-subsection-title {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+    }
+    
+    .api-subsection p {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+    
+    .api-card {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .api-card-header {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .api-method {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-right: 1rem;
+        text-transform: uppercase;
+    }
+    
+    .method-get {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
+    
+    .method-post {
+        background-color: rgba(67, 97, 238, 0.1);
+        color: var(--primary-color);
+    }
+    
+    .method-put {
+        background-color: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+    
+    .method-delete {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+    }
+    
+    .api-endpoint {
+        font-family: monospace;
+        font-size: 1rem;
+    }
+    
+    .api-card-body {
+        padding: 1.5rem;
+    }
+    
+    .api-card-description {
+        margin-bottom: 1.5rem;
+    }
+    
+    .api-params {
+        margin-bottom: 1.5rem;
+    }
+    
+    .api-params-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .params-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .params-table th,
+    .params-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .params-table th {
+        font-weight: 600;
+        background-color: var(--gray-lighter);
+    }
+    
+    .param-name {
+        font-family: monospace;
+        font-weight: 600;
+    }
+    
+    .param-type {
+        color: var(--gray);
+        font-size: 0.85rem;
+        font-family: monospace;
+    }
+    
+    .param-required {
+        display: inline-block;
+        padding: 0.15rem 0.35rem;
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+        border-radius: var(--radius-sm);
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .param-optional {
+        display: inline-block;
+        padding: 0.15rem 0.35rem;
+        background-color: rgba(67, 97, 238, 0.1);
+        color: var(--primary-color);
+        border-radius: var(--radius-sm);
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .api-response {
+        margin-bottom: 1.5rem;
+    }
+    
+    .api-response-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .response-example {
+        background-color: var(--dark);
+        color: var(--white);
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+    }
+    
+    .response-json {
+        font-family: monospace;
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    .code-string {
+        color: #a5d6a7;
+    }
+    
+    .code-number {
+        color: #90caf9;
+    }
+    
+    .code-boolean {
+        color: #ff8a65;
+    }
+    
+    .code-null {
+        color: #e57373;
+    }
+    
+    .code-key {
+        color: #f48fb1;
+    }
+    
+    .api-codes {
+        margin-bottom: 1.5rem;
+    }
+    
+    .api-codes-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .code-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .code-200 {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
+    
+    .code-400 {
+        background-color: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+    
+    .code-401 {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+    }
+    
+    .code-404 {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+    }
+    
+    .code-500 {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+    }
+    
+    .api-example {
+        margin-top: 2rem;
+    }
+    
+    .api-example-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .code-example {
+        background-color: var(--dark);
+        color: var(--white);
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+        margin-bottom: 1rem;
+    }
+    
+    .code-sample {
+        font-family: monospace;
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    .code-comment {
+        color: #9e9e9e;
+    }
+    
+    .api-note {
+        background-color: rgba(67, 97, 238, 0.1);
+        border-left: 4px solid var(--primary-color);
+        padding: 1rem;
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        margin: 1.5rem 0;
+    }
+    
+    .api-note p {
+        margin-bottom: 0;
+    }
+    
+    .api-warning {
+        background-color: rgba(245, 158, 11, 0.1);
+        border-left: 4px solid var(--warning);
+        padding: 1rem;
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        margin: 1.5rem 0;
+    }
+    
+    .api-warning p {
+        margin-bottom: 0;
+    }
+    
+    @media (max-width: 992px) {
+        .api-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .api-sidebar {
+            position: relative;
+            top: 0;
+            height: auto;
+            max-height: none;
+            padding-right: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="api-section">
+    <div class="container">
+        <div class="api-container">
+            <!-- API Sidebar -->
+            <div class="api-sidebar">
+                <div class="api-nav">
+                    <h3 class="api-nav-title">Getting Started</h3>
+                    <ul class="api-nav-list">
+                        <li class="api-nav-item">
+                            <a href="#introduction" class="api-nav-link active">Introduction</a>
+                        </li>
+                        <li class="api-nav-item">
+                            <a href="#authentication" class="api-nav-link">Authentication</a>
+                        </li>
+                        <li class="api-nav-item">
+                            <a href="#errors" class="api-nav-link">Errors</a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="api-nav">
+                    <h3 class="api-nav-title">Endpoints</h3>
+                    <ul class="api-nav-list">
+                        <li class="api-nav-item">
+                            <a href="#try-on" class="api-nav-link">Try-On</a>
+                        </li>
+                        <li class="api-nav-item">
+                            <a href="#products" class="api-nav-link">Products</a>
+                        </li>
+                        <li class="api-nav-item">
+                            <a href="#user" class="api-nav-link">User</a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="api-nav">
+                    <h3 class="api-nav-title">Resources</h3>
+                    <ul class="api-nav-list">
+                        <li class="api-nav-item">
+                            <a href="#rate-limits" class="api-nav-link">Rate Limits</a>
+                        </li>
+                        <li class="api-nav-item">
+                            <a href="#webhooks" class="api-nav-link">Webhooks</a>
+                        </li>
+                        <li class="api-nav-item">
+                            <a href="#sdk" class="api-nav-link">SDK</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- API Content -->
+            <div class="api-content">
+                <div class="api-header">
+                    <h1>fashionCORE API Documentation</h1>
+                    <p>This documentation provides information about the fashionCORE API, which allows you to integrate virtual try-on functionality into your applications. The API is available to Pro and Enterprise plan subscribers.</p>
+                </div>
+                
+                <!-- Introduction Section -->
+                <div id="introduction" class="api-section-content">
+                    <h2 class="api-section-title">Introduction</h2>
+                    
+                    <div class="api-subsection">
+                        <h3 class="api-subsection-title">Overview</h3>
+                        <p>The fashionCORE API is a RESTful API that allows you to integrate virtual try-on functionality into your applications. The API provides endpoints for processing images, managing products, and retrieving user information.</p>
+                        
+                        <p>All API requests are made to the following base URL:</p>
+                        <div class="code-example">
+                            <code class="code-sample">https://api.fashioncore.com/v1</code>
+                        </div>
+                    </div>
+                    
+                    <div class="api-subsection">
+                        <h3 class="api-subsection-title">Request Format</h3>
+                        <p>The API accepts requests with JSON-encoded bodies for POST and PUT requests. For file uploads, you must use <code>multipart/form-data</code>.</p>
+                        
+                        <p>All responses are returned in JSON format.</p>
+                    </div>
+                </div>
+                
+                <!-- Authentication Section -->
+                <div id="authentication" class="api-section-content">
+                    <h2 class="api-section-title">Authentication</h2>
+                    
+                    <div class="api-subsection">
+                        <h3 class="api-subsection-title">API Keys</h3>
+                        <p>To authenticate with the fashionCORE API, you need to include your API key in the request headers. You can obtain your API key from your account dashboard.</p>
+                        
+                        <div class="code-example">
+                            <code class="code-sample">X-API-Key: your_api_key_here</code>
+                        </div>
+                        
+                        <div class="api-warning">
+                            <p><strong>Important:</strong> Keep your API key secure and never expose it in client-side code. Always make API requests from your server.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Errors Section -->
+                <div id="errors" class="api-section-content">
+                    <h2 class="api-section-title">Errors</h2>
+                    
+                    <div class="api-subsection">
+                        <h3 class="api-subsection-title">Error Responses</h3>
+                        <p>When an error occurs, the API returns a JSON response with an error message and a status code.</p>
+                        
+                        <div class="response-example">
+                            <pre class="response-json">{
+  <span class="code-key">"status"</span>: <span class="code-string">"error"</span>,
+  <span class="code-key">"message"</span>: <span class="code-string">"Invalid API key"</span>,
+  <span class="code-key">"code"</span>: <span class="code-number">401</span>
+}</pre>
+                        </div>
+                        
+                        <p>Common error status codes:</p>
+                        
+                        <div class="api-codes">
+                            <span class="code-badge code-400">400</span> Bad Request - The request was malformed or missing required parameters.
+                            <br>
+                            <span class="code-badge code-401">401</span> Unauthorized - Invalid or missing API key.
+                            <br>
+                            <span class="code-badge code-404">404</span> Not Found - The requested resource does not exist.
+                            <br>
+                            <span class="code-badge code-500">500</span> Internal Server Error - Something went wrong on our end.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Try-On Endpoint -->
+                <div id="try-on" class="api-section-content">
+                    <h2 class="api-section-title">Try-On</h2>
+                    
+                    <div class="api-subsection">
+                        <div class="api-card">
+                            <div class="api-card-header">
+                                <span class="api-method method-post">POST</span>
+                                <span class="api-endpoint">/try-on</span>
+                            </div>
+                            <div class="api-card-body">
+                                <div class="api-card-description">
+                                    <p>Generate a virtual try-on image by uploading a person image and a garment image.</p>
+                                </div>
+                                
+                                <div class="api-params">
+                                    <h4 class="api-params-title">Request Parameters</h4>
+                                    <table class="params-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Parameter</th>
+                                                <th>Type</th>
+                                                <th>Required</th>
+                                                <th>Description</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="param-name">person_image</td>
+                                                <td class="param-type">File</td>
+                                                <td><span class="param-required">Required</span></td>
+                                                <td>The person image to be processed. Must be a front-facing photo.</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="param-name">garment_image</td>
+                                                <td class="param-type">File</td>
+                                                <td><span class="param-required">Required</span></td>
+                                                <td>The garment image to be processed. Should have a plain background.</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="param-name">product_id</td>
+                                                <td class="param-type">Integer</td>
+                                                <td><span class="param-optional">Optional</span></td>
+                                                <td>The ID of the product being tried on (if applicable).</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="api-response">
+                                    <h4 class="api-response-title">Response</h4>
+                                    <div class="response-example">
+                                        <pre class="response-json">{
+  <span class="code-key">"status"</span>: <span class="code-string">"success"</span>,
+  <span class="code-key">"result_url"</span>: <span class="code-string">"https://api.fashioncore.com/results/result_12345.png"</span>,
+  <span class="code-key">"try_on_id"</span>: <span class="code-string">"try_on_12345"</span>
+}</pre>
+                                    </div>
+                                </div>
+                                
+                                <div class="api-codes">
+                                    <h4 class="api-codes-title">Status Codes</h4>
+                                    <span class="code-badge code-200">200</span> Success - Try-on image generated successfully.
+                                    <br>
+                                    <span class="code-badge code-400">400</span> Bad Request - Invalid image format or missing required parameters.
+                                    <br>
+                                    <span class="code-badge code-401">401</span> Unauthorized - Invalid or missing API key.
+                                    <br>
+                                    <span class="code-badge code-500">500</span> Internal Server Error - Failed to process images.
+                                </div>
+                                
+                                <div class="api-example">
+                                    <h4 class="api-example-title">Example Request (cURL)</h4>
+                                    <div class="code-example">
+                                        <pre class="code-sample">curl -X POST https://api.fashioncore.com/v1/try-on \
+  -H "X-API-Key: your_api_key_here" \
+  -F "person_image=@/path/to/person.jpg" \
+  -F "garment_image=@/path/to/garment.jpg"</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Products Endpoint -->
+                <div id="products" class="api-section-content">
+                    <h2 class="api-section-title">Products</h2>
+                    
+                    <div class="api-subsection">
+                        <div class="api-card">
+                            <div class="api-card-header">
+                                <span class="api-method method-get">GET</span>
+                                <span class="api-endpoint">/products</span>
+                            </div>
+                            <div class="api-card-body">
+                                <div class="api-card-description">
+                                    <p>Retrieve a list of products.</p>
+                                </div>
+                                
+                                <div class="api-params">
+                                    <h4 class="api-params-title">Query Parameters</h4>
+                                    <table class="params-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Parameter</th>
+                                                <th>Type</th>
+                                                <th>Required</th>
+                                                <th>Description</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="param-name">category</td>
+                                                <td class="param-type">String</td>
+                                                <td><span class="param-optional">Optional</span></td>
+                                                <td>Filter products by category.</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="param-name">limit</td>
+                                                <td class="param-type">Integer</td>
+                                                <td><span class="param-optional">Optional</span></td>
+                                                <td>Number of products to return (default: 20, max: 100).</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="param-name">offset</td>
+                                                <td class="param-type">Integer</td>
+                                                <td><span class="param-optional">Optional</span></td>
+                                                <td>Number of products to skip (for pagination).</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="api-response">
+                                    <h4 class="api-response-title">Response</h4>
+                                    <div class="response-example">
+                                        <pre class="response-json">{
+  <span class="code-key">"status"</span>: <span class="code-string">"success"</span>,
+  <span class="code-key">"products"</span>: [
+    {
+      <span class="code-key">"id"</span>: <span class="code-number">1</span>,
+      <span class="code-key">"name"</span>: <span class="code-string">"Kanchipuram Silk Saree"</span>,
+      <span class="code-key">"description"</span>: <span class="code-string">"Beautiful traditional Kanchipuram silk saree with zari work."</span>,
+      <span class="code-key">"price"</span>: <span class="code-number">18999.00</span>,
+      <span class="code-key">"image_url"</span>: <span class="code-string">"https://api.fashioncore.com/images/silk-saree.jpg"</span>,
+      <span class="code-key">"category"</span>: <span class="code-string">"Saree"</span>,
+      <span class="code-key">"brand"</span>: <span class="code-string">"Pothys"</span>
+    },
+    {
+      <span class="code-key">"id"</span>: <span class="code-number">2</span>,
+      <span class="code-key">"name"</span>: <span class="code-string">"Designer Anarkali Suit"</span>,
+      <span class="code-key">"description"</span>: <span class="code-string">"Elegant designer Anarkali suit with exquisite embroidery."</span>,
+      <span class="code-key">"price"</span>: <span class="code-number">12499.00</span>,
+      <span class="code-key">"image_url"</span>: <span class="code-string">"https://api.fashioncore.com/images/anarkali.jpg"</span>,
+      <span class="code-key">"category"</span>: <span class="code-string">"Anarkali"</span>,
+      <span class="code-key">"brand"</span>: <span class="code-string">"Meena Bazaar"</span>
+    }
+  ],
+  <span class="code-key">"total"</span>: <span class="code-number">56</span>
+}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User Endpoint -->
+                <div id="user" class="api-section-content">
+                    <h2 class="api-section-title">User</h2>
+                    
+                    <div class="api-subsection">
+                        <div class="api-card">
+                            <div class="api-card-header">
+                                <span class="api-method method-get">GET</span>
+                                <span class="api-endpoint">/user</span>
+                            </div>
+                            <div class="api-card-body">
+                                <div class="api-card-description">
+                                    <p>Retrieve information about the authenticated user.</p>
+                                </div>
+                                
+                                <div class="api-response">
+                                    <h4 class="api-response-title">Response</h4>
+                                    <div class="response-example">
+                                        <pre class="response-json">{
+  <span class="code-key">"status"</span>: <span class="code-string">"success"</span>,
+  <span class="code-key">"user"</span>: {
+    <span class="code-key">"id"</span>: <span class="code-number">123</span>,
+    <span class="code-key">"username"</span>: <span class="code-string">"johndoe"</span>,
+    <span class="code-key">"email"</span>: <span class="code-string">"john.doe@example.com"</span>,
+    <span class="code-key">"credits"</span>: <span class="code-number">42</span>,
+    <span class="code-key">"plan"</span>: <span class="code-string">"pro"</span>,
+    <span class="code-key">"created_at"</span>: <span class="code-string">"2023-01-15T10:30:00Z"</span>
+  }
+}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Rate Limits Section -->
+                <div id="rate-limits" class="api-section-content">
+                    <h2 class="api-section-title">Rate Limits</h2>
+                    
+                    <div class="api-subsection">
+                        <p>To ensure fair usage and maintain service quality, the API enforces rate limits based on your subscription plan:</p>
+                        
+                        <ul>
+                            <li><strong>Pro Plan:</strong> 10 requests per minute, 1,000 requests per day</li>
+                            <li><strong>Enterprise Plan:</strong> 50 requests per minute, 5,000 requests per day</li>
+                        </ul>
+                        
+                        <p>Rate limit information is included in the response headers:</p>
+                        
+                        <div class="code-example">
+                            <pre class="code-sample">X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 5
+X-RateLimit-Reset: 1619682000</pre>
+                        </div>
+                        
+                        <p>If you exceed the rate limit, you'll receive a 429 Too Many Requests response:</p>
+                        
+                        <div class="response-example">
+                            <pre class="response-json">{
+  <span class="code-key">"status"</span>: <span class="code-string">"error"</span>,
+  <span class="code-key">"message"</span>: <span class="code-string">"Rate limit exceeded. Please try again later."</span>,
+  <span class="code-key">"code"</span>: <span class="code-number">429</span>
+}</pre>
+                        </div>
+                        
+                        <div class="api-note">
+                            <p>If you need higher rate limits, please contact us to discuss custom Enterprise plans.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Webhooks Section -->
+                <div id="webhooks" class="api-section-content">
+                    <h2 class="api-section-title">Webhooks</h2>
+                    
+                    <div class="api-subsection">
+                        <p>Webhooks allow you to receive real-time notifications when certain events occur in your account. This is particularly useful for asynchronous operations like try-on processing.</p>
+                        
+                        <p>To set up a webhook:</p>
+                        
+                        <ol>
+                            <li>Go to your account dashboard</li>
+                            <li>Navigate to API & Webhooks</li>
+                            <li>Enter the URL where you want to receive webhook notifications</li>
+                            <li>Select the events you want to subscribe to</li>
+                        </ol>
+                        
+                        <div class="api-note">
+                            <p>Webhook endpoints must be publicly accessible and should respond with a 200 status code within 5 seconds.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SDK Section -->
+                <div id="sdk" class="api-section-content">
+                    <h2 class="api-section-title">SDK</h2>
+                    
+                    <div class="api-subsection">
+                        <p>We provide official SDK libraries for popular programming languages to make integration easier:</p>
+                        
+                        <ul>
+                            <li><strong>JavaScript:</strong> <a href="#">npm install fashioncore-js</a></li>
+                            <li><strong>Python:</strong> <a href="#">pip install fashioncore-python</a></li>
+                            <li><strong>PHP:</strong> <a href="#">composer require fashioncore/fashioncore-php</a></li>
+                        </ul>
+                        
+                        <div class="api-example">
+                            <h4 class="api-example-title">JavaScript Example</h4>
+                            <div class="code-example">
+                                <pre class="code-sample">// Initialize the client
+const fashioncore = require('fashioncore-js');
+const client = new fashioncore.Client('your_api_key_here');
+
+// Generate a try-on image
+async function generateTryOn() {
+  try {
+    const result = await client.tryOn({
+      personImage: './person.jpg',
+      garmentImage: './garment.jpg'
+    });
+    
+    console.log('Try-on generated:', result.result_url);
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
+}</pre>
+                            </div>
+                            
+                            <h4 class="api-example-title">Python Example</h4>
+                            <div class="code-example">
+                                <pre class="code-sample">import fashioncore
+
+# Initialize the client
+client = fashioncore.Client(api_key='your_api_key_here')
+
+# Generate a try-on image
+try:
+    result = client.try_on(
+        person_image='./person.jpg',
+        garment_image='./garment.jpg'
+    )
+    
+    print(f"Try-on generated: {result['result_url']}")
+except Exception as e:
+    print(f"Error: {str(e)}")</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Smooth scroll for anchor links
+        const apiNavLinks = document.querySelectorAll('.api-nav-link');
+        
+        apiNavLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Update active link
+                    apiNavLinks.forEach(navLink => {
+                        navLink.classList.remove('active');
+                    });
+                    
+                    this.classList.add('active');
+                }
+            });
+        });
+        
+        // Update active link on scroll
+        window.addEventListener('scroll', function() {
+            const scrollPosition = window.scrollY;
+            
+            document.querySelectorAll('.api-section-content').forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                const sectionBottom = sectionTop + section.offsetHeight;
+                
+                if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                    const currentId = section.getAttribute('id');
+                    
+                    apiNavLinks.forEach(link => {
+                        link.classList.remove('active');
+                        
+                        if (link.getAttribute('href') === `#${currentId}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

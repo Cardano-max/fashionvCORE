@@ -1,0 +1,473 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy - fashionCORE{% endblock %}
+
+{% block additional_head %}
+<style>
+    .policy-section {
+        padding: 6rem 0;
+    }
+    
+    .policy-container {
+        max-width: 90rem;
+        margin: 0 auto;
+    }
+    
+    .policy-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+    
+    .policy-header h1 {
+        font-size: 4.2rem;
+        margin-bottom: 1.6rem;
+    }
+    
+    .policy-header p {
+        color: var(--text-secondary);
+        font-size: 1.8rem;
+        max-width: 70rem;
+        margin: 0 auto;
+    }
+    
+    .policy-content {
+        background-color: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 4rem;
+    }
+    
+    .policy-content h2 {
+        font-size: 2.8rem;
+        margin: 3.2rem 0 1.6rem;
+        color: var(--primary-color);
+        border-bottom: 1px solid var(--gray-lighter);
+        padding-bottom: 1rem;
+    }
+    
+    .policy-content h2:first-of-type {
+        margin-top: 0;
+    }
+    
+    .policy-content h3 {
+        font-size: 2.2rem;
+        margin: 2.4rem 0 1.2rem;
+        color: var(--text-primary);
+    }
+    
+    .policy-content p {
+        margin-bottom: 1.6rem;
+        line-height: 1.7;
+        font-size: 1.6rem;
+    }
+    
+    .policy-content ul, 
+    .policy-content ol {
+        margin-bottom: 1.6rem;
+        padding-left: 2.4rem;
+    }
+    
+    .policy-content li {
+        margin-bottom: 0.8rem;
+        line-height: 1.7;
+        font-size: 1.6rem;
+    }
+    
+    .policy-content strong {
+        font-weight: 600;
+    }
+    
+    .policy-content a {
+        color: var(--primary-color);
+        text-decoration: underline;
+    }
+    
+    .policy-meta {
+        margin-top: 2.4rem;
+        padding-top: 2.4rem;
+        border-top: 1px solid var(--gray-lighter);
+        color: var(--text-secondary);
+        font-size: 1.4rem;
+    }
+    
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        margin-bottom: 2.4rem;
+    }
+    
+    .policy-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .policy-table th,
+    .policy-table td {
+        padding: 1.2rem 1.6rem;
+        text-align: left;
+        border: 1px solid var(--gray-lighter);
+    }
+    
+    .policy-table th {
+        background-color: var(--bg-tertiary);
+        font-weight: 600;
+    }
+    
+    .policy-table tr:nth-child(even) {
+        background-color: var(--bg-secondary);
+    }
+    
+    .back-to-top {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 5rem;
+        height: 5rem;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s ease;
+        opacity: 0;
+        visibility: hidden;
+        z-index: 100;
+    }
+    
+    .back-to-top.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .back-to-top:hover {
+        transform: translateY(-0.5rem);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .effective-date {
+        font-style: italic;
+        margin-bottom: 3.2rem;
+        color: var(--text-secondary);
+    }
+    
+    .table-of-contents {
+        background-color: var(--bg-secondary);
+        padding: 2.4rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 3.2rem;
+    }
+    
+    .table-of-contents h3 {
+        margin-top: 0;
+        margin-bottom: 1.6rem;
+    }
+    
+    .table-of-contents ol {
+        counter-reset: item;
+        list-style-type: none;
+        padding-left: 0;
+    }
+    
+    .table-of-contents li {
+        counter-increment: item;
+        margin-bottom: 0.8rem;
+    }
+    
+    .table-of-contents li::before {
+        content: counter(item) ". ";
+        color: var(--primary-color);
+        font-weight: bold;
+    }
+    
+    .table-of-contents a {
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    
+    .table-of-contents a:hover {
+        color: var(--primary-color);
+        padding-left: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .policy-content {
+            padding: 2.4rem;
+        }
+        
+        .policy-header h1 {
+            font-size: 3.2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="policy-section">
+    <div class="container policy-container">
+        <div class="policy-header">
+            <h1>Privacy Policy</h1>
+            <p>How fashionCORE collects, uses, and protects your information</p>
+        </div>
+        
+        <div class="policy-content">
+            <p class="effective-date">Last Updated: March 13, 2025</p>
+            
+            <div class="table-of-contents">
+                <h3>Table of Contents</h3>
+                <ol>
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li><a href="#information">Information We Collect</a></li>
+                    <li><a href="#usage">How We Use Your Information</a></li>
+                    <li><a href="#sharing">How We Share Your Information</a></li>
+                    <li><a href="#security">Data Security and Storage</a></li>
+                    <li><a href="#rights">Your Rights and Choices</a></li>
+                    <li><a href="#cookies">Cookies and Tracking Technologies</a></li>
+                    <li><a href="#children">Children's Privacy</a></li>
+                    <li><a href="#international">International Data Transfers</a></li>
+                    <li><a href="#changes">Changes to This Privacy Policy</a></li>
+                    <li><a href="#contact">How to Contact Us</a></li>
+                </ol>
+            </div>
+            
+            <h2 id="introduction">1. Introduction</h2>
+            <p>fashionCORE ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website at <a href="https://fashioncore.com">fashioncore.com</a>, including any other media form, media channel, mobile website, or mobile application related or connected thereto (collectively, the "Site").</p>
+            
+            <p>Please read this Privacy Policy carefully. By accessing or using our Site, you consent to the collection, use, and disclosure of your personal information as described in this Privacy Policy. If you do not agree with our policies and practices, your choice is not to use our Site.</p>
+            
+            <p>This Privacy Policy applies to information we collect:</p>
+            <ul>
+                <li>On our Site</li>
+                <li>In email, text, and other electronic messages between you and our Site</li>
+                <li>Through our virtual try-on service and other interactive features on our Site</li>
+                <li>When you interact with our advertising and applications on third-party websites and services</li>
+            </ul>
+            
+            <h2 id="information">2. Information We Collect</h2>
+            <p>We collect information that you provide directly to us, information we collect automatically when you use our Site, and information from third-party sources.</p>
+            
+            <h3>Information You Provide to Us</h3>
+            <p>We collect information you provide directly to us when you create an account, fill out a form, make a purchase, upload images for virtual try-on, communicate with us, or otherwise interact with our Site. This information may include:</p>
+            
+            <ul>
+                <li><strong>Personal Identifiers:</strong> Name, email address, postal address, phone number, username, and password</li>
+                <li><strong>Payment Information:</strong> Credit card details, billing address, and other payment information. Note: we do not store your full credit card details on our servers.</li>
+                <li><strong>Profile Information:</strong> Profile photo, preferences, and other information you choose to add to your account</li>
+                <li><strong>User Content:</strong> Photos, including images of yourself that you upload to use our virtual try-on service, product selections, and other content you submit through our Site</li>
+                <li><strong>Communication Data:</strong> Information you provide when you contact us with inquiries, customer support requests, or feedback</li>
+            </ul>
+            
+            <h3>Information We Collect Automatically</h3>
+            <p>When you use our Site, we automatically collect certain information about your device and interactions with our Site. This information includes:</p>
+            
+            <ul>
+                <li><strong>Device Information:</strong> Your IP address, browser type, operating system, device identifiers, and mobile network information</li>
+                <li><strong>Usage Information:</strong> Pages or screens you view, time spent on our Site, navigation paths, and features you use</li>
+                <li><strong>Location Information:</strong> General location information derived from your IP address</li>
+                <li><strong>Log Information:</strong> Information our servers automatically collect when you access our Site, such as your browser type, access times, and pages viewed</li>
+                <li><strong>Virtual Try-On Data:</strong> Technical data related to your virtual try-on sessions, including garment selections, processed image outputs, and technical metadata</li>
+            </ul>
+            
+            <h3>Information from Third-Party Sources</h3>
+            <p>We may receive information about you from third-party sources, such as:</p>
+            
+            <ul>
+                <li>Social media platforms when you connect your account with our Site</li>
+                <li>Business partners, such as payment processors and authentication services</li>
+                <li>Marketing partners and analytics providers</li>
+            </ul>
+            
+            <h2 id="usage">3. How We Use Your Information</h2>
+            <p>We use the information we collect for various purposes, including to:</p>
+            
+            <ul>
+                <li><strong>Provide, maintain, and improve our services:</strong> Including to process transactions, manage your account, provide customer support, and enable the virtual try-on functionality</li>
+                <li><strong>Personalize your experience:</strong> Customize content, recommendations, and marketing based on your preferences and interactions</li>
+                <li><strong>Process payments:</strong> Complete purchases, process refunds, and prevent fraudulent transactions</li>
+                <li><strong>Communicate with you:</strong> Send service-related notices, marketing communications, respond to your comments and questions, and provide customer service</li>
+                <li><strong>Improve our algorithms:</strong> Enhance our virtual try-on technology and other features</li>
+                <li><strong>Research and development:</strong> Develop new products and services and analyze the effectiveness of our Site</li>
+                <li><strong>Enforce our terms, conditions, and policies:</strong> Protect our legal rights and comply with legal obligations</li>
+                <li><strong>Marketing and advertising:</strong> Display relevant advertisements and promotions on and off our Site and measure their effectiveness</li>
+            </ul>
+            
+            <h2 id="sharing">4. How We Share Your Information</h2>
+            <p>We may share your information in the following circumstances:</p>
+            
+            <h3>With Your Consent</h3>
+            <p>We may share your information when you expressly authorize us to do so.</p>
+            
+            <h3>Service Providers</h3>
+            <p>We share information with third-party vendors, consultants, and other service providers who perform services on our behalf, such as:</p>
+            <ul>
+                <li>Payment processors</li>
+                <li>Cloud storage providers</li>
+                <li>Customer service providers</li>
+                <li>Analytics providers</li>
+                <li>Marketing and advertising partners</li>
+            </ul>
+            
+            <h3>Business Transfers</h3>
+            <p>If we are involved in a merger, acquisition, financing, reorganization, bankruptcy, or sale of our assets, your information may be transferred as part of that transaction.</p>
+            
+            <h3>Legal Requirements</h3>
+            <p>We may disclose your information if required to do so by law or in response to valid requests by public authorities (e.g., a court or government agency).</p>
+            
+            <h3>Protection of Rights</h3>
+            <p>We may share information to protect and defend the rights, property, or safety of fashionCORE, our users, or the public, including to protect against fraud and malicious activity.</p>
+            
+            <h3>Aggregated or De-identified Information</h3>
+            <p>We may share aggregated or de-identified information, which cannot reasonably be used to identify you, for various purposes including data analysis, research, and improving our services.</p>
+            
+            <h2 id="security">5. Data Security and Storage</h2>
+            <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized or unlawful processing, accidental loss, destruction, or damage. However, no method of transmission over the Internet or electronic storage is 100% secure, and we cannot guarantee absolute security.</p>
+            
+            <h3>Data Retention</h3>
+            <p>We retain your personal information for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required or permitted by law. When determining how long to keep your information, we consider:</p>
+            <ul>
+                <li>The amount, nature, and sensitivity of the personal information</li>
+                <li>The potential risk of harm from unauthorized use or disclosure</li>
+                <li>Whether we can achieve our purposes through other means</li>
+                <li>Legal, regulatory, accounting, or reporting requirements</li>
+            </ul>
+            
+            <h3>Treatment of Virtual Try-On Images</h3>
+            <p>We understand the sensitive nature of the personal photos you upload for our virtual try-on service. Your privacy and security are our priority with regard to these images:</p>
+            <ul>
+                <li>Your uploaded photos are processed securely on our servers to provide the virtual try-on functionality</li>
+                <li>Original uploaded photos are retained for 30 days after your try-on session for troubleshooting purposes, after which they are automatically deleted</li>
+                <li>Generated try-on results may be stored in your account history if you're a registered user</li>
+                <li>We do not use your personal photos for purposes other than providing the virtual try-on service without your explicit consent</li>
+                <li>We implement additional security measures for image storage and processing systems</li>
+            </ul>
+            
+            <h2 id="rights">6. Your Rights and Choices</h2>
+            <p>Depending on your location, you may have certain rights regarding your personal information:</p>
+            
+            <h3>Access and Update</h3>
+            <p>You can access and update certain information about your account through your account settings.</p>
+            
+            <h3>Data Subject Rights</h3>
+            <p>Depending on your jurisdiction, you may have the right to:</p>
+            <ul>
+                <li>Request access to your personal information</li>
+                <li>Request correction of inaccurate information</li>
+                <li>Request deletion of your information</li>
+                <li>Request restriction of processing</li>
+                <li>Request data portability</li>
+                <li>Object to processing of your information</li>
+                <li>Withdraw consent</li>
+            </ul>
+            
+            <h3>Marketing Communications</h3>
+            <p>You can opt out of receiving promotional emails from us by following the instructions in those emails. Even if you opt out, we may still send you non-promotional communications, such as those about your account or our ongoing business relations.</p>
+            
+            <h3>Regional Privacy Rights</h3>
+            <p>If you are a resident of certain jurisdictions, you may have additional rights under local data protection laws:</p>
+            
+            <h4>California Residents</h4>
+            <p>California residents have certain rights under the California Consumer Privacy Act (CCPA) and the California Privacy Rights Act (CPRA).</p>
+            
+            <h4>European Economic Area (EEA), United Kingdom, and Switzerland</h4>
+            <p>If you are in the EEA, UK, or Switzerland, you have rights under the General Data Protection Regulation (GDPR) or similar laws.</p>
+            
+            <p>To exercise any of these rights, please contact us using the information in the "How to Contact Us" section.</p>
+            
+            <h2 id="cookies">7. Cookies and Tracking Technologies</h2>
+            <p>We and our service providers use various technologies to collect information automatically when you access and use our Site, including cookies, web beacons, and similar technologies.</p>
+            
+            <h3>Types of Cookies We Use</h3>
+            <ul>
+                <li><strong>Essential Cookies:</strong> Necessary for the Site to function properly</li>
+                <li><strong>Preference Cookies:</strong> Remember your preferences and settings</li>
+                <li><strong>Analytics Cookies:</strong> Help us understand how visitors interact with our Site</li>
+                <li><strong>Marketing Cookies:</strong> Allow us to deliver relevant advertisements</li>
+            </ul>
+            
+            <h3>Your Cookie Choices</h3>
+            <p>Most web browsers allow you to manage your cookie preferences. You can set your browser to refuse cookies or delete certain cookies. However, if you disable cookies, you may not be able to use all the features of our Site.</p>
+            
+            <h3>Do Not Track</h3>
+            <p>Some browsers have "Do Not Track" features that allow you to tell websites not to track you. We currently do not respond to Do Not Track signals because there is not yet a common understanding of how to interpret these signals.</p>
+            
+            <h2 id="children">8. Children's Privacy</h2>
+            <p>Our Site is not directed to children under the age of 13 (or 16 in certain jurisdictions). We do not knowingly collect personal information from children. If you are a parent or guardian and believe that your child has provided us with personal information, please contact us, and we will delete such information from our systems.</p>
+            
+            <h2 id="international">9. International Data Transfers</h2>
+            <p>We are based in India, and we process and store information on servers located in India and other countries. If you are located outside of India, your information may be transferred to, stored, and processed in a country where the data protection laws may be different from those in your country of residence.</p>
+            
+            <p>If we transfer your information from the EEA, UK, or Switzerland to a country that has not been deemed to provide an adequate level of protection, we will implement appropriate safeguards, such as standard contractual clauses approved by the European Commission.</p>
+            
+            <h2 id="changes">10. Changes to This Privacy Policy</h2>
+            <p>We may update this Privacy Policy from time to time to reflect changes in our practices or for other operational, legal, or regulatory reasons. The date at the top of this Privacy Policy indicates when it was last updated.</p>
+            
+            <p>If we make material changes to how we treat your personal information, we will notify you through a notice on our Site or by email. Your continued use of our Site after the effective date of a revised Privacy Policy constitutes your consent to the changes.</p>
+            
+            <h2 id="contact">11. How to Contact Us</h2>
+            <p>If you have any questions, concerns, or feedback about this Privacy Policy or our privacy practices, please contact us at:</p>
+            
+            <p>
+                <strong>fashionCORE</strong><br>
+                Address: 123 Fashion Avenue, Mumbai 400001, India<br>
+                Email: privacy@fashioncore.com<br>
+                Phone: +91 22 1234 5678
+            </p>
+            
+            <p>For data subject rights requests, please email us at dpo@fashioncore.com.</p>
+            
+            <div class="policy-meta">
+                <p>© 2025 fashionCORE. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Back to Top Button -->
+<a href="#" id="backToTop" class="back-to-top">
+    <i class="fas fa-arrow-up"></i>
+</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Back to Top Button Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Smooth scroll for table of contents links
+        document.querySelectorAll('.table-of-contents a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

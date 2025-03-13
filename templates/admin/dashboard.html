@@ -1,0 +1,566 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - fashionCORE{% endblock %}
+
+{% block additional_head %}
+<style>
+    .admin-section {
+        padding: 2rem 0;
+    }
+    
+    .admin-container {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 2rem;
+    }
+    
+    .admin-sidebar {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+    }
+    
+    .admin-content {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+    }
+    
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .admin-title {
+        margin-bottom: 0;
+    }
+    
+    .admin-nav {
+        margin-bottom: 1.5rem;
+    }
+    
+    .admin-nav-title {
+        font-size: 0.9rem;
+        color: var(--gray);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .admin-nav-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .admin-nav-item {
+        margin-bottom: 0.5rem;
+    }
+    
+    .admin-nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: var(--gray-dark);
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+    }
+    
+    .admin-nav-link:hover {
+        background-color: var(--gray-lighter);
+        color: var(--primary-color);
+    }
+    
+    .admin-nav-link.active {
+        background-color: var(--primary-color);
+        color: var(--white);
+    }
+    
+    .admin-nav-link i {
+        margin-right: 0.75rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background-color: var(--gray-lighter);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: var(--white);
+        font-size: 1.5rem;
+    }
+    
+    .stat-icon.users {
+        background-color: var(--primary-color);
+    }
+    
+    .stat-icon.products {
+        background-color: var(--secondary-color);
+    }
+    
+    .stat-icon.orders {
+        background-color: var(--success);
+    }
+    
+    .stat-icon.revenue {
+        background-color: var(--info);
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+    
+    .chart-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .chart-card {
+        background-color: var(--white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+    }
+    
+    .chart-title {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .chart {
+        width: 100%;
+        height: 300px;
+    }
+    
+    .recent-activities {
+        margin-bottom: 2rem;
+    }
+    
+    .activity-title {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .activity-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        color: var(--white);
+        font-size: 1rem;
+    }
+    
+    .activity-icon.order {
+        background-color: var(--success);
+    }
+    
+    .activity-icon.user {
+        background-color: var(--primary-color);
+    }
+    
+    .activity-icon.product {
+        background-color: var(--secondary-color);
+    }
+    
+    .activity-content {
+        flex-grow: 1;
+    }
+    
+    .activity-text {
+        margin-bottom: 0.25rem;
+    }
+    
+    .activity-meta {
+        display: flex;
+        align-items: center;
+        color: var(--gray);
+        font-size: 0.8rem;
+    }
+    
+    .activity-time {
+        margin-right: 1rem;
+    }
+    
+    .activity-status {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+    }
+    
+    .status-completed {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
+    
+    .status-pending {
+        background-color: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+    
+    @media (max-width: 992px) {
+        .admin-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .admin-sidebar {
+            display: none;
+        }
+        
+        .chart-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="container">
+        <div class="admin-container">
+            <!-- Admin Sidebar -->
+            <div class="admin-sidebar">
+                <div class="admin-nav">
+                    <h3 class="admin-nav-title">Main</h3>
+                    <ul class="admin-nav-list">
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link active">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="admin-nav">
+                    <h3 class="admin-nav-title">Management</h3>
+                    <ul class="admin-nav-list">
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_products') }}" class="admin-nav-link">
+                                <i class="fas fa-tshirt"></i>
+                                Products
+                            </a>
+                        </li>
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_orders') }}" class="admin-nav-link">
+                                <i class="fas fa-shopping-cart"></i>
+                                Orders
+                            </a>
+                        </li>
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('admin_users') }}" class="admin-nav-link">
+                                <i class="fas fa-users"></i>
+                                Users
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="admin-nav">
+                    <h3 class="admin-nav-title">System</h3>
+                    <ul class="admin-nav-list">
+                        <li class="admin-nav-item">
+                            <a href="#" class="admin-nav-link">
+                                <i class="fas fa-cog"></i>
+                                Settings
+                            </a>
+                        </li>
+                        <li class="admin-nav-item">
+                            <a href="{{ url_for('logout') }}" class="admin-nav-link">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Admin Content -->
+            <div class="admin-content">
+                <div class="admin-header">
+                    <h1 class="admin-title">Dashboard</h1>
+                    <div class="admin-actions">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-download"></i> Export Report
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon users">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-value">1,243</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon products">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <div class="stat-value">56</div>
+                        <div class="stat-label">Products</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon orders">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-value">358</div>
+                        <div class="stat-label">Orders This Month</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon revenue">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <div class="stat-value">₹2.4L</div>
+                        <div class="stat-label">Monthly Revenue</div>
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div class="chart-container">
+                    <div class="chart-card">
+                        <h3 class="chart-title">Sales Analytics</h3>
+                        <div class="chart">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3 class="chart-title">Order Status</h3>
+                        <div class="chart">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activities -->
+                <div class="recent-activities">
+                    <h3 class="activity-title">Recent Activities</h3>
+                    <ul class="activity-list">
+                        <li class="activity-item">
+                            <div class="activity-icon order">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>Priya Sharma</strong> placed an order for <strong>Kanchipuram Silk Saree</strong>
+                                </div>
+                                <div class="activity-meta">
+                                    <span class="activity-time">
+                                        <i class="far fa-clock"></i> 2 hours ago
+                                    </span>
+                                    <span class="activity-status status-completed">
+                                        Completed
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                        
+                        <li class="activity-item">
+                            <div class="activity-icon user">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>Rahul Patel</strong> registered a new account
+                                </div>
+                                <div class="activity-meta">
+                                    <span class="activity-time">
+                                        <i class="far fa-clock"></i> 5 hours ago
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                        
+                        <li class="activity-item">
+                            <div class="activity-icon order">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>Neha Singh</strong> placed an order for <strong>Designer Anarkali Suit</strong>
+                                </div>
+                                <div class="activity-meta">
+                                    <span class="activity-time">
+                                        <i class="far fa-clock"></i> 8 hours ago
+                                    </span>
+                                    <span class="activity-status status-pending">
+                                        Pending
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                        
+                        <li class="activity-item">
+                            <div class="activity-icon product">
+                                <i class="fas fa-tshirt"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>New product</strong> added: <strong>Embroidered Lehenga Choli</strong>
+                                </div>
+                                <div class="activity-meta">
+                                    <span class="activity-time">
+                                        <i class="far fa-clock"></i> Yesterday
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                        
+                        <li class="activity-item">
+                            <div class="activity-icon order">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>Arjun Kumar</strong> placed an order for <strong>Banarasi Silk Saree</strong>
+                                </div>
+                                <div class="activity-meta">
+                                    <span class="activity-time">
+                                        <i class="far fa-clock"></i> Yesterday
+                                    </span>
+                                    <span class="activity-status status-completed">
+                                        Completed
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sales Chart
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        const salesChart = new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Sales (₹)',
+                    data: [120000, 135000, 125000, 150000, 160000, 178000, 190000, 205000, 220000, 235000, 240000, 250000],
+                    backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                    borderColor: 'rgba(67, 97, 238, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value / 1000 + 'K';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        // Order Status Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Processing', 'Pending', 'Cancelled'],
+                datasets: [{
+                    data: [65, 20, 10, 5],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(67, 97, 238, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(67, 97, 238, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

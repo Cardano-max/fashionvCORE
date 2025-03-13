@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}fashionCORE - Virtual Try-On Software{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    {% block additional_head %}{% endblock %}
+</head>
+<body>
+    <!-- Header with Navigation -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <a href="{{ url_for('index') }}">
+                    <span class="logo-text">fashion<span class="logo-highlight">CORE</span></span>
+                </a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="{{ url_for('index') }}" {% if request.path == url_for('index') %}class="active"{% endif %}>Home</a></li>
+                    <li><a href="{{ url_for('products') }}" {% if request.path == url_for('products') %}class="active"{% endif %}>Products</a></li>
+                    <li><a href="{{ url_for('try_on_generic') }}" {% if 'try-on' in request.path and 'business' not in request.path %}class="active"{% endif %}>Try-On</a></li>
+                    <li><a href="{{ url_for('business_try_on') }}" {% if 'business-try-on' in request.path %}class="active"{% endif %}>Business Try-On</a></li>
+                    <li><a href="{{ url_for('pricing') }}" {% if request.path == url_for('pricing') %}class="active"{% endif %}>Pricing</a></li>
+                    <li><a href="{{ url_for('api_docs') }}" {% if request.path == url_for('api_docs') %}class="active"{% endif %}>API</a></li>
+                    <li><a href="{{ url_for('about') }}" {% if request.path == url_for('about') %}class="active"{% endif %}>About</a></li>
+                    <li><a href="{{ url_for('privacy_policy') }}">Privacy Policy</a></li>
+                    <li><a href="{{ url_for('terms_of_service') }}">Terms of Service</a></li>
+                    <li><a href="#">Data Security</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline">Admin</a>
+                    {% endif %}
+                    <a href="{{ url_for('cart') }}" class="btn btn-outline">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span id="cart-count">0</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline">Log In</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
+                {% endif %}
+            </div>
+            <button class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <span class="close-btn" onclick="this.parentElement.style.display='none'">&times;</span>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <span class="logo-text">fashion<span class="logo-highlight">CORE</span></span>
+            </div>
+            
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="{{ url_for('about') }}">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Products</h3>
+                    <ul>
+                        <li><a href="{{ url_for('try_on_generic') }}">Virtual Try-On</a></li>
+                        <li><a href="{{ url_for('api_docs') }}">API</a></li>
+                        <li><a href="{{ url_for('pricing') }}">For Businesses</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="{{ url_for('api_docs') }}">Documentation</a></li>
+                        <li><a href="{{ url_for('pricing') }}">Pricing</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Data Security</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-social">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 fashionCORE. All rights reserved.</p>
+                <p class="disclaimer">Powered by fashionCORE-Try-On</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Core JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu toggle
+            const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+            const mainNav = document.querySelector('.main-nav');
+            
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', () => {
+                    mainNav.classList.toggle('active');
+                    mobileMenuToggle.classList.toggle('active');
+                });
+            }
+
+            // Auto-hide flash messages after 5 seconds
+            setTimeout(() => {
+                const flashMessages = document.querySelectorAll('.alert');
+                flashMessages.forEach(message => {
+                    message.style.display = 'none';
+                });
+            }, 5000);
+
+            // Update cart count from localStorage if available
+            const cartCountElement = document.getElementById('cart-count');
+            if (cartCountElement) {
+                const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+                cartCountElement.textContent = cartItems.length;
+            }
+        });
+    </script>
+    
+    <!-- Page-specific JavaScript -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

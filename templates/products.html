@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Products - fashionCORE{% endblock %}
+
+{% block additional_head %}
+<style>
+    .category-filter {
+        margin-bottom: 2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .category-tag {
+        padding: 0.5rem 1rem;
+        background-color: var(--gray-lighter);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+    
+    .category-tag:hover {
+        background-color: var(--gray-light);
+    }
+    
+    .category-tag.active {
+        background-color: var(--primary-color);
+        color: var(--white);
+    }
+    
+    .search-container {
+        margin-bottom: 2rem;
+    }
+    
+    .search-form {
+        display: flex;
+        max-width: 500px;
+    }
+    
+    .search-input {
+        flex-grow: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md) 0 0 var(--radius-md);
+        font-size: 1rem;
+    }
+    
+    .search-btn {
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    }
+    
+    .no-products {
+        text-align: center;
+        padding: 3rem;
+        background-color: var(--gray-lighter);
+        border-radius: var(--radius-md);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Products Header -->
+<section class="page-header">
+    <div class="container">
+        <h1>Our Collection</h1>
+        <p>Discover our premium ethnic wear collection and try them on virtually</p>
+    </div>
+</section>
+
+<!-- Products Section -->
+<section class="products-section">
+    <div class="container">
+        <!-- Search Bar -->
+        <div class="search-container">
+            <form action="{{ url_for('products') }}" method="GET" class="search-form">
+                <input type="text" name="search" class="search-input" placeholder="Search products..." value="{{ request.args.get('search', '') }}">
+                <button type="submit" class="btn btn-primary search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Category Filter -->
+        <div class="category-filter">
+            <a href="{{ url_for('products') }}" class="category-tag {% if not request.args.get('category') %}active{% endif %}">
+                All
+            </a>
+            {% for category in categories %}
+            <a href="{{ url_for('products', category=category[0]) }}" class="category-tag {% if request.args.get('category') == category[0] %}active{% endif %}">
+                {{ category[0] }}
+            </a>
+            {% endfor %}
+        </div>
+        
+        <!-- Products Grid -->
+        {% if products %}
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="{{ url_for('static', filename='images/' + product.image_path) }}" alt="{{ product.name }}">
+                    <div class="product-overlay">
+                        <div class="product-overlay-buttons">
+                            <a href="{{ url_for('try_on_page', product_id=product.id) }}" class="btn btn-secondary btn-small">Try On</a>
+                            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary btn-small">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h4>{{ product.name }}</h4>
+                    <p class="product-brand">{{ product.brand }}</p>
+                    <p class="product-price">₹{{ "%.2f"|format(product.price) }}</p>
+                    <p class="product-desc">{{ product.description|truncate(50) }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-products">
+            <h3>No products found</h3>
+            <p>Try a different search term or category</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add to cart functionality for product cards
+        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+        
+        addToCartButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const productId = this.getAttribute('data-product-id');
+                const productName = this.getAttribute('data-product-name');
+                const productPrice = parseFloat(this.getAttribute('data-product-price'));
+                const productImage = this.getAttribute('data-product-image');
+                
+                // Get existing cart from localStorage
+                let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+                
+                // Add item to cart
+                cartItems.push({
+                    id: productId,
+                    name: productName,
+                    price: productPrice,
+                    image: productImage,
+                    quantity: 1
+                });
+                
+                // Save updated cart
+                localStorage.setItem('cartItems', JSON.stringify(cartItems));
+                
+                // Update cart count in header
+                const cartCountElement = document.getElementById('cart-count');
+                if (cartCountElement) {
+                    cartCountElement.textContent = cartItems.length;
+                }
+                
+                // Show notification
+                alert(`${productName} added to cart!`);
+            });
+        });
+    });
+</script>
+{% endblock %}

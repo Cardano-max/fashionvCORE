@@ -1,0 +1,992 @@
+{% extends "base.html" %}
+
+{% block title %}Business Virtual Try-On - fashionCORE{% endblock %}
+
+{% block additional_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business_try_on.css') }}">
+<style>
+    .try-on-section {
+        padding: 6.4rem 0;
+    }
+    
+    .business-banner {
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/static/images/business/banner.jpg');
+        background-size: cover;
+        background-position: center;
+        color: var(--white);
+        padding: 8rem 0;
+        margin-bottom: 6.4rem;
+        text-align: center;
+    }
+    
+    .business-banner h1 {
+        font-size: 4.8rem;
+        margin-bottom: 2.4rem;
+        color: var(--white);
+    }
+    
+    .business-banner p {
+        font-size: 2rem;
+        max-width: 80rem;
+        margin: 0 auto 3.2rem;
+    }
+    
+    .model-selection {
+        margin-bottom: 4.8rem;
+    }
+    
+    .model-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+        gap: 2.4rem;
+        margin-top: 3.2rem;
+    }
+    
+    .model-card {
+        background-color: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        cursor: pointer;
+        transition: all var(--transition-medium);
+        position: relative;
+    }
+    
+    .model-card:hover {
+        transform: translateY(-0.8rem);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .model-card.selected {
+        border: 3px solid var(--primary-color);
+    }
+    
+    .model-card.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 3rem;
+        height: 3rem;
+        background-color: var(--primary-color);
+        color: var(--white);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    
+    .model-image {
+        width: 100%;
+        height: 30rem;
+        object-fit: cover;
+    }
+    
+    .model-info {
+        padding: 1.6rem;
+    }
+    
+    .model-name {
+        font-weight: 600;
+        font-size: 1.8rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .model-details {
+        color: var(--text-secondary);
+        font-size: 1.4rem;
+    }
+    
+    .options-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
+        gap: 3.2rem;
+        margin-bottom: 4.8rem;
+    }
+    
+    .option-card {
+        background-color: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 2.4rem;
+    }
+    
+    .option-card h3 {
+        font-size: 2rem;
+        margin-bottom: 2.4rem;
+    }
+    
+    .pose-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+        gap: 1.6rem;
+        margin-bottom: 2.4rem;
+    }
+    
+    .pose-option {
+        cursor: pointer;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 2px solid transparent;
+        transition: all var(--transition-fast);
+    }
+    
+    .pose-option:hover {
+        transform: scale(1.05);
+    }
+    
+    .pose-option.selected {
+        border-color: var(--primary-color);
+    }
+    
+    .pose-option img {
+        width: 100%;
+        height: 12rem;
+        object-fit: cover;
+    }
+    
+    .background-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+        gap: 1.6rem;
+        margin-bottom: 2.4rem;
+    }
+    
+    .bg-option {
+        cursor: pointer;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 2px solid transparent;
+        transition: all var(--transition-fast);
+        height: 8rem;
+    }
+    
+    .bg-option:hover {
+        transform: scale(1.05);
+    }
+    
+    .bg-option.selected {
+        border-color: var(--primary-color);
+    }
+    
+    .bg-option-color {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .bg-option-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .upload-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        border: 2px dashed var(--gray-lighter);
+        border-radius: var(--radius-md);
+        text-align: center;
+        transition: all var(--transition-fast);
+        cursor: pointer;
+        min-height: 24rem;
+    }
+    
+    .upload-area.dragover {
+        border-color: var(--primary-color);
+        background-color: var(--primary-transparent);
+    }
+    
+    .upload-icon {
+        font-size: 6.4rem;
+        color: var(--gray-light);
+        margin-bottom: 1.6rem;
+        transition: all var(--transition-fast);
+    }
+    
+    .upload-area:hover .upload-icon {
+        color: var(--primary-color);
+        transform: scale(1.1);
+    }
+    
+    .upload-area p {
+        font-size: 1.8rem;
+        color: var(--text-secondary);
+        margin-bottom: 1.6rem;
+    }
+    
+    .preview-container {
+        position: relative;
+        width: 100%;
+        min-height: 24rem;
+        display: none;
+    }
+    
+    .preview-actions {
+        position: absolute;
+        top: 1.2rem;
+        right: 1.2rem;
+        display: flex;
+        gap: 0.8rem;
+        z-index: 1;
+    }
+    
+    .action-btn {
+        width: 4rem;
+        height: 4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--card-bg);
+        border: none;
+        border-radius: 50%;
+        font-size: 1.6rem;
+        cursor: pointer;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-fast);
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-0.4rem);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .remove-btn {
+        color: var(--error);
+    }
+    
+    .remove-btn:hover {
+        background-color: var(--error);
+        color: var(--white);
+    }
+    
+    .garment-preview {
+        width: 100%;
+        height: 100%;
+        min-height: 24rem;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+    
+    .garment-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    
+    .generate-section {
+        text-align: center;
+        margin-top: 4.8rem;
+    }
+    
+    .generate-btn {
+        padding: 1.6rem 4.8rem;
+        font-size: 2rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        border-radius: var(--radius-md);
+        color: var(--white);
+        cursor: pointer;
+        transition: all var(--transition-medium);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.2rem;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .generate-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .generate-btn:not(:disabled):hover {
+        transform: translateY(-0.4rem);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .generate-btn i {
+        font-size: 2.4rem;
+    }
+    
+    .status-message {
+        margin-top: 1.6rem;
+        font-size: 1.8rem;
+        min-height: 2.8rem;
+    }
+    
+    .status-message.error {
+        color: var(--error);
+    }
+    
+    .status-message.success {
+        color: var(--success);
+    }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(0.8rem);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+    
+    .loading-spinner {
+        width: 8rem;
+        height: 8rem;
+        border-radius: 50%;
+        border: 0.8rem solid rgba(255, 255, 255, 0.1);
+        border-top-color: var(--primary-color);
+        animation: spinner 1s linear infinite;
+    }
+    
+    .loading-message {
+        color: var(--white);
+        font-size: 2.4rem;
+        margin-top: 2.4rem;
+        text-align: center;
+    }
+    
+    .loading-submessage {
+        color: var(--gray-light);
+        font-size: 1.8rem;
+        margin-top: 1.2rem;
+        text-align: center;
+    }
+    
+    /* Result Section */
+    .result-section {
+        padding: 8rem 0;
+        background-color: var(--bg-secondary);
+        display: none;
+    }
+    
+    .result-title {
+        text-align: center;
+        margin-bottom: 4.8rem;
+    }
+    
+    .result-title h2 {
+        font-size: 3.6rem;
+        margin-bottom: 1.6rem;
+    }
+    
+    .result-title p {
+        font-size: 1.8rem;
+        color: var(--text-secondary);
+        max-width: 64rem;
+        margin: 0 auto;
+    }
+    
+    .result-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
+        gap: 3.2rem;
+        margin-bottom: 4.8rem;
+    }
+    
+    .result-card {
+        background-color: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        transition: all var(--transition-medium);
+    }
+    
+    .result-card:hover {
+        transform: translateY(-0.8rem);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .result-image {
+        width: 100%;
+        height: 40rem;
+        object-fit: contain;
+        background-color: var(--bg-primary);
+    }
+    
+    .result-info {
+        padding: 2.4rem;
+    }
+    
+    .result-info h3 {
+        font-size: 2rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .result-info p {
+        color: var(--text-secondary);
+        font-size: 1.6rem;
+        margin-bottom: 1.6rem;
+    }
+    
+    .result-actions {
+        display: flex;
+        gap: 1.2rem;
+    }
+    
+    .business-features {
+        padding: 8rem 0;
+        background-color: var(--bg-secondary);
+    }
+    
+    .section-header {
+        text-align: center;
+        margin-bottom: 6.4rem;
+    }
+    
+    .section-header h2 {
+        font-size: 3.6rem;
+        margin-bottom: 1.6rem;
+    }
+    
+    .section-header p {
+        max-width: 64rem;
+        margin: 0 auto;
+        color: var(--text-secondary);
+        font-size: 1.8rem;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr));
+        gap: 3.2rem;
+    }
+    
+    .benefit-card {
+        background-color: var(--card-bg);
+        border-radius: var(--radius-lg);
+        padding: 3.2rem;
+        text-align: center;
+        box-shadow: var(--shadow-md);
+        transition: all var(--transition-medium);
+        height: 100%;
+    }
+    
+    .benefit-card:hover {
+        transform: translateY(-0.8rem);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .benefit-icon {
+        width: 8rem;
+        height: 8rem;
+        background: linear-gradient(135deg, var(--primary-transparent), var(--secondary-transparent));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3.2rem;
+        margin: 0 auto 2.4rem;
+        color: var(--primary-color);
+        transition: all var(--transition-medium);
+    }
+    
+    .benefit-card:hover .benefit-icon {
+        transform: scale(1.1);
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: var(--white);
+        box-shadow: 0 0 2rem var(--primary-glow);
+    }
+    
+    .benefit-card h3 {
+        font-size: 2.4rem;
+        margin-bottom: 1.6rem;
+    }
+    
+    .benefit-card p {
+        color: var(--text-secondary);
+        font-size: 1.6rem;
+    }
+    
+    /* Pricing section */
+    .business-pricing {
+        padding: 8rem 0;
+    }
+    
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
+        gap: 3.2rem;
+        margin-top: 4.8rem;
+    }
+    
+    .pricing-card {
+        background-color: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 3.2rem;
+        text-align: center;
+        transition: all var(--transition-medium);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .pricing-card:hover {
+        transform: translateY(-0.8rem);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .pricing-card.popular {
+        transform: scale(1.05);
+        border: 2px solid var(--primary-color);
+    }
+    
+    .pricing-card.popular:hover {
+        transform: translateY(-0.8rem) scale(1.05);
+    }
+    
+    .popular-tag {
+        position: absolute;
+        top: 2rem;
+        right: -4rem;
+        background-color: var(--primary-color);
+        color: var(--white);
+        padding: 0.8rem 4rem;
+        transform: rotate(45deg);
+        font-weight: 600;
+        font-size: 1.4rem;
+    }
+    
+    .pricing-name {
+        font-size: 2.4rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .pricing-description {
+        color: var(--text-secondary);
+        margin-bottom: 2.4rem;
+        height: 4.8rem;
+    }
+    
+    .pricing-price {
+        font-size: 5.6rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.8rem;
+    }
+    
+    .pricing-price small {
+        font-size: 2rem;
+        font-weight: 400;
+        color: var(--text-secondary);
+    }
+    
+    .pricing-period {
+        color: var(--text-secondary);
+        margin-bottom: 2.4rem;
+    }
+    
+    .pricing-features {
+        text-align: left;
+        margin-bottom: 3.2rem;
+    }
+    
+    .pricing-feature {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.2rem;
+    }
+    
+    .pricing-feature i {
+        color: var(--success);
+        margin-right: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .pricing-feature.disabled i {
+        color: var(--gray-light);
+    }
+    
+    .pricing-feature-text {
+        font-size: 1.6rem;
+    }
+    
+    .pricing-feature.disabled .pricing-feature-text {
+        color: var(--gray-light);
+    }
+    
+    .pricing-action {
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Business Banner Section -->
+<section class="business-banner">
+    <div class="container">
+        <h1>Professional Virtual Photoshoots</h1>
+        <p>Create high-quality marketing images for your products without expensive photoshoots. Choose from our selection of professional models, poses, and backgrounds.</p>
+        <a href="#business-try-on" class="btn btn-primary btn-large">Try Now</a>
+    </div>
+</section>
+
+<!-- Business Try-On Section -->
+<section id="business-try-on" class="try-on-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Create Professional Product Images</h2>
+            <p>Select a model, upload your garment, choose a pose and background, and get a professional marketing image in minutes.</p>
+        </div>
+        
+        <!-- Model Selection -->
+        <div class="model-selection">
+            <h3>Step 1: Select a Model</h3>
+            <div class="model-grid" id="modelGrid">
+                <!-- Models will be loaded dynamically -->
+                {% for i in range(1, 9) %}
+                <div class="model-card" data-model-id="{{ i }}">
+                    <img src="{{ url_for('static', filename='images/business/models/model-' + i|string + '.jpg') }}" alt="Model {{ i }}" class="model-image">
+                    <div class="model-info">
+                        <h4 class="model-name">Model {{ i }}</h4>
+                        <p class="model-details">Professional high-resolution model</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Options Section -->
+        <div class="options-section">
+            <!-- Pose Selection -->
+            <div class="option-card">
+                <h3>Step 2: Select a Pose</h3>
+                <div class="pose-selector" id="poseSelector">
+                    {% for i in range(1, 7) %}
+                    <div class="pose-option" data-pose-id="{{ i }}">
+                        <img src="{{ url_for('static', filename='images/business/poses/pose-' + i|string + '.jpg') }}" alt="Pose {{ i }}">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Background Selection -->
+            <div class="option-card">
+                <h3>Step 3: Select a Background</h3>
+                <div class="background-selector" id="backgroundSelector">
+                    <!-- Solid colors -->
+                    <div class="bg-option" data-bg-id="white" data-bg-type="color" data-bg-value="#ffffff">
+                        <div class="bg-option-color" style="background-color: #ffffff; border: 1px solid #e5e7eb;"></div>
+                    </div>
+                    <div class="bg-option" data-bg-id="black" data-bg-type="color" data-bg-value="#000000">
+                        <div class="bg-option-color" style="background-color: #000000;"></div>
+                    </div>
+                    <div class="bg-option" data-bg-id="gray" data-bg-type="color" data-bg-value="#f3f4f6">
+                        <div class="bg-option-color" style="background-color: #f3f4f6; border: 1px solid #e5e7eb;"></div>
+                    </div>
+                    
+                    <!-- Image backgrounds -->
+                    {% for i in range(1, 6) %}
+                    <div class="bg-option" data-bg-id="bg-{{ i }}" data-bg-type="image" data-bg-value="background-{{ i }}.jpg">
+                        <img src="{{ url_for('static', filename='images/business/backgrounds/background-' + i|string + '.jpg') }}" alt="Background {{ i }}" class="bg-option-image">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Garment Upload -->
+        <div class="option-card">
+            <h3>Step 4: Upload Your Garment</h3>
+            <div id="garmentUploadArea" class="upload-area">
+                <i class="fas fa-tshirt upload-icon"></i>
+                <p>Drag & drop your garment image here</p>
+                <p class="or">OR</p>
+                <button id="garmentBrowseBtn" class="btn btn-secondary">Browse Files</button>
+                <input type="file" id="garmentImageInput" accept="image/*" style="display: none;">
+            </div>
+            
+            <div id="garmentPreviewContainer" class="preview-container">
+                <div class="preview-actions">
+                    <button id="garmentRemoveBtn" class="action-btn remove-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div id="garmentPreview" class="garment-preview"></div>
+            </div>
+        </div>
+        
+        <!-- Generate Button -->
+        <div class="generate-section">
+            <button id="generateBtn" class="generate-btn" disabled>
+                <i class="fas fa-magic"></i>
+                Generate Image
+            </button>
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+        
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <div id="loadingMessage" class="loading-message">Generating your professional image...</div>
+            <div id="loadingSubMessage" class="loading-submessage">This may take up to a minute</div>
+        </div>
+    </div>
+</section>
+
+<!-- Results Section (hidden by default) -->
+<section id="resultSection" class="result-section">
+    <div class="container">
+        <div class="result-title">
+            <h2>Your Professional Images</h2>
+            <p>Download your high-quality images for your marketing needs or generate more with different styles.</p>
+        </div>
+        
+        <div class="result-gallery">
+            <div class="result-card">
+                <img id="resultImage" src="" alt="Generated Result" class="result-image">
+                <div class="result-info">
+                    <h3>Professional Product Image</h3>
+                    <p>High-resolution image ready for your marketing campaigns.</p>
+                    <div class="result-actions">
+                        <a id="downloadBtn" href="#" class="btn btn-primary" download="fashionCORE-business-image.png">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                        <button id="shareBtn" class="btn btn-secondary">
+                            <i class="fas fa-share-alt"></i> Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center;">
+            <button id="tryAgainBtn" class="btn btn-outline btn-large">
+                <i class="fas fa-redo"></i> Create Another Image
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Business Features Section -->
+<section class="business-features">
+    <div class="container">
+        <div class="section-header">
+            <h2>Benefits for Your Business</h2>
+            <p>Save time and money while creating professional marketing materials for your fashion products.</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <h3>Cost-Effective</h3>
+                <p>Save thousands on professional photoshoots, photographers, and models for each of your products.</p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>Quick Turnaround</h3>
+                <p>Generate professional product images in minutes instead of waiting days or weeks.</p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-palette"></i>
+                </div>
+                <h3>Unlimited Variations</h3>
+                <p>Create multiple versions with different poses, backgrounds, and models for diverse marketing campaigns.</p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Increase Sales</h3>
+                <p>High-quality product images can increase conversion rates by up to 40% for your online store.</p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3>Scale Globally</h3>
+                <p>Easily create localized marketing materials with diverse models for different markets.</p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <h3>Seasonal Updates</h3>
+                <p>Quickly update your product images for new seasons or promotions without new photoshoots.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Business Pricing Section -->
+<section class="business-pricing">
+    <div class="container">
+        <div class="section-header">
+            <h2>Business Plans</h2>
+            <p>Choose a plan that fits your business needs and start creating professional product images today.</p>
+        </div>
+        
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3 class="pricing-name">Starter</h3>
+                <p class="pricing-description">For small businesses just getting started with virtual try-on.</p>
+                <div class="pricing-price">₹2,999<small>/mo</small></div>
+                <p class="pricing-period">or ₹29,990/year (save 17%)</p>
+                
+                <ul class="pricing-features">
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">100 images per month</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">10 standard models</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">Basic poses and backgrounds</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">Web resolution export</span>
+                    </li>
+                    <li class="pricing-feature disabled">
+                        <i class="fas fa-times-circle"></i>
+                        <span class="pricing-feature-text">Advanced customization</span>
+                    </li>
+                    <li class="pricing-feature disabled">
+                        <i class="fas fa-times-circle"></i>
+                        <span class="pricing-feature-text">API access</span>
+                    </li>
+                </ul>
+                
+                <button class="btn btn-outline pricing-action">Choose Plan</button>
+            </div>
+            
+            <div class="pricing-card popular">
+                <div class="popular-tag">Popular</div>
+                <h3 class="pricing-name">Professional</h3>
+                <p class="pricing-description">For growing businesses with regular marketing needs.</p>
+                <div class="pricing-price">₹6,999<small>/mo</small></div>
+                <p class="pricing-period">or ₹69,990/year (save 17%)</p>
+                
+                <ul class="pricing-features">
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">500 images per month</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">25 premium models</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">Advanced poses and backgrounds</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">High-resolution export</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">Basic customization</span>
+                    </li>
+                    <li class="pricing-feature disabled">
+                        <i class="fas fa-times-circle"></i>
+                        <span class="pricing-feature-text">API access</span>
+                    </li>
+                </ul>
+                
+                <button class="btn btn-primary pricing-action">Choose Plan</button>
+            </div>
+            
+            <div class="pricing-card">
+                <h3 class="pricing-name">Enterprise</h3>
+                <p class="pricing-description">For larger businesses with high-volume needs.</p>
+                <div class="pricing-price">₹19,999<small>/mo</small></div>
+                <p class="pricing-period">or ₹199,990/year (save 17%)</p>
+                
+                <ul class="pricing-features">
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">Unlimited images</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">50+ exclusive models</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">Premium poses and backgrounds</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">Print-ready resolution export</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">Advanced customization</span>
+                    </li>
+                    <li class="pricing-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="pricing-feature-text">API access for integration</span>
+                    </li>
+                </ul>
+                
+                <button class="btn btn-outline pricing-action">Contact Sales</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Share Modal -->
+<div id="shareModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Share Your Result</h2>
+            <button id="closeShareModal" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="shareLink">Direct Link</label>
+                <div class="input-group">
+                    <input type="text" id="shareLink" class="form-control" readonly>
+                    <button id="copyLinkBtn" class="btn btn-secondary">Copy</button>
+                </div>
+            </div>
+            
+            <p class="text-center mt-4 mb-3">Share on social media</p>
+            
+            <div class="social-share-buttons">
+                <button class="social-share-btn facebook" title="Share on Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </button>
+                <button class="social-share-btn twitter" title="Share on Twitter">
+                    <i class="fab fa-twitter"></i>
+                </button>
+                <button class="social-share-btn pinterest" title="Share on Pinterest">
+                    <i class="fab fa-pinterest-p"></i>
+                </button>
+                <button class="social-share-btn linkedin" title="Share on LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/business_try_on.js') }}"></script>
+{% endblock %}

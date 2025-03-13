@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Log In - fashionCORE{% endblock %}
+
+{% block additional_head %}
+<style>
+    .auth-container {
+        max-width: 500px;
+        margin: 4rem auto;
+        padding: 2rem;
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-header h1 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .auth-header p {
+        color: var(--gray);
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md);
+        transition: border-color var(--transition-fast);
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .form-check-input {
+        margin-right: 0.5rem;
+    }
+    
+    .form-check-label {
+        font-size: 0.9rem;
+    }
+    
+    .auth-footer {
+        margin-top: 2rem;
+        text-align: center;
+    }
+    
+    .auth-footer p {
+        font-size: 0.9rem;
+        color: var(--gray);
+    }
+    
+    .social-login {
+        margin: 1.5rem 0;
+        text-align: center;
+    }
+    
+    .social-login p {
+        margin-bottom: 1rem;
+        color: var(--gray);
+        position: relative;
+    }
+    
+    .social-login p::before,
+    .social-login p::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 30%;
+        height: 1px;
+        background-color: var(--gray-light);
+    }
+    
+    .social-login p::before {
+        left: 0;
+    }
+    
+    .social-login p::after {
+        right: 0;
+    }
+    
+    .social-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .social-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        transition: opacity var(--transition-fast);
+    }
+    
+    .social-btn:hover {
+        opacity: 0.9;
+    }
+    
+    .btn-google {
+        background-color: #DB4437;
+    }
+    
+    .btn-facebook {
+        background-color: #4267B2;
+    }
+    
+    .btn-twitter {
+        background-color: #1DA1F2;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Welcome Back</h1>
+            <p>Log in to your account to continue</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            
+            <div class="form-check">
+                <input type="checkbox" id="remember" name="remember" class="form-check-input">
+                <label for="remember" class="form-check-label">Remember me</label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">Log In</button>
+        </form>
+        
+        <div class="social-login">
+            <p>Or continue with</p>
+            <div class="social-buttons">
+                <a href="#" class="social-btn btn-google">
+                    <i class="fab fa-google"></i>
+                </a>
+                <a href="#" class="social-btn btn-facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="#" class="social-btn btn-twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </div>
+        
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="{{ url_for('register') }}">Sign Up</a></p>
+            <p><a href="#">Forgot your password?</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
