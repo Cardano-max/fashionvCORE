@@ -1,0 +1,7 @@
+venv/
+fashn/
+__pycache__/
+*.pyc
+*.pyo
+instance/
+.env
