@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Try-On API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/demo-styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">Virtual Try-On API</div>
+            <nav>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#demo">Demo</a></li>
+                    <li><a href="#api">API</a></li>
+                    <li><a href="#docs">Documentation</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="hero">
+        <div class="container">
+            <h1>Virtual Try-On for E-commerce</h1>
+            <p>Allow your customers to virtually try on clothing before purchasing. Seamless API integration with any website or Shopify store.</p>
+            <a href="#demo" class="cta-button">Try the Demo</a>
+        </div>
+    </div>
+
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Features</h2>
+                <p>Everything you need for a powerful virtual try-on experience</p>
+            </div>
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <h3>Simple Integration</h3>
+                    <p>Just a few lines of code to add a "Try On" button to your product pages. Works with any website or e-commerce platform.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h3>AI-Powered Results</h3>
+                    <p>State-of-the-art AI technology by KlingAI creates realistic virtual try-on results in seconds.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Mobile Friendly</h3>
+                    <p>Works beautifully on all devices, giving your customers a great experience whether they're shopping on desktop or mobile.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Secure API</h3>
+                    <p>Robust authentication system ensures only authorized applications can access your try-on service.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Developer Friendly</h3>
+                    <p>Clear documentation, simple API endpoints, and example code in multiple languages make integration a breeze.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h3>Increase Conversions</h3>
+                    <p>Let customers see how products look on them before buying, reducing returns and increasing confidence in purchases.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo" class="demo-section">
+      <div class="container">
+          <div class="section-title">
+              <h2>Try It Yourself</h2>
+              <p>See how easy it is to integrate virtual try-on with your products</p>
+          </div>
+          <div class="product-showcase">
+              <div class="product-card">
+                  <img src="static/images/samples/models/model-7.jpg" alt="T-shirt" class="product-image">
+                  <div class="product-info">
+                      <h3 class="product-title">Premium Cotton T-Shirt</h3>
+                      <div class="product-price">$29.99</div>
+                      <p class="product-description">Soft, comfortable 100% organic cotton t-shirt with a modern fit. Available in multiple colors and sizes.</p>
+                      <div class="product-buttons">
+                          <button class="button button-primary">Add to Cart</button>
+                          <button class="button button-secondary">Buy Now</button>
+                          <button id="virtual-tryon-button" class="button button-tryon" data-product-id="tshirt-001" data-product-image="static/images/samples/models/model-7.jpg">Try On</button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </section>
+  
+
+    <section id="api" class="api-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>API Reference</h2>
+                <p>Simple, RESTful API endpoints for virtual try-on integration</p>
+            </div>
+            <div class="api-endpoints">
+                <div class="endpoint-card">
+                    <h3>
+                        <span class="endpoint-method method-post">POST</span>
+                        <span class="endpoint-path">/upload/person</span>
+                    </h3>
+                    <p class="endpoint-description">Upload a person image to use for try-on. Requires email and image file.</p>
+                    <pre><code>curl -X POST http://localhost:8080/upload/person \
+  -H 'Authorization: Bearer client_id:client_secret' \
+  -F 'email=customer@example.com' \
+  -F 'person_image=@/path/to/person.jpg'</code></pre>
+                </div>
+                <div class="endpoint-card">
+                    <h3>
+                        <span class="endpoint-method method-post">POST</span>
+                        <span class="endpoint-path">/upload/garment</span>
+                    </h3>
+                    <p class="endpoint-description">Upload a garment image to try on. Requires product ID and image file.</p>
+                    <pre><code>curl -X POST http://localhost:8080/upload/garment \
+  -H 'Authorization: Bearer client_id:client_secret' \
+  -F 'product_id=tshirt-001' \
+  -F 'garment_image=@/path/to/garment.jpg'</code></pre>
+                </div>
+                <div class="endpoint-card">
+                    <h3>
+                        <span class="endpoint-method method-post">POST</span>
+                        <span class="endpoint-path">/run-tryon</span>
+                    </h3>
+                    <p class="endpoint-description">Run the try-on process with previously uploaded images.</p>
+                    <pre><code>curl -X POST http://localhost:8080/run-tryon \
+  -H 'Authorization: Bearer client_id:client_secret' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "email": "customer@example.com",
+    "product_id": "tshirt-001"
+  }'</code></pre>
+                </div>
+                <div class="endpoint-card">
+                    <h3>
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-path">/preview-result</span>
+                    </h3>
+                    <p class="endpoint-description">Get the try-on result image URLs.</p>
+                    <pre><code>curl -X GET 'http://localhost:8080/preview-result?email=customer@example.com&product_id=tshirt-001' \
+  -H 'Authorization: Bearer client_id:client_secret'</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="docs" class="api-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Documentation</h2>
+                <p>Simple steps to integrate with your website</p>
+            </div>
+            <div class="api-endpoints">
+                <div class="endpoint-card">
+                    <h3>Quick Start</h3>
+                    <p>Add the following code to your webpage to integrate the Virtual Try-On button and functionality:</p>
+                    <pre><code>&lt;!-- 1. Add the Virtual Try-On Button wherever you want it to appear --&gt;
+&lt;button id="virtual-tryon-button" class="your-button-class"&gt;Try On Virtually&lt;/button&gt;
+
+&lt;!-- 2. Add the Virtual Try-On Script before closing &lt;/body&gt; tag --&gt;
+&lt;script&gt;
+  // Virtual Try-On configuration
+  window.virtualTryOnConfig = {
+    apiEndpoint: 'https://your-api-endpoint.com',
+    clientId: 'your_client_id',
+    clientSecret: 'your_client_secret',
+    productId: '12345', // Your product ID
+    productImageUrl: 'https://your-site.com/images/product.jpg', // Product image URL
+  };
+&lt;/script&gt;
+&lt;script src="https://your-api-endpoint.com/static/js/virtual-tryon.js" async&gt;&lt;/script&gt;</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Virtual Try-On API</h3>
+                    <p>Enhance your e-commerce experience with virtual try-on technology powered by AI.</p>
+                    <div class="social-icons">
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#demo">Demo</a></li>
+                        <li><a href="#api">API Reference</a></li>
+                        <li><a href="#docs">Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <p>Email: support@virtualtry-on.com</p>
+                    <p>Phone: +1 (555) 123-4567</p>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2025 Virtual Try-On API. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Virtual Try-On configuration for demo
+        window.virtualTryOnConfig = {
+            apiEndpoint: window.location.origin,  // Use the same server
+            clientId: 'demo_client',
+            clientSecret: 'demo_secret'
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/virtual-tryon.js') }}"></script>
+</body>
+</html>

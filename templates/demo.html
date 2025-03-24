@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Page - Virtual Try-On Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4a90e2;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            margin-left: 20px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: #4a90e2;
+            text-decoration: none;
+        }
+
+        .product-container {
+            display: flex;
+            flex-wrap: wrap;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .product-images {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .main-image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .thumbnail-container {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        .thumbnail {
+            width: 70px;
+            height: 70px;
+            margin-right: 10px;
+            object-fit: cover;
+            border: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .thumbnail:hover {
+            border-color: #4a90e2;
+        }
+
+        .product-details {
+            flex: 1;
+            min-width: 300px;
+            padding: 30px;
+        }
+
+        .product-title {
+            font-size: 24px;
+            margin: 0 0 10px;
+            color: #2c3e50;
+        }
+
+        .product-vendor {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+
+        .product-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .product-description {
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        .variant-selector {
+            margin-bottom: 20px;
+        }
+
+        .variant-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .variant-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .variant-option {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .variant-option.selected {
+            border-color: #4a90e2;
+            background-color: #f0f7ff;
+            color: #4a90e2;
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .quantity-btn:hover {
+            background-color: #e9e9e9;
+        }
+
+        .quantity-input {
+            width: 40px;
+            height: 30px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+
+        .product-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .button {
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .button-primary {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background-color: #3a7bc8;
+        }
+
+        .button-secondary {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .button-secondary:hover {
+            background-color: #e9e9e9;
+        }
+
+        .product-meta {
+            margin-top: 25px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .product-meta div {
+            margin-bottom: 5px;
+        }
+
+        footer {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 40px 0 20px;
+            margin-top: 50px;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 20px;
+        }
+
+        .footer-section h3 {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 8px;
+        }
+
+        .footer-section ul li a {
+            color: #bdc3c7;
+            text-decoration: none;
+        }
+
+        .footer-section ul li a:hover {
+            color: white;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            margin-top: 20px;
+            border-top: 1px solid #34495e;
+            color: #95a5a6;
+        }
+
+        @media (max-width: 768px) {
+            .product-container {
+                flex-direction: column;
+            }
+            
+            .product-details {
+                padding: 20px;
+            }
+            
+            .header-container {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            nav ul {
+                margin-top: 10px;
+            }
+            
+            .product-buttons {
+                gap: 10px;
+            }
+            
+            .button {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">FashionStore</div>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="#">Shop</a></li>
+                    <li><a href="#">Collections</a></li>
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/">Home</a> / <a href="#">Shop</a> / <a href="#">T-Shirts</a> / Premium Cotton T-Shirt
+        </div>
+
+        <div class="product-container">
+            <div class="product-images">
+                <img src="https://images.unsplash.com/photo-1560917435-fd1186f761d5?w=800&auto=format&fit=crop&q=80" alt="T-shirt" class="main-image">
+                <div class="thumbnail-container">
+                    <img src="https://images.unsplash.com/photo-1560917435-fd1186f761d5?w=150&auto=format&fit=crop&q=80" alt="T-shirt thumbnail 1" class="thumbnail">
+                    <img src="https://images.unsplash.com/photo-1560917435-f1dd37a84e7d?w=150&auto=format&fit=crop&q=80" alt="T-shirt thumbnail 2" class="thumbnail">
+                    <img src="https://images.unsplash.com/photo-1560917435-56a12a1bd6a1?w=150&auto=format&fit=crop&q=80" alt="T-shirt thumbnail 3" class="thumbnail">
+                </div>
+            </div>
+            <div class="product-details">
+                <h1 class="product-title">Premium Cotton T-Shirt</h1>
+                <div class="product-vendor">By FashionBrand</div>
+                <div class="product-price">$29.99</div>
+                <div class="product-description">
+                    <p>Our premium cotton t-shirt offers exceptional comfort and durability. Made from 100% organic cotton, it features a modern fit that looks great on any body type. Perfect for everyday wear or casual outings.</p>
+                    <p>The breathable fabric keeps you cool throughout the day, while the reinforced stitching ensures it stands up to repeated washing without losing its shape.</p>
+                </div>
+
+                <div class="variant-selector">
+                    <div class="variant-title">Color</div>
+                    <div class="variant-options">
+                        <div class="variant-option selected">Navy Blue</div>
+                        <div class="variant-option">Black</div>
+                        <div class="variant-option">White</div>
+                        <div class="variant-option">Gray</div>
+                    </div>
+                </div>
+
+                <div class="variant-selector">
+                    <div class="variant-title">Size</div>
+                    <div class="variant-options">
+                        <div class="variant-option">S</div>
+                        <div class="variant-option selected">M</div>
+                        <div class="variant-option">L</div>
+                        <div class="variant-option">XL</div>
+                        <div class="variant-option">XXL</div>
+                    </div>
+                </div>
+
+                <div class="quantity-selector">
+                    <div class="variant-title">Quantity</div>
+                    <div class="quantity-btn">-</div>
+                    <input type="text" class="quantity-input" value="1">
+                    <div class="quantity-btn">+</div>
+                </div>
+
+                <div class="product-buttons">
+                    <button class="button button-primary">Add to Cart</button>
+                    <button class="button button-secondary">Buy Now</button>
+                    <button id="virtual-tryon-button" class="button button-primary" data-product-id="tshirt-premium-001" data-product-image="https://images.unsplash.com/photo-1560917435-fd1186f761d5?w=800&auto=format&fit=crop&q=80">Try On Virtually</button>
+                </div>
+
+                <div class="product-meta">
+                    <div>SKU: TS-PREM-001</div>
+                    <div>Categories: <a href="#">T-Shirts</a>, <a href="#">Men's Clothing</a></div>
+                    <div>Tags: <a href="#">Cotton</a>, <a href="#">Premium</a>, <a href="#">Casual</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Shop</h3>
+                    <ul>
+                        <li><a href="#">Men's Clothing</a></li>
+                        <li><a href="#">Women's Clothing</a></li>
+                        <li><a href="#">Accessories</a></li>
+                        <li><a href="#">New Arrivals</a></li>
+                        <li><a href="#">Sale</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Customer Service</h3>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Shipping & Returns</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Size Guide</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>About Us</h3>
+                    <ul>
+                        <li><a href="#">Our Story</a></li>
+                        <li><a href="#">Sustainability</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Press</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Follow Us</h3>
+                    <ul>
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">Twitter</a></li>
+                        <li><a href="#">Pinterest</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2025 FashionStore. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Product gallery functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            const mainImage = document.querySelector('.main-image');
+            
+            thumbnails.forEach(thumbnail => {
+                thumbnail.addEventListener('click', function() {
+                    mainImage.src = this.src.replace('w=150', 'w=800');
+                });
+            });
+            
+            // Quantity selector
+            const minusBtn = document.querySelector('.quantity-btn:first-child');
+            const plusBtn = document.querySelector('.quantity-btn:last-child');
+            const quantityInput = document.querySelector('.quantity-input');
+            
+            minusBtn.addEventListener('click', function() {
+                let value = parseInt(quantityInput.value);
+                if (value > 1) {
+                    quantityInput.value = value - 1;
+                }
+            });
+            
+            plusBtn.addEventListener('click', function() {
+                let value = parseInt(quantityInput.value);
+                quantityInput.value = value + 1;
+            });
+            
+            // Variant selectors
+            const variantOptions = document.querySelectorAll('.variant-option');
+            
+            variantOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from siblings
+                    const siblings = Array.from(this.parentNode.children);
+                    siblings.forEach(sibling => {
+                        sibling.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                });
+            });
+        });
+        
+        // Virtual Try-On configuration
+        window.virtualTryOnConfig = {
+            apiEndpoint: window.location.origin,  // Use the same server
+            clientId: 'demo_client',
+            clientSecret: 'demo_secret'
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/virtual-tryon.js') }}"></script>
+</body>
+</html>
