@@ -3,250 +3,571 @@
 {% block title %}Virtual Try-On - fashionCORE{% endblock %}
 
 {% block additional_head %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+<style>
+    /* Try-on page specific styles */
+    .try-on-container {
+        padding: 4rem 0;
+    }
+    
+    .try-on-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+    
+    .try-on-header h1 {
+        font-size: 3.6rem;
+        margin-bottom: 1.6rem;
+    }
+    
+    .try-on-header p {
+        font-size: 1.8rem;
+        color: var(--text-secondary);
+        max-width: 80rem;
+        margin: 0 auto;
+    }
+    
+    .steps-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 6rem;
+    }
+    
+    .step {
+        text-align: center;
+        padding: 2rem;
+        width: 25rem;
+        margin: 0 1.5rem;
+        background-color: var(--bg-secondary);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+    }
+    
+    .step:hover {
+        transform: translateY(-0.5rem);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .step-number {
+        width: 5rem;
+        height: 5rem;
+        background-color: var(--primary-color);
+        color: var(--white);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.4rem;
+        font-weight: 700;
+        margin: 0 auto 1.6rem;
+    }
+    
+    .step h3 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .step p {
+        font-size: 1.6rem;
+        color: var(--text-secondary);
+    }
+    
+    .upload-section {
+        margin-bottom: 6rem;
+        scroll-margin-top: 100px; /* For smooth scrolling */
+    }
+    
+    .upload-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(40rem, 1fr));
+        gap: 3rem;
+        margin-bottom: 4rem;
+        scroll-margin-top: 100px; /* For smooth scrolling */
+    }
+    
+    .upload-card {
+        background-color: var(--bg-secondary);
+        border-radius: var(--radius-lg);
+        padding: 3rem;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .upload-card.highlight {
+        animation: highlight-pulse 2s ease-in-out;
+    }
+    
+    @keyframes highlight-pulse {
+        0%, 100% { border-color: transparent; box-shadow: var(--shadow-md); }
+        50% { border-color: var(--primary-color); box-shadow: 0 0 15px rgba(67, 97, 238, 0.5); }
+    }
+    
+    .upload-card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .upload-card-icon {
+        width: 5rem;
+        height: 5rem;
+        background-color: var(--primary-transparent);
+        color: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.4rem;
+        margin-right: 1.6rem;
+    }
+    
+    .upload-card-title {
+        font-size: 2.2rem;
+        font-weight: 600;
+    }
+    
+    .upload-area {
+        border: 2px dashed var(--gray-light);
+        border-radius: var(--radius-md);
+        padding: 4rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        min-height: 20rem;
+    }
+    
+    .upload-area:hover {
+        border-color: var(--primary-color);
+        background-color: var(--primary-transparent);
+    }
+    
+    .upload-area i {
+        font-size: 4.8rem;
+        color: var(--gray-light);
+        margin-bottom: 1.6rem;
+        transition: all 0.3s ease;
+    }
+    
+    .upload-area:hover i {
+        color: var(--primary-color);
+    }
+    
+    .upload-area p {
+        font-size: 1.6rem;
+        color: var(--text-secondary);
+        margin-bottom: 1.6rem;
+    }
+    
+    .upload-btn {
+        display: inline-block;
+    }
+    
+    .preview-container {
+        display: none;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        position: relative;
+        min-height: 20rem;
+        background-color: white;
+    }
+    
+    .preview-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    
+    .preview-container .preview-actions {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .preview-actions button {
+        width: 3.6rem;
+        height: 3.6rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background-color: rgba(255, 255, 255, 0.8);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1.4rem;
+    }
+    
+    .preview-actions button:hover {
+        background-color: var(--white);
+        transform: scale(1.1);
+    }
+    
+    .preview-actions .remove-btn {
+        color: var(--error);
+    }
+    
+    .preview-actions .remove-btn:hover {
+        background-color: var(--error);
+        color: var(--white);
+    }
+    
+    .selected-garment {
+        margin-bottom: 2rem;
+    }
+    
+    .selected-garment h3 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .selected-garment-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .selected-garment-image {
+        width: 8rem;
+        height: 8rem;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        margin-right: 1.6rem;
+        border: 1px solid var(--gray-lighter);
+    }
+    
+    .selected-garment-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .selected-garment-details h4 {
+        font-size: 1.8rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .selected-garment-details p {
+        font-size: 1.4rem;
+        color: var(--text-secondary);
+    }
+    
+    .generate-section {
+        text-align: center;
+    }
+    
+    .generate-btn {
+        padding: 1.6rem 4rem;
+        font-size: 1.8rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .generate-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .generate-btn:not(:disabled):hover {
+        transform: translateY(-0.5rem);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .generate-btn.ready {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(67, 97, 238, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(67, 97, 238, 0);
+        }
+    }
+    
+    .status-message {
+        height: 2.4rem;
+        margin-top: 2rem;
+        font-size: 1.6rem;
+        transition: all 0.3s ease;
+    }
+    
+    .status-message.error {
+        color: var(--error);
+    }
+    
+    .status-message.success {
+        color: var(--success);
+    }
+    
+    .result-section {
+        display: none;
+        padding: 6rem 0;
+        text-align: center;
+    }
+    
+    .result-title {
+        font-size: 3.2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .result-subtitle {
+        font-size: 1.8rem;
+        color: var(--text-secondary);
+        margin-bottom: 4rem;
+    }
+    
+    .result-container {
+        position: relative;
+        width: 100%;
+        max-width: 60rem;
+        margin: 0 auto;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .result-image {
+        width: 100%;
+        display: block;
+    }
+    
+    .result-actions {
+        display: flex;
+        justify-content: center;
+        margin-top: 3rem;
+        gap: 2rem;
+    }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 1000;
+    }
+    
+    .spinner {
+        width: 6rem;
+        height: 6rem;
+        border-radius: 50%;
+        border: 0.5rem solid rgba(255, 255, 255, 0.3);
+        border-top-color: var(--primary-color);
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    .loading-message {
+        margin-top: 2rem;
+        color: var(--white);
+        font-size: 2rem;
+    }
+    
+    .loading-subtext {
+        margin-top: 1rem;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1.6rem;
+    }
+    
+    /* Image loading and error states */
+    .image-loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        min-height: 20rem;
+        background-color: #f8f9fa;
+    }
+    
+    .image-loading:after {
+        content: 'Loading...';
+        color: #6c757d;
+        font-size: 1.6rem;
+    }
+    
+    .image-error {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        min-height: 20rem;
+        background-color: #f8f9fa;
+        color: #dc3545;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .image-error i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    #uploadCards {
+        scroll-margin-top: 100px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <!-- Try-On Header -->
-<section class="page-header">
+<section class="try-on-container">
     <div class="container">
-        <h1>Virtual Try-On</h1>
-        <p>See how clothes look on you without trying them on physically</p>
-    </div>
-</section>
-
-<!-- Try-On Process Section -->
-<section id="try-on-section" class="try-on-process">
-    <div class="container">
-        <div class="workflow-steps">
+        <div class="try-on-header">
+            <h1>Virtual Try-On Experience</h1>
+            <p>See how our clothing will look on you with our state-of-the-art virtual try-on technology</p>
+        </div>
+        
+        <!-- Steps Section -->
+        <div class="steps-container">
             <div class="step">
-                <div class="step-icon">
-                    <i class="fas fa-user"></i>
-                </div>
                 <div class="step-number">1</div>
                 <h3>Upload Your Photo</h3>
-                <p>Add a front-facing photo of yourself</p>
+                <p>Upload a full-body photo of yourself standing straight</p>
             </div>
-            <div class="step-connector"></div>
+            
             <div class="step">
-                <div class="step-icon">
-                    <i class="fas fa-tshirt"></i>
-                </div>
                 <div class="step-number">2</div>
-                <h3>Select Garment</h3>
-                <p>Choose or upload a garment</p>
+                <h3>Upload Garment</h3>
+                <p>Select a garment or upload your own clothing item</p>
             </div>
-            <div class="step-connector"></div>
+            
             <div class="step">
-                <div class="step-icon">
-                    <i class="fas fa-magic"></i>
-                </div>
                 <div class="step-number">3</div>
-                <h3>See Result</h3>
-                <p>View and share your virtual try-on</p>
+                <h3>See Results</h3>
+                <p>Get a realistic preview of how the clothing looks on you</p>
             </div>
         </div>
         
-        <div class="upload-section">
-            <div class="upload-cards">
-                <!-- Person Upload Card -->
-                <div class="upload-card">
-                    <div class="card-header">
-                        <h3>Person Image</h3>
-                        <span class="info-tooltip" data-tooltip="Upload a front-facing photo with clear lighting">
-                            <i class="fas fa-info-circle"></i>
-                        </span>
+        <!-- Upload Section -->
+        <div id="uploadSection" class="upload-section">
+            {% if product %}
+            <div id="selectedGarmentContainer" class="selected-garment">
+                <h3>Selected Product</h3>
+                <div class="selected-garment-info">
+                    <div class="selected-garment-image">
+                        <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.name }}">
                     </div>
-                    <div class="upload-area" id="personUploadArea">
-                        <div class="upload-icon">
-                            <i class="fas fa-user-circle"></i>
+                    <div class="selected-garment-details">
+                        <h4>{{ product.name }}</h4>
+                        <p>{{ product.brand }} - ₹{{ "%.2f"|format(product.price) }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div id="uploadCards" class="upload-cards">
+                <!-- Person Image Upload -->
+                <div class="upload-card" id="personCard">
+                    <div class="upload-card-header">
+                        <div class="upload-card-icon">
+                            <i class="fas fa-user"></i>
                         </div>
+                        <h3 class="upload-card-title">Your Photo</h3>
+                    </div>
+                    
+                    <div id="personUploadArea" class="upload-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
                         <p>Drag & drop your photo here</p>
-                        <span class="or">or</span>
-                        <button class="btn btn-secondary" id="personBrowseBtn">Browse Files</button>
+                        <p>or</p>
+                        <button id="personUploadBtn" class="btn btn-outline upload-btn">Browse Files</button>
                         <input type="file" id="personImageInput" accept="image/*" style="display: none;">
                     </div>
-                    <div id="personPreviewContainer" class="preview-container" style="display: none;">
+                    
+                    <div id="personPreviewContainer" class="preview-container">
                         <div class="preview-actions">
-                            <button id="personEditBtn" class="action-btn edit-btn"><i class="fas fa-crop"></i> Edit</button>
-                            <button id="personRemoveBtn" class="action-btn remove-btn"><i class="fas fa-trash"></i> Remove</button>
+                            <button id="personRemoveBtn" class="remove-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
-                        <div id="personPreview" class="image-preview"></div>
+                        <div id="personPreview"></div>
                     </div>
                 </div>
                 
-                <!-- Garment Upload Card -->
-                <div class="upload-card">
-                    <div class="card-header">
-                        <h3>Garment Image</h3>
-                        <span class="info-tooltip" data-tooltip="Upload a garment on plain background">
-                            <i class="fas fa-info-circle"></i>
-                        </span>
-                    </div>
-                    {% if product %}
-                    <!-- If a specific product is selected -->
-                    <div id="selectedGarmentContainer" class="preview-container">
-                        <div class="preview-actions">
-                            <button id="garmentRemoveBtn" class="action-btn remove-btn"><i class="fas fa-trash"></i> Remove</button>
-                        </div>
-                        <div id="garmentPreview" class="image-preview">
-                            <img src="{{ url_for('static', filename='images/' + product.image_path) }}" alt="{{ product.name }}">
-                        </div>
-                        <input type="hidden" id="productId" value="{{ product.id }}">
-                    </div>
-                    <div class="upload-area" id="garmentUploadArea" style="display: none;">
-                        <div class="upload-icon">
+                <!-- Garment Image Upload -->
+                <div class="upload-card" id="garmentCard">
+                    <div class="upload-card-header">
+                        <div class="upload-card-icon">
                             <i class="fas fa-tshirt"></i>
                         </div>
-                        <p>Drag & drop garment here</p>
-                        <span class="or">or</span>
-                        <button class="btn btn-secondary" id="garmentBrowseBtn">Browse Files</button>
+                        <h3 class="upload-card-title">Garment Image</h3>
+                    </div>
+                    
+                    <div id="garmentUploadArea" class="upload-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Drag & drop a garment image here</p>
+                        <p>or</p>
+                        <button id="garmentUploadBtn" class="btn btn-outline upload-btn">Browse Files</button>
                         <input type="file" id="garmentImageInput" accept="image/*" style="display: none;">
                     </div>
-                    {% else %}
-                    <!-- If no product is selected -->
-                    <div class="upload-area" id="garmentUploadArea">
-                        <div class="upload-icon">
-                            <i class="fas fa-tshirt"></i>
-                        </div>
-                        <p>Drag & drop garment here</p>
-                        <span class="or">or</span>
-                        <button class="btn btn-secondary" id="garmentBrowseBtn">Browse Files</button>
-                        <input type="file" id="garmentImageInput" accept="image/*" style="display: none;">
-                    </div>
-                    <div id="garmentPreviewContainer" class="preview-container" style="display: none;">
+                    
+                    <div id="garmentPreviewContainer" class="preview-container">
                         <div class="preview-actions">
-                            <button id="garmentEditBtn" class="action-btn edit-btn"><i class="fas fa-crop"></i> Edit</button>
-                            <button id="garmentRemoveBtn" class="action-btn remove-btn"><i class="fas fa-trash"></i> Remove</button>
+                            <button id="garmentRemoveBtn" class="remove-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
-                        <div id="garmentPreview" class="image-preview"></div>
+                        <div id="garmentPreview"></div>
                     </div>
-                    {% endif %}
                 </div>
             </div>
             
-            <!-- Generate Button Section -->
             <div class="generate-section">
-                <button id="generateBtn" class="btn btn-primary btn-large" disabled>
+                <button id="generateBtn" class="btn btn-primary generate-btn" disabled>
                     <i class="fas fa-magic"></i> Generate Try-On
                 </button>
-                <p id="statusMessage" class="status-message"></p>
-                <div class="free-trial-info">
-                    {% if current_user.is_authenticated %}
-                        <p><i class="fas fa-info-circle"></i> You have <span class="highlight">{{ current_user.credits }}</span> try-on credits remaining</p>
-                    {% else %}
-                        <p><i class="fas fa-info-circle"></i> <a href="{{ url_for('login') }}">Log in</a> or <a href="{{ url_for('register') }}">sign up</a> to get 3 free try-ons</p>
-                    {% endif %}
-                </div>
+                <div id="statusMessage" class="status-message"></div>
             </div>
         </div>
-    </div>
-</section>
-
-<!-- Result Section -->
-<section id="resultSection" class="result-section" style="display: none;">
-    <div class="container">
-        <div class="section-header">
-            <h2>Your Try-On Result</h2>
-            <p>See how the garment looks on you</p>
-        </div>
         
-        <div class="result-container">
-            <div class="result-comparison">
-                <div class="comparison-item original">
-                    <h4>Original</h4>
-                    <div id="originalPersonContainer" class="image-container"></div>
-                </div>
-                <div class="comparison-item result">
-                    <h4>Result</h4>
-                    <div class="image-container">
-                        <img id="resultImage" class="result-image" alt="Try-on result">
-                    </div>
-                </div>
+        <!-- Result Section (Hidden by default) -->
+        <div id="resultSection" class="result-section">
+            <h2 class="result-title">Your Virtual Try-On Result</h2>
+            <p class="result-subtitle">Here's how this garment looks on you</p>
+            
+            <div class="result-container">
+                <img id="resultImage" src="" alt="Try-On Result" class="result-image">
             </div>
             
             <div class="result-actions">
-                <button id="downloadBtn" class="btn btn-primary">
-                    <i class="fas fa-download"></i> Download
-                </button>
-                <button id="shareBtn" class="btn btn-secondary">
-                    <i class="fas fa-share-alt"></i> Share
-                </button>
+                <a id="downloadBtn" href="#" class="btn btn-primary" download="fashioncore-try-on.png">
+                    <i class="fas fa-download"></i> Download Image
+                </a>
                 <button id="tryAgainBtn" class="btn btn-outline">
                     <i class="fas fa-redo"></i> Try Again
                 </button>
-                {% if product %}
-                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-secondary">
-                    <i class="fas fa-shopping-cart"></i> Buy This Item
-                </a>
-                {% endif %}
             </div>
         </div>
     </div>
 </section>
-
-<!-- Image Cropper Modal -->
-<div id="cropperModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Adjust Image</h3>
-            <button class="close-btn" id="closeModal">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="cropper-container">
-                <img id="cropperImage" src="">
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button id="cropCancelBtn" class="btn btn-outline">Cancel</button>
-            <button id="cropApplyBtn" class="btn btn-primary">Apply</button>
-        </div>
-    </div>
-</div>
-
-<!-- Share Modal -->
-<div id="shareModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Share Your Result</h3>
-            <button class="close-btn" id="closeShareModal">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="share-options">
-                <button class="share-option facebook">
-                    <i class="fab fa-facebook-f"></i> Facebook
-                </button>
-                <button class="share-option twitter">
-                    <i class="fab fa-twitter"></i> Twitter
-                </button>
-                <button class="share-option instagram">
-                    <i class="fab fa-instagram"></i> Instagram
-                </button>
-                <button class="share-option whatsapp">
-                    <i class="fab fa-whatsapp"></i> WhatsApp
-                </button>
-            </div>
-            <div class="share-link">
-                <p>Or copy this link:</p>
-                <div class="link-container">
-                    <input type="text" id="shareLink" readonly>
-                    <button id="copyLinkBtn" class="btn btn-secondary btn-small">Copy</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Loading Overlay -->
 <div id="loadingOverlay" class="loading-overlay">
     <div class="spinner"></div>
-    <p id="loadingMessage">Processing your images...</p>
-    <p id="loadingSubMessage">This may take a minute</p>
+    <div class="loading-message">Generating your virtual try-on...</div>
+    <div class="loading-subtext">This may take a few moments</div>
 </div>
-
-<!-- Error Message -->
-<div id="error-message" class="error-message"></div>
 {% endblock %}
 
 {% block scripts %}
@@ -254,443 +575,373 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Elements
         const personUploadArea = document.getElementById('personUploadArea');
-        const personBrowseBtn = document.getElementById('personBrowseBtn');
         const personImageInput = document.getElementById('personImageInput');
+        const personUploadBtn = document.getElementById('personUploadBtn');
         const personPreviewContainer = document.getElementById('personPreviewContainer');
         const personPreview = document.getElementById('personPreview');
-        const personEditBtn = document.getElementById('personEditBtn');
         const personRemoveBtn = document.getElementById('personRemoveBtn');
+        const personCard = document.getElementById('personCard');
         
         const garmentUploadArea = document.getElementById('garmentUploadArea');
-        const garmentBrowseBtn = document.getElementById('garmentBrowseBtn');
         const garmentImageInput = document.getElementById('garmentImageInput');
-        const garmentPreviewContainer = document.getElementById('garmentPreviewContainer') || document.getElementById('selectedGarmentContainer');
+        const garmentUploadBtn = document.getElementById('garmentUploadBtn');
+        const garmentPreviewContainer = document.getElementById('garmentPreviewContainer');
         const garmentPreview = document.getElementById('garmentPreview');
-        const garmentEditBtn = document.getElementById('garmentEditBtn');
         const garmentRemoveBtn = document.getElementById('garmentRemoveBtn');
+        const garmentCard = document.getElementById('garmentCard');
         
         const generateBtn = document.getElementById('generateBtn');
         const statusMessage = document.getElementById('statusMessage');
+        const loadingOverlay = document.getElementById('loadingOverlay');
         const resultSection = document.getElementById('resultSection');
         const resultImage = document.getElementById('resultImage');
-        const originalPersonContainer = document.getElementById('originalPersonContainer');
         const downloadBtn = document.getElementById('downloadBtn');
-        const shareBtn = document.getElementById('shareBtn');
         const tryAgainBtn = document.getElementById('tryAgainBtn');
+        const uploadSection = document.getElementById('uploadSection');
+        const uploadCards = document.getElementById('uploadCards');
         
-        const cropperModal = document.getElementById('cropperModal');
-        const closeModal = document.getElementById('closeModal');
-        const cropperImage = document.getElementById('cropperImage');
-        const cropCancelBtn = document.getElementById('cropCancelBtn');
-        const cropApplyBtn = document.getElementById('cropApplyBtn');
-        
-        const shareModal = document.getElementById('shareModal');
-        const closeShareModal = document.getElementById('closeShareModal');
-        const shareLink = document.getElementById('shareLink');
-        const copyLinkBtn = document.getElementById('copyLinkBtn');
-        
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const loadingMessage = document.getElementById('loadingMessage');
-        const loadingSubMessage = document.getElementById('loadingSubMessage');
-        const errorMessage = document.getElementById('error-message');
-        
-        const productId = document.getElementById('productId')?.value;
-        
-        // State
+        // Variables to store selected images
         let personImage = null;
         let garmentImage = null;
-        let currentEditingImage = null;
-        let cropper = null;
         
-        // Check if product is pre-selected
-        if (document.getElementById('selectedGarmentContainer')) {
-            const garmentImg = garmentPreview.querySelector('img');
+        // Scroll to upload section if product is pre-selected
+        const selectedGarmentContainer = document.getElementById('selectedGarmentContainer');
+        if (selectedGarmentContainer) {
+            // Use multiple methods to ensure scrolling works
+            setTimeout(() => {
+                // Method 1: scrollIntoView with smooth behavior
+                uploadCards.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Method 2: Highlight the cards to draw attention
+                personCard.classList.add('highlight');
+                garmentCard.classList.add('highlight');
+                
+                // Method 3: Direct scroll as fallback
+                const offset = uploadCards.getBoundingClientRect().top + window.scrollY - 100;
+                window.scrollTo({
+                    top: offset,
+                    behavior: 'smooth'
+                });
+                
+                console.log('Scrolling to upload section');
+            }, 800);
+        }
+        
+        // Helper function to fix image paths
+        function fixImagePath(path) {
+            // If path already starts with http or data, return as is
+            if (path.startsWith('http') || path.startsWith('data:')) {
+                return path;
+            }
+            
+            // If path doesn't start with /, add it
+            if (!path.startsWith('/')) {
+                path = '/' + path;
+            }
+            
+            // Return absolute URL
+            return window.location.origin + path;
+        }
+        
+        // Helper function to create a File from a blob
+        async function createFileFromImageUrl(url, filename) {
+            try {
+                console.log('Fetching image from URL:', url);
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+                }
+                const blob = await response.blob();
+                return new File([blob], filename, { type: blob.type });
+            } catch (error) {
+                console.error('Error creating file from image URL:', error);
+                return null;
+            }
+        }
+        
+        // Handle Pre-selected Garment
+        if (selectedGarmentContainer) {
+            const garmentImg = selectedGarmentContainer.querySelector('img');
             if (garmentImg) {
-                // Convert the pre-selected product image to a File object
-                fetch(garmentImg.src)
-                    .then(res => res.blob())
-                    .then(blob => {
-                        garmentImage = new File([blob], "product-garment.jpg", { type: "image/jpeg" });
-                        checkCanGenerate();
+                // Show loading state in preview
+                garmentPreviewContainer.style.display = 'block';
+                garmentUploadArea.style.display = 'none';
+                
+                // Create a loading placeholder
+                garmentPreview.innerHTML = '';
+                garmentPreview.classList.add('image-loading');
+                
+                // Get the absolute URL
+                const imgSrc = fixImagePath(garmentImg.src);
+                console.log('Loading pre-selected garment from:', imgSrc);
+                
+                // Try to load and convert the image
+                createFileFromImageUrl(imgSrc, 'product-garment.jpg')
+                    .then(file => {
+                        if (file) {
+                            garmentImage = file;
+                            
+                            // Create image element
+                            const img = document.createElement('img');
+                            img.onload = function() {
+                                garmentPreview.classList.remove('image-loading');
+                                checkCanGenerate();
+                            };
+                            
+                            img.onerror = function() {
+                                garmentPreview.classList.remove('image-loading');
+                                garmentPreview.classList.add('image-error');
+                                garmentPreview.innerHTML = '<i class="fas fa-exclamation-circle"></i><p>Image could not load. Please try uploading manually.</p>';
+                                console.error('Failed to load image:', imgSrc);
+                            };
+                            
+                            img.src = URL.createObjectURL(file);
+                            garmentPreview.innerHTML = '';
+                            garmentPreview.appendChild(img);
+                        } else {
+                            // Handle error
+                            garmentPreview.classList.remove('image-loading');
+                            garmentPreview.classList.add('image-error');
+                            garmentPreview.innerHTML = '<i class="fas fa-exclamation-circle"></i><p>Image could not load. Please try uploading manually.</p>';
+                        }
                     })
                     .catch(error => {
-                        console.error("Error converting image to File:", error);
+                        console.error('Error processing pre-selected garment:', error);
+                        garmentPreview.classList.remove('image-loading');
+                        garmentPreview.classList.add('image-error');
+                        garmentPreview.innerHTML = '<i class="fas fa-exclamation-circle"></i><p>Image could not load. Please try uploading manually.</p>';
                     });
             }
         }
         
-        // Upload handlers
-        function setupUpload(uploadArea, browseBtn, input, previewContainer, preview, editBtn, removeBtn, imageType) {
-            // Click to browse
-            if (browseBtn) {
-                browseBtn.addEventListener('click', () => {
-                    input.click();
-                });
-            }
-            
-            // Drag and drop
-            if (uploadArea) {
-                uploadArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    uploadArea.classList.add('dragover');
-                });
-                
-                uploadArea.addEventListener('dragleave', () => {
-                    uploadArea.classList.remove('dragover');
-                });
-                
-                uploadArea.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    uploadArea.classList.remove('dragover');
-                    if (e.dataTransfer.files.length > 0) {
-                        handleImageUpload(e.dataTransfer.files[0], imageType);
-                    }
-                });
-            }
-            
-            // File input change
-            if (input) {
-                input.addEventListener('change', () => {
-                    if (input.files.length > 0) {
-                        handleImageUpload(input.files[0], imageType);
-                    }
-                });
-            }
-            
-            // Edit button
-            if (editBtn) {
-                editBtn.addEventListener('click', () => {
-                    openCropperModal(imageType);
-                });
-            }
-            
-            // Remove button
-            if (removeBtn) {
-                removeBtn.addEventListener('click', () => {
-                    if (imageType === 'person') {
-                        personImage = null;
-                        personPreviewContainer.style.display = 'none';
-                        personUploadArea.style.display = 'flex';
-                    } else {
-                        garmentImage = null;
-                        garmentPreviewContainer.style.display = 'none';
-                        if (garmentUploadArea) {
-                            garmentUploadArea.style.display = 'flex';
-                        }
-                    }
-                    checkCanGenerate();
-                });
-            }
-        }
+        // Person Image Upload
+        personUploadBtn.addEventListener('click', function() {
+            personImageInput.click();
+        });
         
-        function handleImageUpload(file, imageType) {
+        personImageInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                handlePersonImageSelect(this.files[0]);
+            }
+        });
+        
+        personUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--primary-color)';
+            this.style.backgroundColor = 'var(--primary-transparent)';
+        });
+        
+        personUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--gray-light)';
+            this.style.backgroundColor = '';
+        });
+        
+        personUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--gray-light)';
+            this.style.backgroundColor = '';
+            
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handlePersonImageSelect(e.dataTransfer.files[0]);
+            }
+        });
+        
+        personRemoveBtn.addEventListener('click', function() {
+            personImage = null;
+            personPreviewContainer.style.display = 'none';
+            personUploadArea.style.display = 'block';
+            personImageInput.value = '';
+            checkCanGenerate();
+        });
+        
+        function handlePersonImageSelect(file) {
             if (!file.type.match('image.*')) {
-                showStatus('Please upload an image file', 'error');
+                statusMessage.textContent = 'Please select an image file';
+                statusMessage.className = 'status-message error';
                 return;
             }
             
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    if (imageType === 'person') {
-                        personImage = file;
-                        personPreview.innerHTML = '';
-                        const previewImg = document.createElement('img');
-                        previewImg.src = e.target.result;
-                        previewImg.alt = 'Person preview';
-                        personPreview.appendChild(previewImg);
-                        personPreviewContainer.style.display = 'block';
-                        personUploadArea.style.display = 'none';
-                    } else {
-                        garmentImage = file;
-                        garmentPreview.innerHTML = '';
-                        const previewImg = document.createElement('img');
-                        previewImg.src = e.target.result;
-                        previewImg.alt = 'Garment preview';
-                        garmentPreview.appendChild(previewImg);
-                        garmentPreviewContainer.style.display = 'block';
-                        if (garmentUploadArea) {
-                            garmentUploadArea.style.display = 'none';
-                        }
-                    }
-                    checkCanGenerate();
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+            personImage = file;
+            personPreviewContainer.style.display = 'block';
+            personUploadArea.style.display = 'none';
+            
+            // Create image preview
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            personPreview.innerHTML = '';
+            personPreview.appendChild(img);
+            
+            statusMessage.textContent = '';
+            statusMessage.className = 'status-message';
+            
+            checkCanGenerate();
         }
         
-        // Cropper functionality
-        function openCropperModal(imageType) {
-            currentEditingImage = imageType;
-            
-            const imgSrc = imageType === 'person' 
-                ? personPreview.querySelector('img').src 
-                : garmentPreview.querySelector('img').src;
-            
-            cropperImage.src = imgSrc;
-            cropperModal.style.display = 'block';
-            document.body.classList.add('modal-open');
-            
-            // Initialize cropper
-            if (cropper) {
-                cropper.destroy();
-            }
-            
-            cropper = new Cropper(cropperImage, {
-                aspectRatio: NaN,
-                viewMode: 1,
-                autoCropArea: 0.8,
-                zoomable: true,
-                scalable: true,
-                rotatable: true
-            });
-        }
-        
-        // Apply crop
-        cropApplyBtn.addEventListener('click', () => {
-            if (!cropper) return;
-            
-            const canvas = cropper.getCroppedCanvas({
-                maxWidth: 1024,
-                maxHeight: 1024
-            });
-            
-            if (canvas) {
-                const dataUrl = canvas.toDataURL('image/jpeg');
-                
-                // Convert data URL to File object
-                fetch(dataUrl)
-                    .then(res => res.blob())
-                    .then(blob => {
-                        const file = new File([blob], "cropped-image.jpg", { type: "image/jpeg" });
-                        
-                        if (currentEditingImage === 'person') {
-                            personImage = file;
-                            personPreview.innerHTML = '';
-                            const previewImg = document.createElement('img');
-                            previewImg.src = dataUrl;
-                            personPreview.appendChild(previewImg);
-                        } else {
-                            garmentImage = file;
-                            garmentPreview.innerHTML = '';
-                            const previewImg = document.createElement('img');
-                            previewImg.src = dataUrl;
-                            garmentPreview.appendChild(previewImg);
-                        }
-                    });
-            }
-            
-            closeCropperModal();
+        // Garment Image Upload
+        garmentUploadBtn.addEventListener('click', function() {
+            garmentImageInput.click();
         });
         
-        // Close cropper modal
-        function closeCropperModal() {
-            cropperModal.style.display = 'none';
-            document.body.classList.remove('modal-open');
-            if (cropper) {
-                cropper.destroy();
-                cropper = null;
+        garmentImageInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                handleGarmentImageSelect(this.files[0]);
             }
+        });
+        
+        garmentUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--primary-color)';
+            this.style.backgroundColor = 'var(--primary-transparent)';
+        });
+        
+        garmentUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--gray-light)';
+            this.style.backgroundColor = '';
+        });
+        
+        garmentUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--gray-light)';
+            this.style.backgroundColor = '';
+            
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleGarmentImageSelect(e.dataTransfer.files[0]);
+            }
+        });
+        
+        garmentRemoveBtn.addEventListener('click', function() {
+            garmentImage = null;
+            garmentPreviewContainer.style.display = 'none';
+            garmentUploadArea.style.display = 'block';
+            garmentImageInput.value = '';
+            checkCanGenerate();
+        });
+        
+        function handleGarmentImageSelect(file) {
+            if (!file.type.match('image.*')) {
+                statusMessage.textContent = 'Please select an image file';
+                statusMessage.className = 'status-message error';
+                return;
+            }
+            
+            garmentImage = file;
+            garmentPreviewContainer.style.display = 'block';
+            garmentUploadArea.style.display = 'none';
+            
+            // Create image preview
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            garmentPreview.innerHTML = '';
+            garmentPreview.appendChild(img);
+            
+            statusMessage.textContent = '';
+            statusMessage.className = 'status-message';
+            
+            checkCanGenerate();
         }
         
-        closeModal.addEventListener('click', closeCropperModal);
-        cropCancelBtn.addEventListener('click', closeCropperModal);
-        
-        // Check if can generate
+        // Check if both images are selected to enable generate button
         function checkCanGenerate() {
-            generateBtn.disabled = !(personImage && garmentImage);
             if (personImage && garmentImage) {
-                generateBtn.classList.add('active');
+                generateBtn.removeAttribute('disabled');
+                generateBtn.classList.add('ready');
             } else {
-                generateBtn.classList.remove('active');
+                generateBtn.setAttribute('disabled', 'disabled');
+                generateBtn.classList.remove('ready');
             }
         }
         
-        // Generate button click
-        generateBtn.addEventListener('click', () => {
-            if (!personImage || !garmentImage) return;
-            
-            loadingOverlay.style.display = 'flex';
-            loadingMessage.textContent = 'Processing your images...';
-            loadingSubMessage.textContent = 'This may take up to a minute';
-            
-            // Save person image for comparison
-            if (personImage) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    originalPersonContainer.innerHTML = '';
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.alt = 'Original person';
-                    originalPersonContainer.appendChild(img);
-                };
-                reader.readAsDataURL(personImage);
+        // Generate Try-On
+        generateBtn.addEventListener('click', function() {
+            if (!personImage || !garmentImage) {
+                statusMessage.textContent = 'Please upload both images first';
+                statusMessage.className = 'status-message error';
+                return;
             }
             
-            // Create form data
+            // Show loading overlay
+            loadingOverlay.style.display = 'flex';
+            statusMessage.textContent = '';
+            statusMessage.className = 'status-message';
+            
+            // Create form data for API request
             const formData = new FormData();
             formData.append('person_image', personImage);
             formData.append('garment_image', garmentImage);
             
             // Add product ID if available
-            if (productId) {
-                formData.append('product_id', productId);
-            }
+            {% if product %}
+            formData.append('product_id', '{{ product.id }}');
+            {% endif %}
             
             // Send API request
             fetch('/api/try-on', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        throw new Error(data.message || `Server responded with ${response.status}`);
-                    });
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
+                // Hide loading overlay
                 loadingOverlay.style.display = 'none';
                 
                 if (data.status === 'success') {
-                    resultImage.src = data.result_url;
+                    // Show result
+                    uploadSection.style.display = 'none';
                     resultSection.style.display = 'block';
-                    
-                    // Set share link
-                    shareLink.value = window.location.origin + data.result_url;
+                    resultImage.src = data.result_url;
+                    downloadBtn.href = data.result_url;
                     
                     // Scroll to result
                     resultSection.scrollIntoView({ behavior: 'smooth' });
-                    
-                    showStatus('Try-on successful!', 'success');
-                    
-                    // Update credits display if authenticated
-                    const creditsDisplay = document.querySelector('.free-trial-info .highlight');
-                    if (creditsDisplay) {
-                        const currentCredits = parseInt(creditsDisplay.textContent);
-                        if (!isNaN(currentCredits)) {
-                            creditsDisplay.textContent = currentCredits - 1;
-                        }
-                    }
                 } else {
-                    showError('Error: ' + (data.message || 'Failed to process images'));
+                    // Show error
+                    statusMessage.textContent = data.message || 'An error occurred. Please try again.';
+                    statusMessage.className = 'status-message error';
                 }
             })
             .catch(error => {
-                console.error("API Error:", error);
+                // Hide loading overlay
                 loadingOverlay.style.display = 'none';
-                showError('Error: ' + error.message);
+                
+                // Show error
+                statusMessage.textContent = 'An error occurred. Please try again.';
+                statusMessage.className = 'status-message error';
+                console.error('Try-on error:', error);
             });
         });
         
-        // Show status message
-        function showStatus(message, type = 'info') {
-            statusMessage.textContent = message;
-            statusMessage.className = 'status-message ' + type;
-            
-            // Clear after 5 seconds
-            setTimeout(() => {
-                statusMessage.textContent = '';
-                statusMessage.className = 'status-message';
-            }, 5000);
-        }
-        
-        // Show error message
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            
-            // Clear after 5 seconds
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-            }, 5000);
-        }
-        
-        // Download button
-        downloadBtn.addEventListener('click', () => {
-            const link = document.createElement('a');
-            link.href = resultImage.src;
-            link.download = 'fashionCORE-virtual-try-on.png';
-            link.click();
-        });
-        
-        // Share button
-        shareBtn.addEventListener('click', () => {
-            shareModal.style.display = 'block';
-            document.body.classList.add('modal-open');
-        });
-        
-        // Close share modal
-        closeShareModal.addEventListener('click', () => {
-            shareModal.style.display = 'none';
-            document.body.classList.remove('modal-open');
-        });
-        
-        // Copy link button
-        copyLinkBtn.addEventListener('click', () => {
-            shareLink.select();
-            document.execCommand('copy');
-            copyLinkBtn.textContent = 'Copied!';
-            setTimeout(() => {
-                copyLinkBtn.textContent = 'Copy';
-            }, 2000);
-        });
-        
-        // Try again button
-        tryAgainBtn.addEventListener('click', () => {
+        // Try Again Button
+        tryAgainBtn.addEventListener('click', function() {
+            // Reset UI
             resultSection.style.display = 'none';
-            document.getElementById('try-on-section').scrollIntoView({ behavior: 'smooth' });
-        });
-        
-        // Share options
-        document.querySelectorAll('.share-option').forEach(option => {
-            option.addEventListener('click', () => {
-                const url = encodeURIComponent(shareLink.value);
-                const resultUrl = resultImage.src;
-                let shareUrl = '';
-                
-                if (option.classList.contains('facebook')) {
-                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-                } else if (option.classList.contains('twitter')) {
-                    shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${encodeURIComponent('Check out my virtual try-on with fashionCORE!')}`;
-                } else if (option.classList.contains('instagram')) {
-                    // Show message about Instagram
-                    alert('To share on Instagram, please download the image and upload it to your Instagram account.');
-                    return;
-                } else if (option.classList.contains('whatsapp')) {
-                    shareUrl = `https://wa.me/?text=${encodeURIComponent('Check out my virtual try-on with fashionCORE! ' + shareLink.value)}`;
-                }
-                
-                if (shareUrl) {
-                    window.open(shareUrl, '_blank');
-                }
-            });
-        });
-        
-        // Setup upload handlers
-        setupUpload(
-            personUploadArea, personBrowseBtn, personImageInput, 
-            personPreviewContainer, personPreview, personEditBtn, personRemoveBtn, 
-            'person'
-        );
-        
-        setupUpload(
-            garmentUploadArea, garmentBrowseBtn, garmentImageInput, 
-            garmentPreviewContainer, garmentPreview, garmentEditBtn, garmentRemoveBtn, 
-            'garment'
-        );
-        
-        // Close modals when clicking outside
-        window.addEventListener('click', (e) => {
-            if (e.target === cropperModal) {
-                closeCropperModal();
+            uploadSection.style.display = 'block';
+            
+            // Clear person image
+            personImage = null;
+            personPreviewContainer.style.display = 'none';
+            personUploadArea.style.display = 'block';
+            personImageInput.value = '';
+            
+            // Keep garment image if it's a pre-selected product
+            if (!selectedGarmentContainer) {
+                garmentImage = null;
+                garmentPreviewContainer.style.display = 'none';
+                garmentUploadArea.style.display = 'block';
+                garmentImageInput.value = '';
             }
-            if (e.target === shareModal) {
-                shareModal.style.display = 'none';
-                document.body.classList.remove('modal-open');
+            
+            checkCanGenerate();
+            
+            // Scroll to upload section
+            uploadSection.scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Handle ESC key to close loading overlay (for development)
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && loadingOverlay.style.display === 'flex') {
+                loadingOverlay.style.display = 'none';
             }
         });
     });
