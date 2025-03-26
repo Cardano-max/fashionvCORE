@@ -397,9 +397,91 @@ def track_api_usage(endpoint, method='GET', status_code=200, response_time=0, ap
         # Don't let API tracking errors affect the main functionality
         db.session.rollback()
 
+# Database initialization function
+def init_db():
+    """Initialize database with default data"""
+    logger.info("Starting database initialization")
+    try:
+        # Create admin user if not exists
+        admin = User.query.filter_by(email='admin@fashioncore.com').first()
+        if not admin:
+            admin = User(
+                username='admin',
+                email='admin@fashioncore.com',
+                is_admin=True,
+                is_active=True
+            )
+            admin.set_password('adminpassword')
+            db.session.add(admin)
+            logger.info("Admin user created")
+
+        # Add new products for the Featured Collection
+        products = [
+            {"name": "Kanchipuram Silk Saree", "description": "Elegant traditional silk saree perfect for weddings and celebrations.", "price": 129.99, "image_path": "images/products/kanchipuram_silk_saree.jpg", "category": "Sarees", "brand": "Ameezara Creation"},
+            {"name": "Banarasi Silk Saree", "description": "Exquisite Banarasi silk saree known for its intricate weaving.", "price": 149.99, "image_path": "images/products/Banarasi Silk Saree.jpg", "category": "Sarees", "brand": "Ameezara Creation"},
+            {"name": "Bridal Lehenga Choli", "description": "Bridal lehenga choli set perfect for weddings.", "price": 199.99, "image_path": "images/products/Bridal Lehenga Choli.jpg", "category": "Lehengas", "brand": "Ameezara Creation"},
+            {"name": "Designer Anarkali Suit", "description": "Designer Anarkali suit with intricate embroidery and a luxurious look.", "price": 159.99, "image_path": "images/products/Designer Anarkali Suit.jpg", "category": "Suits", "brand": "Ameezara Creation"},
+            {"name": "Designer Palazzo Kurti Set", "description": "Stylish palazzo and kurti set designed for modern women.", "price": 89.99, "image_path": "images/products/Designer Palazzo Kurti Set.jpg", "category": "Kurti Sets", "brand": "Ameezara Creation"},
+            {"name": "Embellished Sharara Set", "description": "Beautifully embellished Sharara set with detailed work.", "price": 179.99, "image_path": "images/products/Embellished Sharara Set .jpg", "category": "Sharara Sets", "brand": "Ameezara Creation"}
+        ]
+
+        for product_data in products:
+            existing_product = Product.query.filter_by(name=product_data["name"]).first()
+            if not existing_product:
+                product = Product(
+                    name=product_data["name"],
+                    description=product_data["description"],
+                    price=product_data["price"],
+                    image_path=product_data["image_path"],
+                    category=product_data["category"],
+                    brand=product_data["brand"]
+                )
+                db.session.add(product)
+                logger.info(f"Product added: {product_data['name']}")
+
+        db.session.commit()
+        logger.info("Database initialization completed successfully")
+
+    except Exception as e:
+        logger.error(f"Database initialization error: {e}")
+        db.session.rollback()
+        raise
+
+# Debug route to check database products
+@app.route('/debug-db')
+def debug_db():
+    """Debug route to check database contents"""
+    products = Product.query.all()
+    return jsonify({
+        'product_count': len(products),
+        'products': [
+            {
+                'id': p.id,
+                'name': p.name,
+                'image_path': p.image_path,
+                'exists': os.path.exists(os.path.join('static', p.image_path))
+            }
+            for p in products
+        ]
+    })
+
 # Main Routes
+
+# Make sure to initialize database before the first index page load
 @app.route('/')
 def index():
+    try:
+        # Check if database needs initialization
+        if Product.query.count() == 0:
+            init_db()
+            logger.info("Database initialized on first index page load")
+    except:
+        # If there's an error, the tables might not exist yet
+        with app.app_context():
+            db.create_all()
+            init_db()
+            logger.info("Database created and initialized on first index page load")
+    
     # Query the products for the featured section
     featured_products = Product.query.filter(Product.name.in_([
         'Kanchipuram Silk Saree',
@@ -551,7 +633,14 @@ def products():
 def product_detail(product_id):
     """Product detail page"""
     product = Product.query.get_or_404(product_id)
-    return render_template('product_detail.html', product=product)
+    
+    # Get related products
+    related_products = Product.query.filter(
+        Product.category == product.category, 
+        Product.id != product.id
+    ).limit(4).all()
+    
+    return render_template('product_detail.html', product=product, related_products=related_products)
 
 @app.route('/business-try-on')
 def business_try_on():
@@ -826,7 +915,7 @@ def admin_dashboard():
     # Get counts for dashboard stats
     user_count = User.query.count()
     tryon_count = TryOnHistory.query.count()
-    garment_count = db.session.query(func.count(func.distinct(TryOnHistory.garment_image_path))).scalar()
+    garment_count = db.session.query(func.count(func.distinct(TryOnHistory.garment_image_path))).scalar() or 0
     api_count = ApiKey.query.filter_by(is_active=True).count()
     
     # Get users with try-on counts
@@ -864,14 +953,18 @@ def admin_dashboard():
     else:
         # Create a new API key if none exists
         primary_api_key = f"fcore_{secrets.token_hex(16)}"
-        new_key = ApiKey(
-            key=primary_api_key,
-            name="Primary API Key",
-            is_active=True,
-            created_by=current_user.id
-        )
-        db.session.add(new_key)
-        db.session.commit()
+        try:
+            new_key = ApiKey(
+                key=primary_api_key,
+                name="Primary API Key",
+                is_active=True,
+                created_by=current_user.id
+            )
+            db.session.add(new_key)
+            db.session.commit()
+        except:
+            # Handle case where we can't add the key (transaction issue)
+            logger.warning("Could not create primary API key - will be created on next access")
     
     return render_template(
         'admin_dashboard.html',
@@ -1009,15 +1102,20 @@ def debug_paths():
         'RESULTS_FOLDER absolute': os.path.abspath(app.config['RESULTS_FOLDER']),
         'RESULTS_FOLDER exists': os.path.exists(app.config['RESULTS_FOLDER']),
         'Results files': os.listdir(app.config['RESULTS_FOLDER']) if os.path.exists(app.config['RESULTS_FOLDER']) else [],
-        'Current working directory': os.getcwd()
+        'Current working directory': os.getcwd(),
+        'Static folder': os.path.join(app.root_path, 'static'),
+        'Product images': os.path.exists(os.path.join(app.root_path, 'static', 'images', 'products'))
     }
     return jsonify(paths_info)
 
 # Flask CLI Commands
 @click.command('init-db')
-def init_db_command():
+@click.pass_context
+def init_db_command(ctx):
     """Clear the existing data and create new tables."""
-    db.create_all()
+    with app.app_context():
+        db.create_all()
+        init_db()
     click.echo('Initialized the database.')
 
 @click.command('create-admin')
@@ -1026,80 +1124,41 @@ def init_db_command():
 @click.argument('password')
 def create_admin_command(email, username, password):
     """Create an admin user."""
-    # Check if user exists
-    user = User.query.filter_by(email=email).first()
-    if user:
-        # Update existing user
-        user.username = username
-        user.set_password(password)
-        user.is_admin = True
-        click.echo(f"User {email} updated and promoted to admin.")
-    else:
-        # Create new admin user
-        admin = User(
-            email=email,
-            username=username,
-            is_admin=True
-        )
-        admin.set_password(password)
-        db.session.add(admin)
-        click.echo(f"Admin user {email} created successfully.")
-    
-    db.session.commit()
+    with app.app_context():
+        # Check if user exists
+        user = User.query.filter_by(email=email).first()
+        if user:
+            # Update existing user
+            user.username = username
+            user.set_password(password)
+            user.is_admin = True
+            user.is_active = True
+            click.echo(f"User {email} updated and promoted to admin.")
+        else:
+            # Create new admin user
+            admin = User(
+                email=email,
+                username=username,
+                is_admin=True,
+                is_active=True
+            )
+            admin.set_password(password)
+            db.session.add(admin)
+            click.echo(f"Admin user {email} created successfully.")
+        
+        db.session.commit()
 
 app.cli.add_command(init_db_command)
 app.cli.add_command(create_admin_command)
 
-from flask_migrate import Migrate
-import os
-
-migrate = Migrate(app, db)
-
-def init_db():
-    """Initialize database with default data"""
-    with app.app_context():
-        try:
-            # Create admin user if not exists
-            admin = User.query.filter_by(email='admin@fashioncore.com').first()
-            if not admin:
-                admin = User(
-                    username='admin',
-                    email='admin@fashioncore.com',
-                    is_admin=True,
-                    is_active=True
-                )
-                admin.set_password('adminpassword')
-                db.session.add(admin)
-
-            # Add new products for the Featured Collection
-            products = [
-                {"name": "Kanchipuram Silk Saree", "description": "Elegant traditional silk saree perfect for weddings and celebrations.", "price": 129.99, "image_path": "images/products/kanchipuram_silk_saree.jpg", "category": "Sarees", "brand": "Ameezara Creation"},
-                {"name": "Banarasi Silk Saree", "description": "Exquisite Banarasi silk saree known for its intricate weaving.", "price": 149.99, "image_path": "images/products/Banarasi Silk Saree.jpg", "category": "Sarees", "brand": "Ameezara Creation"},
-                {"name": "Bridal Lehenga Choli", "description": "Bridal lehenga choli set perfect for weddings.", "price": 199.99, "image_path": "images/products/Bridal Lehenga Choli.jpg", "category": "Lehengas", "brand": "Ameezara Creation"},
-                {"name": "Designer Anarkali Suit", "description": "Designer Anarkali suit with intricate embroidery and a luxurious look.", "price": 159.99, "image_path": "images/products/Designer Anarkali Suit.jpg", "category": "Suits", "brand": "Ameezara Creation"},
-                {"name": "Designer Palazzo Kurti Set", "description": "Stylish palazzo and kurti set designed for modern women.", "price": 89.99, "image_path": "images/products/Designer Palazzo Kurti Set.jpg", "category": "Kurti Sets", "brand": "Ameezara Creation"},
-                {"name": "Embellished Sharara Set", "description": "Beautifully embellished Sharara set with detailed work.", "price": 179.99, "image_path": "images/products/Embellished Sharara Set .jpg", "category": "Sharara Sets", "brand": "Ameezara Creation"}
-            ]
-
-            for product_data in products:
-                existing_product = Product.query.filter_by(name=product_data["name"]).first()
-                if not existing_product:
-                    product = Product(
-                        name=product_data["name"],
-                        description=product_data["description"],
-                        price=product_data["price"],
-                        image_path=product_data["image_path"],
-                        category=product_data["category"],
-                        brand=product_data["brand"]
-                    )
-                    db.session.add(product)
-
-            db.session.commit()
-
-        except Exception as e:
-            print(f"Database initialization error: {e}")
-            db.session.rollback()
-
-# Only run initialization when the app is run directly
+# Only run this when the app is run directly
 if __name__ == '__main__':
+    # Check if the database exists and initialize it if needed
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fashioncore.db')
+    if not os.path.exists(db_path):
+        with app.app_context():
+            db.create_all()
+            init_db()
+    
+    # Start the application
     app.run(debug=True, host='127.0.0.1', port=int(os.environ.get('PORT', 8080)))
