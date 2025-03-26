@@ -358,7 +358,7 @@
         <div class="about-section-content">
             <div class="about-grid">
                 <div class="about-image">
-                    <img src="{{ url_for('static', filename='images/samples/about-story.jpg') }}" alt="Our Story">
+                    <img src="{{ url_for('static', filename='images/samples/models/CEO.png') }}" alt="Our Story - CEO">
                 </div>
                 <div class="about-text">
                     <h2>Our Story</h2>
@@ -373,7 +373,7 @@
         <div class="about-section-content">
             <div class="about-grid reverse">
                 <div class="about-image">
-                    <img src="{{ url_for('static', filename='images/samples/about-vision.jpg') }}" alt="Our Vision">
+                    <img src="{{ url_for('static', filename='images/samples/models/our vision.jpeg') }}" alt="Our Vision">
                 </div>
                 <div class="about-text">
                     <h2>Our Vision</h2>
@@ -453,24 +453,41 @@
         </div>
     </div>
 </section>
-
 <!-- Team Section -->
 <section class="team-section">
     <div class="container">
         <div class="team-header">
             <h2>Meet Our Team</h2>
-            <p>The passionate individuals behind fashionCORE's success</p>
+            <p>The passionate individuals behind fashionCORE's innovation and leadership</p>
         </div>
-        
+
         <div class="team-grid">
+            <!-- CEO -->
             <div class="team-member">
                 <div class="member-image">
-                    <img src="{{ url_for('static', filename='images/samples/Ceo.jpeg') }}" alt="Uzair Ali">
+                    <img src="{{ url_for('static', filename='images/samples/models/CEO.png') }}" alt="Ateeb Taseer">
+                </div>
+                <div class="member-info">
+                    <h3 class="member-name">Ateeb Taseer</h3>
+                    <div class="member-role">Founder & CEO</div>
+                    <p class="member-bio">Ateeb holds a Master’s in Computer Vision from Imperial College London and brings cutting-edge AI expertise to fashionCORE. With a passion for revolutionizing fashion through technology, he leads the vision, innovation, and strategic growth of the company.</p>
+                    <div class="member-social">
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Director -->
+            <div class="team-member">
+                <div class="member-image">
+                    <img src="{{ url_for('static', filename='images/samples/models/Director.jpeg') }}" alt="Kaushal Shah">
                 </div>
                 <div class="member-info">
                     <h3 class="member-name">Kaushal Shah</h3>
-                    <div class="member-role">Founder & CEO</div>
-                    <p class="member-bio">With over 15 years in the Indian fashion industry and a passion for technology, Kaushal bridges the gap between traditional fashion and cutting-edge AI.</p>
+                    <div class="member-role">Director & CEO of Ameezara Solutions</div>
+                    <p class="member-bio">Kaushal is a visionary entrepreneur with decades of experience in traditional fashion retail and enterprise solutions. As CEO of Ameezara Solutions, he brings strategic direction and operational leadership to fashionCORE’s expansion in global markets.</p>
                     <div class="member-social">
                         <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
                         <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
@@ -478,47 +495,16 @@
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Digital Marketing Expert -->
             <div class="team-member">
                 <div class="member-image">
-                    <img src="{{ url_for('static', filename='images/samples/team-priya.jpg') }}" alt="Priya Sharma">
+                    <img src="{{ url_for('static', filename='images/samples/models/CTO.jpg') }}" alt="Uzair Ali">
                 </div>
                 <div class="member-info">
-                    <h3 class="member-name">Priya Sharma</h3>
-                    <div class="member-role">Chief Technology Officer</div>
-                    <p class="member-bio">A computer vision expert with a Ph.D. from IIT Delhi, Priya leads our AI research and development, driving our technology forward.</p>
-                    <div class="member-social">
-                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-github"></i></a>
-                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="team-member">
-                <div class="member-image">
-                    <img src="{{ url_for('static', filename='images/samples/team-rajesh.jpg') }}" alt="Rajesh Mehta">
-                </div>
-                <div class="member-info">
-                    <h3 class="member-name">Rajesh Mehta</h3>
-                    <div class="member-role">Chief Operating Officer</div>
-                    <p class="member-bio">With extensive experience in e-commerce operations, Rajesh ensures that our services run smoothly and efficiently for all our customers.</p>
-                    <div class="member-social">
-                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="team-member">
-                <div class="member-image">
-                    <img src="{{ url_for('static', filename='images/samples/team-neha.jpg') }}" alt="Neha Singh">
-                </div>
-                <div class="member-info">
-                    <h3 class="member-name">Neha Singh</h3>
-                    <div class="member-role">Chief Design Officer</div>
-                    <p class="member-bio">A fashion designer with over a decade of experience, Neha ensures that our technology maintains the artistic integrity of fashion.</p>
+                    <h3 class="member-name">Uzair Ali</h3>
+                    <div class="member-role">Digital Marketing Strategist</div>
+                    <p class="member-bio">Uzair is a seasoned digital marketing expert who drives fashionCORE’s brand visibility and user engagement across platforms. His innovative campaigns and growth strategies have helped scale the platform to a wider fashion-tech audience.</p>
                     <div class="member-social">
                         <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
                         <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
@@ -529,6 +515,7 @@
         </div>
     </div>
 </section>
+
 
 <!-- Contact Section -->
 <section class="contact-section">

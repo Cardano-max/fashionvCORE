@@ -663,12 +663,13 @@
             <div class="option-card">
                 <h3>Step 2: Select a Pose</h3>
                 <div class="pose-selector" id="poseSelector">
-                    {% for i in range(1, 7) %}
-                    <div class="pose-option" data-pose-id="{{ i }}">
-                        <img src="{{ url_for('static', filename='images/business/poses/pose-' + i|string + '.jpg') }}" alt="Pose {{ i }}">
+                    {% set poses = ['11.jpg', '22.jpeg', '33.jpg', '44.png', '55.jpg', '66.jpg'] %}
+                    {% for pose in poses %}
+                    <div class="pose-option" data-pose-id="{{ loop.index }}">
+                        <img src="{{ url_for('static', filename='images/business/poses/' + pose) }}" alt="Pose {{ loop.index }}">
                     </div>
                     {% endfor %}
-                </div>
+                </div>                
             </div>
             
             <!-- Background Selection -->
@@ -687,11 +688,13 @@
                     </div>
                     
                     <!-- Image backgrounds -->
-                    {% for i in range(1, 6) %}
-                    <div class="bg-option" data-bg-id="bg-{{ i }}" data-bg-type="image" data-bg-value="background-{{ i }}.jpg">
-                        <img src="{{ url_for('static', filename='images/business/backgrounds/background-' + i|string + '.jpg') }}" alt="Background {{ i }}" class="bg-option-image">
+                    {% set backgrounds = ['bg1.png', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg'] %}
+                    {% for bg in backgrounds %}
+                    <div class="bg-option" data-bg-id="{{ loop.index }}" data-bg-type="image" data-bg-value="{{ bg }}">
+                        <img src="{{ url_for('static', filename='images/business/backgrounds/' + bg) }}" alt="Background {{ loop.index }}" class="bg-option-image">
                     </div>
                     {% endfor %}
+
                 </div>
             </div>
         </div>

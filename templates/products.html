@@ -98,8 +98,7 @@
             {% for product in products %}
             <div class="product-card">
                 <div class="product-image">
-                    <img src="{{ url_for('static', filename='images/' + product.image_path) }}" alt="{{ product.name }}">
-                    <div class="product-overlay">
+                    <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.name }}">                    <div class="product-overlay">
                         <div class="product-overlay-buttons">
                             <a href="{{ url_for('try_on_page', product_id=product.id) }}" class="btn btn-secondary btn-small">Try On</a>
                             <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary btn-small">View Details</a>

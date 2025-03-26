@@ -117,7 +117,7 @@
             <!-- Product Gallery -->
             <div class="product-gallery">
                 <div class="product-main-image">
-                    <img src="{{ url_for('static', filename='images/' + product.image_path) }}" alt="{{ product.name }}">
+                    <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.name }}">
                 </div>
             </div>
             
@@ -170,7 +170,7 @@
                 {% for related in related_products %}
                 <div class="product-card">
                     <div class="product-image">
-                        <img src="{{ url_for('static', filename='images/' + related.image_path) }}" alt="{{ related.name }}">
+                        <img src="{{ url_for('static', filename=related.image_path) }}" alt="{{ related.name }}">
                         <div class="product-overlay">
                             <div class="product-overlay-buttons">
                                 <a href="{{ url_for('try_on_page', product_id=related.id) }}" class="btn btn-secondary btn-small">Try On</a>

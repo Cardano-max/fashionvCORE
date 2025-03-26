@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}fashionCORE - Admin Login{% endblock %}
+
+{% block additional_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+<style>
+    .admin-login-container {
+        max-width: 500px;
+        margin: 100px auto;
+        padding: 40px;
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .admin-login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .admin-login-header h1 {
+        color: var(--primary-color);
+        font-size: 2.8rem;
+        margin-bottom: 10px;
+    }
+    
+    .admin-notice {
+        background-color: var(--warning-bg);
+        color: var(--warning-dark);
+        padding: 15px;
+        border-radius: var(--radius-md);
+        margin-bottom: 30px;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .admin-notice i {
+        font-size: 2rem;
+        color: var(--warning);
+    }
+    
+    .admin-login-form .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .admin-login-form .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .admin-login-form .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid var(--gray-lighter);
+        border-radius: var(--radius-md);
+        font-size: 1.6rem;
+        transition: border-color var(--transition-medium), box-shadow var(--transition-medium);
+    }
+    
+    .admin-login-form .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        outline: none;
+    }
+    
+    .admin-login-form .btn-primary {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.6rem;
+        background: linear-gradient(135deg, var(--primary-color), #3a56d4);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-medium);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .admin-login-form .btn-primary:hover {
+        background: linear-gradient(135deg, #3a56d4, var(--primary-color));
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-login-container">
+        <div class="admin-login-header">
+            <h1>Admin Access</h1>
+            <p>Secure login for authorized administrators</p>
+        </div>
+        
+        <div class="admin-notice">
+            <i class="fas fa-shield-alt"></i>
+            <span>This area is restricted to authorized fashionCORE administrators only.</span>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form class="admin-login-form" method="POST" action="{{ url_for('admin_login') }}">
+            <div class="form-group">
+                <label for="email" class="form-label">Admin Email</label>
+                <input type="email" id="email" name="email" class="form-control" required autocomplete="email">
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Secure Login
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

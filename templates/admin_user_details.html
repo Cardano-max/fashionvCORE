@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}User Details - Admin{% endblock %}
+
+{% block additional_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>User Details</h1>
+        <a href="{{ url_for('admin_dashboard') }}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    
+    <div class="user-profile-section">
+        <div class="user-profile">
+            <div class="user-avatar">
+                {{ user.username[0].upper() }}
+            </div>
+            
+            <div class="user-info">
+                <h2>
+                    {{ user.username }}
+                    {% if user.is_active %}
+                    <span class="status-badge status-active">Active</span>
+                    {% else %}
+                    <span class="status-badge status-inactive">Blocked</span>
+                    {% endif %}
+                </h2>
+                
+                <div class="user-meta">
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Joined:</strong> {{ user.created_at.strftime('%B %d, %Y') }}</p>
+                    <p><strong>Last Login:</strong> {% if user.last_login %}{{ user.last_login.strftime('%B %d, %Y at %H:%M') }}{% else %}Never{% endif %}</p>
+                    {% if user.is_admin %}
+                    <p><strong>Role:</strong> Administrator</p>
+                    {% else %}
+                    <p><strong>Role:</strong> Standard User</p>
+                    {% endif %}
+                </div>
+                
+                <div class="user-actions">
+                    {% if not user.is_admin %}
+                        {% if user.is_active %}
+                        <button class="btn btn-outline" id="blockUserBtn" data-user-id="{{ user.id }}">
+                            <i class="fas fa-ban"></i> Block User
+                        </button>
+                        {% else %}
+                        <button class="btn btn-outline" id="unblockUserBtn" data-user-id="{{ user.id }}">
+                            <i class="fas fa-check"></i> Unblock User
+                        </button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="user-stats">
+            <div class="stat-item">
+                <div class="stat-value">{{ try_ons|length }}</div>
+                <div class="stat-label">Total Try-Ons</div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-value">{{ unique_garments }}</div>
+                <div class="stat-label">Unique Garments</div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-value">{{ last_activity_days }}</div>
+                <div class="stat-label">Days Since Activity</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tryons-section">
+        <h3 class="section-title">Try-On History</h3>
+        
+        {% if try_ons %}
+        <div class="tryons-grid">
+            {% for tryon in try_ons %}
+            <div class="tryon-card">
+                <div class="tryon-images">
+                    <div class="tryon-result">
+                        <img src="{{ url_for('static', filename='results/' + tryon.result_path) }}" alt="Try-On Result">
+                    </div>
+                    <div class="tryon-person">
+                        <img src="{{ url_for('static', filename='uploads/' + tryon.person_image_path) }}" alt="Person Image">
+                    </div>
+                    <div class="tryon-garment">
+                        <img src="{{ url_for('static', filename='uploads/' + tryon.garment_image_path) }}" alt="Garment Image">
+                    </div>
+                </div>
+                
+                <div class="tryon-info">
+                    <div class="tryon-date">{{ tryon.created_at.strftime('%B %d, %Y at %H:%M') }}</div>
+                    <div class="tryon-description">
+                        {% if tryon.product %}
+                        Tried {{ tryon.product.name }}
+                        {% else %}
+                        Custom garment try-on
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('admin_tryon_details', tryon_id=tryon.id) }}" class="tryon-view">
+                        <i class="fas fa-eye"></i> View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="pagination">
+            <div class="page-item"><a class="page-link" href="#">Prev</a></div>
+            <div class="page-item active"><a class="page-link" href="#">1</a></div>
+            <div class="page-item"><a class="page-link" href="#">2</a></div>
+            <div class="page-item"><a class="page-link" href="#">Next</a></div>
+        </div>
+        {% else %}
+        <div class="no-tryons">
+            <i class="fas fa-tshirt"></i>
+            <h3>No Try-Ons Found</h3>
+            <p>This user hasn't tried on any garments yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle user status functionality
+        const blockUserBtn = document.getElementById('blockUserBtn');
+        const unblockUserBtn = document.getElementById('unblockUserBtn');
+        
+        function toggleUserStatus(userId, action) {
+            if (confirm(`Are you sure you want to ${action} this user?`)) {
+                fetch(`/admin/users/${userId}/toggle`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload the page to show updated status
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'An error occurred');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your request');
+                });
+            }
+        }
+        
+        if (blockUserBtn) {
+            blockUserBtn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                toggleUserStatus(userId, 'block');
+            });
+        }
+        
+        if (unblockUserBtn) {
+            unblockUserBtn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                toggleUserStatus(userId, 'unblock');
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}fashionCORE - Admin Dashboard{% endblock %}
+
+{% block additional_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <div>
+            <h1>Admin Dashboard</h1>
+            <p>Welcome back, {{ current_user.username }}! Monitor and manage your fashionCORE platform.</p>
+        </div>
+    </div>
+    
+    <!-- Stats Overview -->
+    <div class="admin-stats">
+        <div class="stat-card">
+            <div class="stat-icon stat-users">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value">{{ user_count }}</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon stat-tryons">
+                <i class="fas fa-tshirt"></i>
+            </div>
+            <div class="stat-value">{{ tryon_count }}</div>
+            <div class="stat-label">Total Try-Ons</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon stat-garments">
+                <i class="fas fa-vest"></i>
+            </div>
+            <div class="stat-value">{{ garment_count }}</div>
+            <div class="stat-label">Garments Tried</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon stat-api">
+                <i class="fas fa-key"></i>
+            </div>
+            <div class="stat-value">{{ api_count }}</div>
+            <div class="stat-label">API Keys Active</div>
+        </div>
+    </div>
+    
+    <!-- Admin Tabs -->
+    <div class="admin-tabs">
+        <ul class="nav-tabs" id="adminTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="users-tab" data-toggle="tab" href="#users">
+                    <i class="fas fa-users"></i> Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tryons-tab" data-toggle="tab" href="#tryons">
+                    <i class="fas fa-images"></i> Try-On History
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="api-tab" data-toggle="tab" href="#api">
+                    <i class="fas fa-key"></i> API Management
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Users Tab -->
+        <div class="tab-pane active" id="users">
+            <div class="search-box">
+                <input type="text" id="userSearchInput" placeholder="Search users by name or email">
+                <button id="userSearchBtn"><i class="fas fa-search"></i></button>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Joined</th>
+                            <th>Try-Ons</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ user.try_on_count }}</td>
+                            <td>
+                                {% if user.is_active %}
+                                <span class="status-badge status-active">Active</span>
+                                {% else %}
+                                <span class="status-badge status-inactive">Blocked</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin_user_details', user_id=user.id) }}" class="action-btn btn-view">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                {% if user.is_active %}
+                                <button class="action-btn btn-block toggle-user-btn" data-user-id="{{ user.id }}">
+                                    <i class="fas fa-ban"></i> Block
+                                </button>
+                                {% else %}
+                                <button class="action-btn btn-block toggle-user-btn" data-user-id="{{ user.id }}">
+                                    <i class="fas fa-check"></i> Unblock
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="pagination">
+                <div class="page-item"><a class="page-link" href="#">Prev</a></div>
+                <div class="page-item active"><a class="page-link" href="#">1</a></div>
+                <div class="page-item"><a class="page-link" href="#">2</a></div>
+                <div class="page-item"><a class="page-link" href="#">3</a></div>
+                <div class="page-item"><a class="page-link" href="#">Next</a></div>
+            </div>
+        </div>
+        
+        <!-- Try-On History Tab -->
+        <div class="tab-pane" id="tryons">
+            <div class="search-box">
+                <input type="text" id="tryonSearchInput" placeholder="Search by user or garment">
+                <button id="tryonSearchBtn"><i class="fas fa-search"></i></button>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Person</th>
+                            <th>Garment</th>
+                            <th>Result</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tryonTableBody">
+                        {% for tryon in tryons %}
+                        <tr>
+                            <td>{{ tryon.id }}</td>
+                            <td>{{ tryon.user.username }}</td>
+                            <td>
+                                <img src="{{ url_for('static', filename='uploads/' + tryon.person_image_path) }}" class="image-preview" alt="Person">
+                            </td>
+                            <td>
+                                <img src="{{ url_for('static', filename='uploads/' + tryon.garment_image_path) }}" class="image-preview" alt="Garment">
+                            </td>
+                            <td>
+                                <img src="{{ url_for('static', filename='results/' + tryon.result_path) }}" class="image-preview" alt="Result">
+                            </td>
+                            <td>{{ tryon.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('admin_tryon_details', tryon_id=tryon.id) }}" class="action-btn btn-view">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="pagination">
+                <div class="page-item"><a class="page-link" href="#">Prev</a></div>
+                <div class="page-item active"><a class="page-link" href="#">1</a></div>
+                <div class="page-item"><a class="page-link" href="#">2</a></div>
+                <div class="page-item"><a class="page-link" href="#">3</a></div>
+                <div class="page-item"><a class="page-link" href="#">Next</a></div>
+            </div>
+        </div>
+        
+        <!-- API Management Tab -->
+        <div class="tab-pane" id="api">
+            <h3>API Keys</h3>
+            <p>Manage API keys for your fashionCORE platform integration.</p>
+            
+            <div class="api-key-container">
+                <strong>Primary API Key:</strong>
+                <div class="api-key">{{ primary_api_key }}</div>
+                <button class="copy-btn" id="copyApiKeyBtn" data-api-key="{{ primary_api_key }}">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+            
+            <form action="{{ url_for('admin_generate_api_key') }}" method="POST">
+                <div style="display: flex; margin-bottom: 20px;">
+                    <input type="text" name="key_name" placeholder="API Key Name" class="form-control" style="flex: 1; margin-right: 10px; padding: 10px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Generate New Key
+                    </button>
+                </div>
+            </form>
+            
+            <h3 class="mt-5">API Usage</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>User</th>
+                            <th>Endpoint</th>
+                            <th>Status</th>
+                            <th>Response Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for api_call in api_calls %}
+                        <tr>
+                            <td>{{ api_call.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>{{ api_call.user.username if api_call.user else 'Anonymous' }}</td>
+                            <td>{{ api_call.endpoint }}</td>
+                            <td>{{ api_call.status_code }}</td>
+                            <td>{{ api_call.response_time }}ms</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for tab functionality -->
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab functionality
+        const tabLinks = document.querySelectorAll('.nav-link');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        
+        tabLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all tabs and panes
+                tabLinks.forEach(tab => tab.classList.remove('active'));
+                tabPanes.forEach(pane => pane.classList.remove('active'));
+                
+                // Add active class to current tab and pane
+                this.classList.add('active');
+                const tabId = this.getAttribute('href').substring(1);
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Toggle user status functionality
+        const toggleUserBtns = document.querySelectorAll('.toggle-user-btn');
+        
+        toggleUserBtns.forEach(button => {
+            button.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const isBlocked = this.innerHTML.includes('Unblock');
+                
+                if (confirm(`Are you sure you want to ${isBlocked ? 'unblock' : 'block'} this user?`)) {
+                    fetch(`/admin/users/${userId}/toggle`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const row = this.closest('tr');
+                            const statusBadge = row.querySelector('.status-badge');
+                            
+                            if (isBlocked) {
+                                this.innerHTML = '<i class="fas fa-ban"></i> Block';
+                                statusBadge.className = 'status-badge status-active';
+                                statusBadge.innerText = 'Active';
+                            } else {
+                                this.innerHTML = '<i class="fas fa-check"></i> Unblock';
+                                statusBadge.className = 'status-badge status-inactive';
+                                statusBadge.innerText = 'Blocked';
+                            }
+                        } else {
+                            alert(data.message || 'An error occurred');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while processing your request');
+                    });
+                }
+            });
+        });
+        
+        // Copy API Key functionality
+        const copyApiKeyBtn = document.getElementById('copyApiKeyBtn');
+        if (copyApiKeyBtn) {
+            copyApiKeyBtn.addEventListener('click', function() {
+                const apiKey = this.getAttribute('data-api-key');
+                navigator.clipboard.writeText(apiKey).then(
+                    function() {
+                        // Change button text temporarily
+                        const originalText = copyApiKeyBtn.innerHTML;
+                        copyApiKeyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        setTimeout(() => {
+                            copyApiKeyBtn.innerHTML = originalText;
+                        }, 2000);
+                    },
+                    function() {
+                        alert('Failed to copy API key');
+                    }
+                );
+            });
+        }
+        
+        // Search functionality
+        const userSearchInput = document.getElementById('userSearchInput');
+        const userSearchBtn = document.getElementById('userSearchBtn');
+        
+        if (userSearchInput && userSearchBtn) {
+            userSearchBtn.addEventListener('click', filterUsers);
+            userSearchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    filterUsers();
+                }
+            });
+        }
+        
+        function filterUsers() {
+            const filter = userSearchInput.value.toUpperCase();
+            const rows = document.querySelectorAll('#userTableBody tr');
+            
+            rows.forEach(row => {
+                const username = row.cells[1].textContent.toUpperCase();
+                const email = row.cells[2].textContent.toUpperCase();
+                
+                if (username.includes(filter) || email.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Try-on search functionality
+        const tryonSearchInput = document.getElementById('tryonSearchInput');
+        const tryonSearchBtn = document.getElementById('tryonSearchBtn');
+        
+        if (tryonSearchInput && tryonSearchBtn) {
+            tryonSearchBtn.addEventListener('click', filterTryons);
+            tryonSearchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    filterTryons();
+                }
+            });
+        }
+        
+        function filterTryons() {
+            const filter = tryonSearchInput.value.toUpperCase();
+            const rows = document.querySelectorAll('#tryonTableBody tr');
+            
+            rows.forEach(row => {
+                const username = row.cells[1].textContent.toUpperCase();
+                
+                if (username.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

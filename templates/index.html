@@ -19,7 +19,7 @@
             <h2>How It Works</h2>
             <p>Experience the future of online shopping with our AI-powered virtual try-on</p>
         </div>
-        
+
         <div class="workflow-steps">
             <div class="step">
                 <div class="step-icon">
@@ -58,12 +58,12 @@
             <h2>Featured Collection</h2>
             <p>Experience our premium ethnic wear collection</p>
         </div>
-        
+
         <div class="products-grid">
             {% for product in featured_products %}
             <div class="product-card">
                 <div class="product-image">
-                    <img src="{{ url_for('static', filename='images/' + product.image_path) }}" alt="{{ product.name }}">
+                    <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.name }}">
                     <div class="product-overlay">
                         <a href="{{ url_for('try_on_page', product_id=product.id) }}" class="btn btn-secondary btn-small">Try On</a>
                     </div>
@@ -77,7 +77,7 @@
             </div>
             {% endfor %}
         </div>
-        
+
         <div class="more-products">
             <a href="{{ url_for('products') }}" class="btn btn-outline btn-large">View Full Collection</a>
         </div>
@@ -91,7 +91,7 @@
             <h2>Key Features</h2>
             <p>Why choose our virtual try-on solution</p>
         </div>
-        
+
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">
@@ -100,7 +100,7 @@
                 <h3>Secure Image Processing</h3>
                 <p>Your images are processed securely and never shared with third parties</p>
             </div>
-            
+
             <div class="feature-card">
                 <div class="feature-icon">
                     <i class="fas fa-bolt"></i>
@@ -108,7 +108,7 @@
                 <h3>Fast Results</h3>
                 <p>Get your virtual try-on results in seconds</p>
             </div>
-            
+
             <div class="feature-card">
                 <div class="feature-icon">
                     <i class="fas fa-code"></i>
@@ -116,7 +116,7 @@
                 <h3>API Integration</h3>
                 <p>Easily integrate try-on functionality into your website or app</p>
             </div>
-            
+
             <div class="feature-card">
                 <div class="feature-icon">
                     <i class="fas fa-share-alt"></i>
@@ -144,30 +144,28 @@
     <div class="container">
         <div class="ceo-grid">
             <div class="ceo-image">
-                <img src="{{ url_for('static', filename='images/samples/Ceo.jpeg') }}" alt="Uzair Ali - CEO">
+                <img src="{{ url_for('static', filename='images/samples/models/CEO.png') }}" alt="Ateeb Taseer - CEO">
             </div>
             <div class="ceo-content">
                 <h2>Leadership</h2>
-                <h3>Uzair Ali</h3>
-                <p class="ceo-title">Sales Director & Founder, Ameezara Creation</p>
+                <h3>Ateeb Taseer</h3>
+                <p class="ceo-title">Founder & CEO, fashionCORE</p>
                 <p class="ceo-description">
-                    With over a decade of experience in the Indian fashion industry, Kaushal Shah has revolutionized 
-                    the traditional ethnic wear market through innovative virtual try-on technology. Under his leadership, 
-                    Ameezara Creation has become a premier manufacturer of exclusive sarees and lehengas, serving 
-                    clients across the globe.
+                    A visionary in computer vision and AI, Ateeb holds a Master's in Applied Machine Learning from Imperial College London. With deep expertise in virtual try-on technology, he is leading the charge in revolutionizing the global fashion e-commerce space.
+                    Under his leadership, fashionCORE is building the future of personalized shopping experiences with cutting-edge tools and innovation.
                 </p>
                 <div class="ceo-stats">
                     <div class="stat-item">
-                        <span class="stat-number">500+</span>
-                        <span class="stat-label">Global Partners</span>
+                        <span class="stat-number">3+</span>
+                        <span class="stat-label">Years in AI Innovation</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">893</span>
-                        <span class="stat-label">Followers</span>
+                        <span class="stat-number">1M+</span>
+                        <span class="stat-label">Images Processed</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">15+</span>
-                        <span class="stat-label">Years Experience</span>
+                        <span class="stat-number">99.9%</span>
+                        <span class="stat-label">User Satisfaction</span>
                     </div>
                 </div>
             </div>
@@ -180,7 +178,7 @@
                 <div class="testimonial-card">
                     <div class="testimonial-rating">★★★★★</div>
                     <p class="testimonial-text">
-                        "Ameezara Creation has transformed how we showcase our ethnic wear collection. Their virtual try-on technology is revolutionary!"
+                        "fashionCORE has transformed how we showcase our ethnic wear collection. Their virtual try-on technology is revolutionary!"
                     </p>
                     <div class="testimonial-author">
                         <p class="author-name">Priya Patel</p>
@@ -191,7 +189,7 @@
                 <div class="testimonial-card">
                     <div class="testimonial-rating">★★★★★</div>
                     <p class="testimonial-text">
-                        "The quality of their sarees and lehengas is unmatched. Working with Kaushal and his team has been exceptional."
+                        "The quality of their virtual try-on experience is unmatched. Our customers love the seamless experience."
                     </p>
                     <div class="testimonial-author">
                         <p class="author-name">Rajesh Mehta</p>
@@ -202,7 +200,7 @@
                 <div class="testimonial-card">
                     <div class="testimonial-rating">★★★★★</div>
                     <p class="testimonial-text">
-                        "Their innovative approach to traditional wear has helped us reach customers worldwide."
+                        "Their AI-driven styling has helped us scale globally. Truly a game-changer."
                     </p>
                     <div class="testimonial-author">
                         <p class="author-name">Sarah Johnson</p>
