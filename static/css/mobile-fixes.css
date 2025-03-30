@@ -380,3 +380,83 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* Try-On Steps Container Mobile Fix */
+@media screen and (max-width: 768px) {
+  .steps-container {
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 4rem;
+  }
+  
+  .step {
+      width: 100%;
+      max-width: 90%;
+      margin: 0 auto 2rem;
+  }
+  
+  /* Keep last step from having extra margin */
+  .step:last-child {
+      margin-bottom: 0;
+  }
+  
+  /* Adjust step number size slightly for mobile */
+  .step-number {
+      width: 4.5rem;
+      height: 4.5rem;
+      font-size: 2.2rem;
+  }
+  
+  /* Ensure the try-on header is properly sized */
+  .try-on-header h1 {
+      font-size: 3rem;
+  }
+  
+  .try-on-header p {
+      font-size: 1.6rem;
+  }
+}
+
+/* Enhanced Footer Mobile Fixes */
+@media screen and (max-width: 768px) {
+  /* Ensure footer content doesn't overflow */
+  footer {
+      overflow-x: hidden;
+      width: 100%;
+  }
+  
+  .footer-content {
+      padding: 3rem 1.5rem;
+      width: 100%;
+  }
+  
+  /* Better column layout for mobile */
+  .footer-links {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+      margin-bottom: 3rem;
+  }
+  
+  /* Adjust column padding */
+  .footer-column {
+      padding: 0 1rem;
+  }
+  
+  /* Center footer bottom content */
+  .footer-bottom {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+  }
+  
+  /* Fix social links spacing */
+  .footer-social {
+      margin: 2rem 0;
+  }
+  
+  /* Make footer logo smaller */
+  .footer-logo .logo-text {
+      font-size: 2rem;
+  }
+}
+
