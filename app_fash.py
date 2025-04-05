@@ -20,6 +20,10 @@ import secrets
 from functools import wraps
 from sqlalchemy import func, desc
 from flask_migrate import Migrate
+from authlib.integrations.flask_client import OAuth  # For Google OAuth
+import logging
+logging.getLogger('werkzeug').setLevel(logging.ERROR)
+
 
 # Load environment variables
 load_dotenv()
@@ -33,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secure_secret_key')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fashioncore.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.root_path, 'fashioncore.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Try-on configuration
@@ -51,14 +55,20 @@ app.config['KLING_REQUEST_TIMEOUT'] = 30  # Timeout in seconds for API requests
 app.config['KLING_MAX_POLLING_ATTEMPTS'] = 30  # Maximum number of polling attempts
 app.config['KLING_POLLING_INTERVAL'] = 5  # Seconds between polling attempts
 
+# OAuth Configuration
+app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID')
+app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET')
+
 # Stripe configuration
-app.config['STRIPE_PUBLIC_KEY'] = 'your_stripe_public_key'
-app.config['STRIPE_SECRET_KEY'] = 'your_stripe_secret_key'
-stripe.api_key = app.config['STRIPE_SECRET_KEY'] 
+app.config['STRIPE_PUBLIC_KEY'] = os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_51O1x2xSI8ZUHBs6Zoi9nrDMB8F1TbN5RqQQkZjDGH9WlvKXaF7QXCpKPcnwRDAFJSNcSOTFp9K3iOkYzf6lSJsYl00CGfMdL1Y')
+app.config['STRIPE_SECRET_KEY'] = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_51O1x2xSI8ZUHBs6ZCMVbMbWGWpyYK7F3ODJ0PzZszDXEsLmI3bDYYmMmNkI8vXGWy2tNaPCGYF7sIrw0nTrkmwwY00xIubNmjq')
+stripe.api_key = app.config['STRIPE_SECRET_KEY']
 
 # Create upload and results folders if they don't exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
+# Create static directory for payment method images if it doesn't exist
+os.makedirs(os.path.join(app.root_path, 'static', 'images', 'payments'), exist_ok=True)
 
 # Initialize database
 db = SQLAlchemy(app)
@@ -67,6 +77,22 @@ migrate = Migrate(app, db)
 # Initialize login manager
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
+# Initialize OAuth
+oauth = OAuth(app)
+
+# Configure Google OAuth
+google = oauth.register(
+    name='google',
+    client_id=app.config['GOOGLE_CLIENT_ID'],
+    client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    access_token_params=None,
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    authorize_params=None,
+    api_base_url='https://www.googleapis.com/oauth2/v1/',
+    client_kwargs={'scope': 'openid email profile'},
+)
 
 # Setup requests session with retry mechanism
 def get_requests_session():
@@ -88,20 +114,22 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(128), nullable=True)  # Nullable for OAuth users
     profile_image = db.Column(db.String(200))
     is_admin = db.Column(db.Boolean, default=False)
-    is_active = db.Column(db.Boolean, default=True)  # Add this field for user status
+    is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    last_login = db.Column(db.DateTime)  # Add this field to track last login
-    credits = db.Column(db.Integer, default=5)  # Free credits for new users
+    last_login = db.Column(db.DateTime)
+    credits = db.Column(db.Integer, default=5)
+    auth_provider = db.Column(db.String(20), default='local')  # 'local', 'google', etc.
+    oauth_id = db.Column(db.String(100))  # OAuth provider ID
     orders = db.relationship('Order', backref='customer', lazy=True)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
         
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return self.password_hash and check_password_hash(self.password_hash, password)
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -119,8 +147,14 @@ class Order(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     status = db.Column(db.String(20), default='pending')
     total_amount = db.Column(db.Float, nullable=False)
+    payment_method = db.Column(db.String(20))  # 'card', 'paypal', 'upi'
+    payment_id = db.Column(db.String(100))  # Payment provider transaction ID
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     order_items = db.relationship('OrderItem', backref='order', lazy=True)
+    shipping_address = db.Column(db.Text)
+    billing_address = db.Column(db.Text)
+    contact_email = db.Column(db.String(100))
+    contact_phone = db.Column(db.String(20))
 
 class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -164,6 +198,23 @@ class ApiUsage(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     ip_address = db.Column(db.String(50))
     api_key = db.relationship('ApiKey')
+    user = db.relationship('User')
+
+# Payment models
+class PaymentTransaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    payment_method = db.Column(db.String(20), nullable=False)  # 'card', 'paypal', 'upi'
+    provider = db.Column(db.String(20))  # 'stripe', 'paypal', 'gpay', 'phonepe'
+    transaction_id = db.Column(db.String(100))
+    amount = db.Column(db.Float, nullable=False)
+    currency = db.Column(db.String(3), default='INR')
+    status = db.Column(db.String(20), default='pending')  # 'pending', 'completed', 'failed'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    response_data = db.Column(db.Text)  # JSON response from payment provider
+    order = db.relationship('Order')
     user = db.relationship('User')
 
 # User loader for Flask-Login
@@ -211,6 +262,8 @@ def generate_kling_auth_token():
     }
     
     token = jwt.encode(payload, app.config['KLING_SECRET_KEY'], headers=headers)
+    if isinstance(token, bytes):
+        token = token.decode('utf-8')  # For compatibility with different jwt versions
     return token
 
 def image_to_base64(image_path):
@@ -397,6 +450,18 @@ def track_api_usage(endpoint, method='GET', status_code=200, response_time=0, ap
         # Don't let API tracking errors affect the main functionality
         db.session.rollback()
 
+# Format address for database storage
+def format_address(form_data):
+    """Format address information from form data into a string for storage"""
+    address_parts = [
+        form_data.get('firstName', '') + ' ' + form_data.get('lastName', ''),
+        form_data.get('address', ''),
+        form_data.get('address2', ''),
+        form_data.get('city', '') + ', ' + form_data.get('state', '') + ' ' + form_data.get('zip', ''),
+        form_data.get('country', '')
+    ]
+    return '\n'.join(filter(None, address_parts))
+
 # Database initialization function
 def init_db():
     """Initialize database with default data"""
@@ -438,6 +503,29 @@ def init_db():
                 )
                 db.session.add(product)
                 logger.info(f"Product added: {product_data['name']}")
+
+        # Add payment method logos if they don't exist
+        payment_methods = [
+            {"name": "gpay", "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Google_Pay_Logo_%282020%29.svg/512px-Google_Pay_Logo_%282020%29.svg.png"},
+            {"name": "phonepe", "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/PhonePe_Logo.png/600px-PhonePe_Logo.png"},
+            {"name": "paytm", "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Paytm_Logo_%28standalone%29.svg/512px-Paytm_Logo_%28standalone%29.svg.png"},
+            {"name": "upi", "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/1200px-UPI-Logo-vector.svg.png"}
+        ]
+        
+        payment_dir = os.path.join(app.root_path, 'static', 'images', 'payments')
+        
+        for payment in payment_methods:
+            payment_path = os.path.join(payment_dir, f"{payment['name']}.png")
+            if not os.path.exists(payment_path):
+                try:
+                    # Download the logo
+                    response = requests.get(payment['url'])
+                    if response.status_code == 200:
+                        with open(payment_path, 'wb') as f:
+                            f.write(response.content)
+                        logger.info(f"Downloaded payment logo: {payment['name']}")
+                except Exception as e:
+                    logger.error(f"Error downloading payment logo {payment['name']}: {str(e)}")
 
         db.session.commit()
         logger.info("Database initialization completed successfully")
@@ -795,6 +883,8 @@ def about():
     """About page"""
     return render_template('about.html')
 
+# Authentication Routes
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """User login page"""
@@ -825,6 +915,65 @@ def login():
             flash('Invalid email or password', 'danger')
             
     return render_template('auth/login.html')
+
+@app.route('/login/google')
+def login_google():
+    """Initiate Google OAuth login"""
+    redirect_uri = url_for('google_callback', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+@app.route('/login/google/callback')
+def google_callback():
+    """Handle Google OAuth callback"""
+    try:
+        token = google.authorize_access_token()
+        resp = google.get('userinfo')
+        user_info = resp.json()
+        
+        # Check for required fields
+        if 'email' not in user_info:
+            flash('Could not get email from Google. Please try again.', 'danger')
+            return redirect(url_for('login'))
+        
+        # Check if user exists
+        user = User.query.filter_by(email=user_info['email']).first()
+        
+        if user:
+            # Update existing user if needed
+            if user.auth_provider != 'google':
+                user.auth_provider = 'google'
+                user.oauth_id = user_info.get('id')
+                db.session.commit()
+        else:
+            # Create new user
+            new_user = User(
+                username=user_info.get('name', user_info.get('email').split('@')[0]),
+                email=user_info['email'],
+                is_active=True,
+                auth_provider='google',
+                oauth_id=user_info.get('id'),
+                profile_image=user_info.get('picture')
+            )
+            
+            db.session.add(new_user)
+            db.session.commit()
+            user = new_user
+        
+        # Update last login time
+        user.last_login = datetime.utcnow()
+        db.session.commit()
+        
+        # Log in the user
+        login_user(user)
+        
+        # Redirect to appropriate page
+        next_page = session.pop('next', None)
+        return redirect(next_page or url_for('index'))
+        
+    except Exception as e:
+        logger.error(f"Google OAuth error: {str(e)}")
+        flash('An error occurred during Google sign-in. Please try again.', 'danger')
+        return redirect(url_for('login'))
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -864,11 +1013,11 @@ def register():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
+        terms = 'terms' in request.form
         
         # Validation
-        if password != confirm_password:
-            flash('Passwords do not match', 'danger')
+        if not terms:
+            flash('You must agree to the Terms of Service and Privacy Policy', 'danger')
             return render_template('auth/register.html')
             
         # Check if user already exists
@@ -881,7 +1030,11 @@ def register():
             return render_template('auth/register.html')
             
         # Create new user
-        new_user = User(username=username, email=email)
+        new_user = User(
+            username=username, 
+            email=email,
+            auth_provider='local'
+        )
         new_user.set_password(password)
         
         db.session.add(new_user)
@@ -906,6 +1059,217 @@ def serve_result(filename):
     # Make sure we're using absolute path
     results_folder = os.path.abspath(app.config['RESULTS_FOLDER'])
     return send_from_directory(results_folder, filename)
+
+# Checkout and Payment Routes
+@app.route('/checkout')
+@login_required
+def checkout():
+    """Checkout page"""
+    return render_template('checkout.html', stripe_public_key=app.config['STRIPE_PUBLIC_KEY'])
+
+@app.route('/process-payment', methods=['POST'])
+@login_required
+def process_payment():
+    """Process credit card payment through Stripe"""
+    try:
+        # Get payment details
+        payment_method_id = request.form.get('payment_method_id')
+        amount = float(request.form.get('amount', 0))
+        
+        # Create Stripe payment intent
+        payment_intent = stripe.PaymentIntent.create(
+            amount=int(amount * 100),  # Convert to cents
+            currency='inr',
+            payment_method=payment_method_id,
+            confirm=True,
+            return_url=url_for('checkout_complete', _external=True)
+        )
+        
+        # Create order from cart
+        shipping_address = format_address(request.form)
+        order = Order(
+            user_id=current_user.id,
+            status='completed',
+            total_amount=amount,
+            payment_method='card',
+            payment_id=payment_intent.id,
+            shipping_address=shipping_address,
+            contact_email=current_user.email,
+            contact_phone=request.form.get('phone')
+        )
+        
+        db.session.add(order)
+        db.session.commit()
+        
+        # Record payment transaction
+        transaction = PaymentTransaction(
+            order_id=order.id,
+            user_id=current_user.id,
+            payment_method='card',
+            provider='stripe',
+            transaction_id=payment_intent.id,
+            amount=amount,
+            status='completed',
+            response_data=str(payment_intent)
+        )
+        
+        db.session.add(transaction)
+        db.session.commit()
+        
+        logger.info(f"Payment successful: {payment_intent.id}")
+        return jsonify({
+            "success": True,
+            "order_id": order.id,
+            "transaction_id": payment_intent.id
+        })
+    
+    except stripe.error.CardError as e:
+        # Card declined
+        error_msg = e.error.message
+        logger.error(f"Card declined: {error_msg}")
+        return jsonify({
+            "success": False,
+            "message": error_msg
+        }), 400
+        
+    except stripe.error.StripeError as e:
+        # Other Stripe errors
+        logger.error(f"Stripe error: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "Payment processing error. Please try again."
+        }), 500
+        
+    except Exception as e:
+        # Generic error
+        logger.error(f"Payment error: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "An unexpected error occurred. Please try again."
+        }), 500
+
+@app.route('/process-upi-payment', methods=['POST'])
+@login_required
+def process_upi_payment():
+    """Process UPI payment"""
+    try:
+        # Get payment details
+        upi_id = request.form.get('upi_id')
+        upi_provider = request.form.get('upi_provider', 'other')
+        amount = float(request.form.get('amount', 0))
+        
+        # In a real application, this would integrate with a UPI payment provider
+        # For this demo, we'll simulate a successful payment
+        
+        # Create a unique transaction ID
+        transaction_id = f"upi_{uuid.uuid4().hex}"
+        
+        # Create order from cart
+        shipping_address = format_address(request.form)
+        order = Order(
+            user_id=current_user.id,
+            status='completed',
+            total_amount=amount,
+            payment_method='upi',
+            payment_id=transaction_id,
+            shipping_address=shipping_address,
+            contact_email=current_user.email,
+            contact_phone=request.form.get('phone')
+        )
+        
+        db.session.add(order)
+        db.session.commit()
+        
+        # Record payment transaction
+        transaction = PaymentTransaction(
+            order_id=order.id,
+            user_id=current_user.id,
+            payment_method='upi',
+            provider=upi_provider,
+            transaction_id=transaction_id,
+            amount=amount,
+            status='completed'
+        )
+        
+        db.session.add(transaction)
+        db.session.commit()
+        
+        logger.info(f"UPI Payment successful: {transaction_id}")
+        return jsonify({
+            "success": True,
+            "order_id": order.id,
+            "transaction_id": transaction_id
+        })
+    
+    except Exception as e:
+        # Generic error
+        logger.error(f"UPI Payment error: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "An error occurred processing your UPI payment. Please try again."
+        }), 500
+        
+@app.route('/process-paypal-payment', methods=['POST'])
+@login_required
+def process_paypal_payment():
+    """Process PayPal payment"""
+    # In a real app, this would redirect to PayPal checkout
+    # For demo purposes, we'll simulate a successful payment and redirect to a completion page
+    
+    try:
+        amount = float(request.form.get('amount', 0))
+        
+        # Create a unique transaction ID
+        transaction_id = f"paypal_{uuid.uuid4().hex}"
+        
+        # Create order from cart
+        shipping_address = format_address(request.form)
+        order = Order(
+            user_id=current_user.id,
+            status='completed',
+            total_amount=amount,
+            payment_method='paypal',
+            payment_id=transaction_id,
+            shipping_address=shipping_address,
+            contact_email=current_user.email,
+            contact_phone=request.form.get('phone')
+        )
+        
+        db.session.add(order)
+        db.session.commit()
+        
+        # Record payment transaction
+        transaction = PaymentTransaction(
+            order_id=order.id,
+            user_id=current_user.id,
+            payment_method='paypal',
+            provider='paypal',
+            transaction_id=transaction_id,
+            amount=amount,
+            status='completed'
+        )
+        
+        db.session.add(transaction)
+        db.session.commit()
+        
+        return redirect(url_for('checkout_complete', order_id=order.id))
+        
+    except Exception as e:
+        logger.error(f"PayPal Payment error: {str(e)}")
+        flash('An error occurred processing your PayPal payment. Please try again.', 'danger')
+        return redirect(url_for('checkout'))
+
+@app.route('/checkout-complete')
+@login_required
+def checkout_complete():
+    """Checkout completion page"""
+    order_id = request.args.get('order_id')
+    order = None
+    
+    if order_id:
+        order = Order.query.filter_by(id=order_id, user_id=current_user.id).first()
+    
+    return render_template('checkout_complete.html', order=order)
 
 # Admin Dashboard Routes
 @app.route('/admin')

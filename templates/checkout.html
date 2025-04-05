@@ -3,6 +3,7 @@
 {% block title %}Checkout - fashionCORE{% endblock %}
 
 {% block additional_head %}
+<script src="https://js.stripe.com/v3/"></script>
 <style>
     .checkout-section {
         padding: 4rem 0;
@@ -233,6 +234,51 @@
         color: var(--gray);
     }
     
+    /* Stripe Element styling */
+    #card-element {
+        padding: 10px;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md);
+        background-color: white;
+    }
+    
+    #card-errors {
+        color: var(--error);
+        text-align: left;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+    
+    /* UPI styling */
+    .upi-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .upi-option {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+    
+    .upi-option img {
+        max-width: 80%;
+        max-height: 80%;
+    }
+    
+    .upi-option.active {
+        border-color: var(--primary-color);
+        background-color: rgba(67, 97, 238, 0.05);
+    }
+    
     /* Order completion overlay */
     .order-complete {
         position: fixed;
@@ -271,6 +317,24 @@
         max-width: 500px;
         margin-bottom: 2rem;
     }
+    
+    /* Loading spinner */
+    .spinner {
+        border: 3px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top: 3px solid var(--primary-color);
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 </style>
 {% endblock %}
 
@@ -281,7 +345,7 @@
             <div class="checkout-form">
                 <h1 class="checkout-title">Checkout</h1>
                 
-                <form id="checkoutForm" method="POST" action="{{ url_for('checkout') }}">
+                <form id="checkoutForm" method="POST" action="{{ url_for('process_payment') }}">
                     <!-- Shipping Information -->
                     <div class="form-section">
                         <h2 class="form-section-title">Shipping Information</h2>
@@ -361,27 +425,10 @@
                         
                         <!-- Credit Card Form (default) -->
                         <div class="card-details" id="cardPaymentForm">
-                            <div class="form-group">
-                                <label for="cardName" class="form-label">Name on Card</label>
-                                <input type="text" id="cardName" name="cardName" class="form-control" required>
+                            <div id="card-element">
+                                <!-- Stripe Element will be inserted here -->
                             </div>
-                            
-                            <div class="form-group">
-                                <label for="cardNumber" class="form-label">Card Number</label>
-                                <input type="text" id="cardNumber" name="cardNumber" class="form-control" placeholder="XXXX XXXX XXXX XXXX" required>
-                            </div>
-                            
-                            <div class="card-row">
-                                <div class="form-group">
-                                    <label for="cardExpiry" class="form-label">Expiration Date</label>
-                                    <input type="text" id="cardExpiry" name="cardExpiry" class="form-control" placeholder="MM/YY" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="cardCvv" class="form-label">CVV <i class="fas fa-question-circle card-icon" title="3-digit code on back of card"></i></label>
-                                    <input type="text" id="cardCvv" name="cardCvv" class="form-control" placeholder="XXX" required>
-                                </div>
-                            </div>
+                            <div id="card-errors" role="alert"></div>
                         </div>
                         
                         <!-- PayPal Form (hidden by default) -->
@@ -391,6 +438,20 @@
                         
                         <!-- UPI Form (hidden by default) -->
                         <div class="upi-details" id="upiPaymentForm" style="display: none;">
+                            <div class="upi-options">
+                                <div class="upi-option" data-upi="gpay">
+                                    <img src="{{ url_for('static', filename='images/payments/gpay.png') }}" alt="Google Pay">
+                                </div>
+                                <div class="upi-option" data-upi="phonepe">
+                                    <img src="{{ url_for('static', filename='images/payments/phonepe.png') }}" alt="PhonePe">
+                                </div>
+                                <div class="upi-option" data-upi="paytm">
+                                    <img src="{{ url_for('static', filename='images/payments/paytm.png') }}" alt="Paytm">
+                                </div>
+                                <div class="upi-option" data-upi="other">
+                                    <img src="{{ url_for('static', filename='images/payments/upi.png') }}" alt="Other UPI">
+                                </div>
+                            </div>
                             <div class="form-group">
                                 <label for="upiId" class="form-label">UPI ID</label>
                                 <input type="text" id="upiId" name="upiId" class="form-control" placeholder="example@upi">
@@ -405,7 +466,7 @@
                         </label>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary btn-large" style="width: 100%; margin-top: 1.5rem;">
+                    <button type="submit" id="submitButton" class="btn btn-primary btn-large" style="width: 100%; margin-top: 1.5rem;">
                         Complete Purchase
                     </button>
                 </form>
@@ -474,6 +535,42 @@
         const upiPaymentForm = document.getElementById('upiPaymentForm');
         const checkoutForm = document.getElementById('checkoutForm');
         const orderComplete = document.getElementById('orderComplete');
+        const submitButton = document.getElementById('submitButton');
+        
+        // Initialize Stripe
+        const stripe = Stripe('{{ stripe_public_key }}');
+        const elements = stripe.elements();
+        
+        // Create card element
+        const cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#32325d',
+                    fontFamily: '"Plus Jakarta Sans", sans-serif',
+                    '::placeholder': {
+                        color: '#aab7c4'
+                    }
+                },
+                invalid: {
+                    color: '#fa755a',
+                    iconColor: '#fa755a'
+                }
+            }
+        });
+        
+        // Mount the card element
+        cardElement.mount('#card-element');
+        
+        // Handle card element errors
+        cardElement.on('change', function(event) {
+            const displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
         
         // Load cart items from localStorage
         function loadCartItems() {
@@ -527,6 +624,9 @@
             shippingElement.textContent = shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`;
             taxElement.textContent = `₹${tax.toFixed(2)}`;
             totalElement.textContent = `₹${total.toFixed(2)}`;
+            
+            // Store total amount for payment
+            checkoutForm.dataset.amount = total.toFixed(2);
         }
         
         // Payment method toggle
@@ -557,29 +657,182 @@
             });
         });
         
+        // UPI option toggle
+        const upiOptions = document.querySelectorAll('.upi-option');
+        upiOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                upiOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                
+                const upiProvider = this.getAttribute('data-upi');
+                const upiIdInput = document.getElementById('upiId');
+                
+                if (upiProvider === 'gpay') {
+                    upiIdInput.placeholder = 'yourname@okicici or mobile number';
+                } else if (upiProvider === 'phonepe') {
+                    upiIdInput.placeholder = 'yourname@ybl';
+                } else if (upiProvider === 'paytm') {
+                    upiIdInput.placeholder = 'yourname@paytm';
+                } else {
+                    upiIdInput.placeholder = 'example@upi';
+                }
+            });
+        });
+        
         // Handle form submission
-        checkoutForm.addEventListener('submit', function(e) {
+        checkoutForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Simulate form submission
-            const submitButton = this.querySelector('button[type="submit"]');
+            // Disable submit button to prevent multiple submissions
             submitButton.disabled = true;
-            submitButton.textContent = 'Processing...';
+            submitButton.innerHTML = '<span class="spinner"></span> Processing...';
             
-            // Simulate API call
-            setTimeout(() => {
-                // Show order complete overlay
-                orderComplete.style.display = 'flex';
-                
-                // Clear cart
-                localStorage.removeItem('cartItems');
-                
-                // Update cart count in header
-                const headerCartCount = document.getElementById('cart-count');
-                if (headerCartCount) {
-                    headerCartCount.textContent = '0';
+            // Get selected payment method
+            const activePayment = document.querySelector('.payment-option.active').dataset.payment;
+            
+            // Get total amount
+            const amount = parseFloat(checkoutForm.dataset.amount) || 0;
+            
+            if (activePayment === 'card') {
+                // Handle Stripe payment
+                try {
+                    const { paymentMethod, error } = await stripe.createPaymentMethod({
+                        type: 'card',
+                        card: cardElement
+                    });
+                    
+                    if (error) {
+                        // Show error message
+                        const displayError = document.getElementById('card-errors');
+                        displayError.textContent = error.message;
+                        
+                        // Re-enable submit button
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Complete Purchase';
+                        return;
+                    }
+                    
+                    // Create form data with payment details
+                    const formData = new FormData(checkoutForm);
+                    formData.append('payment_type', 'card');
+                    formData.append('payment_method_id', paymentMethod.id);
+                    formData.append('amount', amount);
+                    
+                    // Send to server
+                    const response = await fetch('{{ url_for("process_payment") }}', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Show success message
+                        orderComplete.style.display = 'flex';
+                        
+                        // Clear cart
+                        localStorage.removeItem('cartItems');
+                        
+                        // Update header cart count
+                        const headerCartCount = document.getElementById('cart-count');
+                        if (headerCartCount) {
+                            headerCartCount.textContent = '0';
+                        }
+                    } else {
+                        // Show error message
+                        const displayError = document.getElementById('card-errors');
+                        displayError.textContent = result.message || 'Payment failed. Please try again.';
+                        
+                        // Re-enable submit button
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Complete Purchase';
+                    }
+                } catch (error) {
+                    console.error('Payment error:', error);
+                    
+                    // Show error message
+                    const displayError = document.getElementById('card-errors');
+                    displayError.textContent = 'An unexpected error occurred. Please try again.';
+                    
+                    // Re-enable submit button
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Complete Purchase';
                 }
-            }, 2000);
+            } else if (activePayment === 'upi') {
+                // Handle UPI payment
+                try {
+                    // Get UPI ID
+                    const upiId = document.getElementById('upiId').value;
+                    if (!upiId) {
+                        alert('Please enter a valid UPI ID');
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Complete Purchase';
+                        return;
+                    }
+                    
+                    // Get selected UPI provider
+                    const activeUpiOption = document.querySelector('.upi-option.active');
+                    const upiProvider = activeUpiOption ? activeUpiOption.dataset.upi : 'other';
+                    
+                    // Create form data
+                    const formData = new FormData(checkoutForm);
+                    formData.append('payment_type', 'upi');
+                    formData.append('upi_id', upiId);
+                    formData.append('upi_provider', upiProvider);
+                    formData.append('amount', amount);
+                    
+                    // Send to server
+                    const response = await fetch('{{ url_for("process_upi_payment") }}', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Show success message
+                        orderComplete.style.display = 'flex';
+                        
+                        // Clear cart
+                        localStorage.removeItem('cartItems');
+                        
+                        // Update header cart count
+                        const headerCartCount = document.getElementById('cart-count');
+                        if (headerCartCount) {
+                            headerCartCount.textContent = '0';
+                        }
+                    } else {
+                        // Show error message
+                        alert(result.message || 'UPI payment failed. Please try again.');
+                        
+                        // Re-enable submit button
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Complete Purchase';
+                    }
+                } catch (error) {
+                    console.error('UPI payment error:', error);
+                    
+                    // Show error message
+                    alert('An unexpected error occurred. Please try again.');
+                    
+                    // Re-enable submit button
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Complete Purchase';
+                }
+            } else if (activePayment === 'paypal') {
+                // For PayPal, update the form action and submit directly
+                checkoutForm.action = '{{ url_for("process_paypal_payment") }}';
+                
+                // Add amount to form
+                const amountInput = document.createElement('input');
+                amountInput.type = 'hidden';
+                amountInput.name = 'amount';
+                amountInput.value = amount;
+                checkoutForm.appendChild(amountInput);
+                
+                // Submit the form (this will redirect to PayPal)
+                checkoutForm.submit();
+            }
         });
         
         // Initialize
