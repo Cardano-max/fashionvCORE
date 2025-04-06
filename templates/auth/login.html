@@ -135,6 +135,57 @@
     .btn-twitter {
         background-color: #1DA1F2;
     }
+    
+    /* New styles for enhanced Google button */
+    .google-btn-large {
+        width: 100%;
+        height: auto;
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+    }
+    
+    .google-btn-large i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+    
+    .or-divider {
+        text-align: center;
+        margin: 1.5rem 0;
+        position: relative;
+    }
+    
+    .or-divider::before,
+    .or-divider::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 45%;
+        height: 1px;
+        background-color: var(--gray-light);
+    }
+    
+    .or-divider::before {
+        left: 0;
+    }
+    
+    .or-divider::after {
+        right: 0;
+    }
+    
+    .or-text {
+        display: inline-block;
+        background-color: var(--white);
+        padding: 0 15px;
+        position: relative;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
 </style>
 {% endblock %}
 
@@ -146,6 +197,17 @@
             <p>Log in to your account to continue</p>
         </div>
         
+        <!-- Google Sign-In Button -->
+        <a href="{{ url_for('login_google') }}" class="btn google-btn-large btn-google">
+            <i class="fab fa-google"></i>
+            <span>Continue with Google</span>
+        </a>
+        
+        <div class="or-divider">
+            <span class="or-text">OR</span>
+        </div>
+        
+        <!-- Email/Password Login Form -->
         <form method="POST" action="{{ url_for('login') }}">
             <div class="form-group">
                 <label for="email" class="form-label">Email Address</label>
@@ -164,21 +226,6 @@
             
             <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">Log In</button>
         </form>
-        
-        <div class="social-login">
-            <p>Or continue with</p>
-            <div class="social-buttons">
-                <a href="#" class="social-btn btn-google">
-                    <i class="fab fa-google"></i>
-                </a>
-                <a href="#" class="social-btn btn-facebook">
-                    <i class="fab fa-facebook-f"></i>
-                </a>
-                <a href="#" class="social-btn btn-twitter">
-                    <i class="fab fa-twitter"></i>
-                </a>
-            </div>
-        </div>
         
         <div class="auth-footer">
             <p>Don't have an account? <a href="{{ url_for('register') }}">Sign Up</a></p>

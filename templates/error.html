@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ code }} - fashionCORE{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="error-container" style="text-align: center; padding: 5rem 0;">
+        <h1>Error {{ code }}</h1>
+        <p>{{ message }}</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Return to Home</a>
+    </div>
+</div>
+{% endblock %}

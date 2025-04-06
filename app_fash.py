@@ -22,18 +22,17 @@ from sqlalchemy import func, desc
 from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth  # For Google OAuth
 import logging
-logging.getLogger('werkzeug').setLevel(logging.ERROR)
+import json
 
-
-# Load environment variables
-load_dotenv()
-
-# Configure logging
+# Configure more detailed logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Silence Werkzeug logs in production
+logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secure_secret_key')
@@ -58,6 +57,10 @@ app.config['KLING_POLLING_INTERVAL'] = 5  # Seconds between polling attempts
 # OAuth Configuration
 app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID')
 app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET')
+
+# Log OAuth configuration (without exposing secret)
+logger.info(f"Google Client ID configured: {'Yes' if app.config['GOOGLE_CLIENT_ID'] else 'No'}")
+logger.info(f"Google Client Secret configured: {'Yes' if app.config['GOOGLE_CLIENT_SECRET'] else 'No'}")
 
 # Stripe configuration
 app.config['STRIPE_PUBLIC_KEY'] = os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_51O1x2xSI8ZUHBs6Zoi9nrDMB8F1TbN5RqQQkZjDGH9WlvKXaF7QXCpKPcnwRDAFJSNcSOTFp9K3iOkYzf6lSJsYl00CGfMdL1Y')
@@ -86,12 +89,17 @@ google = oauth.register(
     name='google',
     client_id=app.config['GOOGLE_CLIENT_ID'],
     client_secret=app.config['GOOGLE_CLIENT_SECRET'],
-    access_token_url='https://accounts.google.com/o/oauth2/token',
+    access_token_url='https://oauth2.googleapis.com/token',  # Updated from accounts.google.com
     access_token_params=None,
     authorize_url='https://accounts.google.com/o/oauth2/auth',
-    authorize_params=None,
+    authorize_params={
+        'access_type': 'offline',  # Get refresh token
+        'prompt': 'consent'  # Force consent screen
+    },
     api_base_url='https://www.googleapis.com/oauth2/v1/',
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'},
+    jwks_uri='https://www.googleapis.com/oauth2/v3/certs',
 )
 
 # Setup requests session with retry mechanism
@@ -99,8 +107,8 @@ def get_requests_session():
     """Configure requests session with retry logic"""
     session = requests.Session()
     retry_strategy = Retry(
-        total=3,
-        backoff_factor=1,
+        total=5,  # Increased from 3 to 5
+        backoff_factor=2,  # Increased from 1 to 2
         status_forcelist=[429, 500, 502, 503, 504],
         allowed_methods=["GET", "POST"]
     )
@@ -272,6 +280,9 @@ def image_to_base64(image_path):
         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
     return encoded_string
 
+# Global variable for API rate limiting
+last_api_call_time = 0
+
 def process_images(person_image_path, garment_image_path):
     """
     Process the images using the fashionCORE AI API and return the result image.
@@ -283,11 +294,18 @@ def process_images(person_image_path, garment_image_path):
     Returns:
         Dict with status and result information
     """
+    global last_api_call_time
     result_id = f"{uuid.uuid4().hex}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     result_file_path = os.path.join(app.config['RESULTS_FOLDER'], f"result_{result_id}.png")
     
     # Create a requests session with retry logic
     session = get_requests_session()
+    
+    # Add rate limiting
+    current_time = time.time()
+    if current_time - last_api_call_time < 2:  # 2 second minimum between requests
+        time.sleep(2 - (current_time - last_api_call_time))
+    last_api_call_time = time.time()
     
     try:
         # Generate authentication token
@@ -474,7 +492,8 @@ def init_db():
                 username='admin',
                 email='admin@fashioncore.com',
                 is_admin=True,
-                is_active=True
+                is_active=True,
+                auth_provider='local'
             )
             admin.set_password('adminpassword')
             db.session.add(admin)
@@ -919,19 +938,44 @@ def login():
 @app.route('/login/google')
 def login_google():
     """Initiate Google OAuth login"""
-    redirect_uri = url_for('google_callback', _external=True)
-    return google.authorize_redirect(redirect_uri)
+    logger.info("Starting Google login process")
+    try:
+        next_url = request.args.get('next')
+        if next_url:
+            session['next'] = next_url
+        
+        # For local development
+        if request.host.startswith('127.0.0.1') or request.host.startswith('localhost'):
+            redirect_uri = url_for('google_callback', _external=True)
+            logger.info(f"Local redirect URI: {redirect_uri}")
+        else:
+            # For production
+            redirect_uri = "https://fashionvcore-production.up.railway.app/login/google/callback"
+            logger.info(f"Production redirect URI: {redirect_uri}")
+            
+        return google.authorize_redirect(redirect_uri)
+    except Exception as e:
+        logger.error(f"Error initiating Google auth: {str(e)}")
+        flash('Error initiating Google authentication. Please try again.', 'danger')
+        return redirect(url_for('login'))
 
 @app.route('/login/google/callback')
 def google_callback():
     """Handle Google OAuth callback"""
+    logger.info("Google callback started")
     try:
+        # Get token
         token = google.authorize_access_token()
+        logger.info(f"Received access token: {token.get('access_token', '')[:10]}...")
+        
+        # Get user info
         resp = google.get('userinfo')
         user_info = resp.json()
+        logger.info(f"User info received: {user_info.get('email', 'no email')}")
         
         # Check for required fields
         if 'email' not in user_info:
+            logger.error("Email not found in Google response")
             flash('Could not get email from Google. Please try again.', 'danger')
             return redirect(url_for('login'))
         
@@ -944,10 +988,16 @@ def google_callback():
                 user.auth_provider = 'google'
                 user.oauth_id = user_info.get('id')
                 db.session.commit()
+                logger.info(f"Updated user {user.email} auth provider to Google")
         else:
             # Create new user
+            username = user_info.get('name', user_info.get('email').split('@')[0])
+            # Check if username exists and make it unique if needed
+            if User.query.filter_by(username=username).first():
+                username = f"{username}_{secrets.token_hex(4)}"
+                
             new_user = User(
-                username=user_info.get('name', user_info.get('email').split('@')[0]),
+                username=username,
                 email=user_info['email'],
                 is_active=True,
                 auth_provider='google',
@@ -957,6 +1007,7 @@ def google_callback():
             
             db.session.add(new_user)
             db.session.commit()
+            logger.info(f"Created new user with Google auth: {new_user.email}")
             user = new_user
         
         # Update last login time
@@ -965,6 +1016,7 @@ def google_callback():
         
         # Log in the user
         login_user(user)
+        logger.info(f"Logged in user with Google: {user.email}")
         
         # Redirect to appropriate page
         next_page = session.pop('next', None)
@@ -1076,6 +1128,8 @@ def process_payment():
         payment_method_id = request.form.get('payment_method_id')
         amount = float(request.form.get('amount', 0))
         
+        logger.info(f"Processing Stripe payment for user: {current_user.email}")
+        
         # Create Stripe payment intent
         payment_intent = stripe.PaymentIntent.create(
             amount=int(amount * 100),  # Convert to cents
@@ -1084,6 +1138,8 @@ def process_payment():
             confirm=True,
             return_url=url_for('checkout_complete', _external=True)
         )
+        
+        logger.info(f"Stripe PaymentIntent created: {payment_intent.id}")
         
         # Create order from cart
         shipping_address = format_address(request.form)
@@ -1157,6 +1213,8 @@ def process_upi_payment():
         upi_id = request.form.get('upi_id')
         upi_provider = request.form.get('upi_provider', 'other')
         amount = float(request.form.get('amount', 0))
+        
+        logger.info(f"Processing UPI payment for user: {current_user.email}")
         
         # In a real application, this would integrate with a UPI payment provider
         # For this demo, we'll simulate a successful payment
@@ -1472,6 +1530,19 @@ def debug_paths():
     }
     return jsonify(paths_info)
 
+# Debug route for OAuth testing
+@app.route('/debug-oauth')
+def debug_oauth():
+    """Debug OAuth configuration"""
+    return jsonify({
+        'GOOGLE_CLIENT_ID': app.config['GOOGLE_CLIENT_ID'][:10] + '...' if app.config['GOOGLE_CLIENT_ID'] else None,
+        'GOOGLE_CLIENT_SECRET': app.config['GOOGLE_CLIENT_SECRET'][:5] + '...' if app.config['GOOGLE_CLIENT_SECRET'] else None,
+        'google_callback_url': url_for('google_callback', _external=True),
+        'server_url': request.url_root,
+        'auth_providers': [user.auth_provider for user in User.query.limit(5).all()],
+        'environment': {k: v for k, v in os.environ.items() if 'GOOGLE' in k},
+    })
+
 # Flask CLI Commands
 @click.command('init-db')
 @click.pass_context
@@ -1514,6 +1585,15 @@ def create_admin_command(email, username, password):
 
 app.cli.add_command(init_db_command)
 app.cli.add_command(create_admin_command)
+
+# Error handlers
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('error.html', code=404, message="Page not found"), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    return render_template('error.html', code=500, message="Server error"), 500
 
 # Only run this when the app is run directly
 if __name__ == '__main__':
