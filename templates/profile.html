@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - fashionCORE{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-section">
+        <div class="profile-header">
+            <div class="profile-image">
+                {% if current_user.profile_image %}
+                    <img src="{{ current_user.profile_image }}" alt="Profile Image">
+                {% else %}
+                    <div class="profile-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="profile-info">
+                <h1>{{ current_user.username }}</h1>
+                <p class="email">{{ current_user.email }}</p>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">{{ current_user.credits }}</span>
+                        <span class="stat-label">Try-On Credits</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ current_user.orders|length }}</span>
+                        <span class="stat-label">Orders</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            <div class="profile-tabs">
+                <button class="tab-btn active" data-tab="tryons">Try-On History</button>
+                <button class="tab-btn" data-tab="orders">Orders</button>
+                <button class="tab-btn" data-tab="settings">Settings</button>
+            </div>
+
+            <div class="tab-content">
+                <!-- Try-On History Tab -->
+                <div class="tab-pane active" id="tryons">
+                    <h2>Recent Try-Ons</h2>
+                    <div class="tryons-grid">
+                        {% for tryon in current_user.try_on_history|sort(attribute='created_at', reverse=true) %}
+                        <div class="tryon-card">
+                            <div class="tryon-image">
+                                <img src="{{ url_for('serve_result', filename=tryon.result_path) }}" alt="Try-On Result">
+                            </div>
+                            <div class="tryon-info">
+                                <h3>{{ tryon.product.name if tryon.product else 'Custom Garment' }}</h3>
+                                <p class="tryon-date">{{ tryon.created_at.strftime('%B %d, %Y') }}</p>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-tshirt"></i>
+                            <p>No try-on history yet</p>
+                            <a href="{{ url_for('try_on_generic') }}" class="btn btn-primary">Try Now</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Orders Tab -->
+                <div class="tab-pane" id="orders">
+                    <h2>Order History</h2>
+                    <div class="orders-list">
+                        {% for order in current_user.orders|sort(attribute='created_at', reverse=true) %}
+                        <div class="order-card">
+                            <div class="order-header">
+                                <span class="order-id">Order #{{ order.id }}</span>
+                                <span class="order-status {{ order.status }}">{{ order.status|title }}</span>
+                            </div>
+                            <div class="order-items">
+                                {% for item in order.order_items %}
+                                <div class="order-item">
+                                    <img src="{{ url_for('static', filename=item.product.image_path) }}" alt="{{ item.product.name }}">
+                                    <div class="item-details">
+                                        <h4>{{ item.product.name }}</h4>
+                                        <p>Quantity: {{ item.quantity }}</p>
+                                        <p>Price: ₹{{ "%.2f"|format(item.price) }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="order-footer">
+                                <span class="order-total">Total: ₹{{ "%.2f"|format(order.total_amount) }}</span>
+                                <span class="order-date">{{ order.created_at.strftime('%B %d, %Y') }}</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-shopping-bag"></i>
+                            <p>No orders yet</p>
+                            <a href="{{ url_for('products') }}" class="btn btn-primary">Browse Products</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div class="tab-pane" id="settings">
+                    <h2>Account Settings</h2>
+                    <form class="settings-form" method="POST" action="{{ url_for('update_profile') }}">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" value="{{ current_user.username }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" value="{{ current_user.email }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="current_password">Current Password</label>
+                            <input type="password" id="current_password" name="current_password">
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password">New Password</label>
+                            <input type="password" id="new_password" name="new_password">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm New Password</label>
+                            <input type="password" id="confirm_password" name="confirm_password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active class from all buttons and panes
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
+
+            // Add active class to clicked button and corresponding pane
+            btn.classList.add('active');
+            const tabId = btn.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+});
+</script>
+{% endblock %} 

@@ -327,24 +327,60 @@ class FashionCoreBusinessTryOn {
             return;
         }
         
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                this.state.garmentImage = file;
-                this.elements.garmentPreview.innerHTML = '';
-                const previewImg = document.createElement('img');
-                previewImg.src = e.target.result;
-                previewImg.alt = 'Garment preview';
-                this.elements.garmentPreview.appendChild(previewImg);
-                this.elements.garmentPreviewContainer.style.display = 'block';
-                this.elements.garmentUploadArea.style.display = 'none';
+        // Check if user is authenticated
+        fetch('/api/check-auth')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.authenticated) {
+                    // Show sign-in popup
+                    this.showSignInPopup();
+                    return;
+                }
                 
-                this.checkCanGenerate();
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+                // User is authenticated, proceed with upload
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.state.garmentImage = file;
+                        this.elements.garmentPreview.innerHTML = '';
+                        const previewImg = document.createElement('img');
+                        previewImg.src = e.target.result;
+                        previewImg.alt = 'Garment preview';
+                        this.elements.garmentPreview.appendChild(previewImg);
+                        this.elements.garmentPreviewContainer.style.display = 'block';
+                        this.elements.garmentUploadArea.style.display = 'none';
+                        
+                        this.checkCanGenerate();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            })
+            .catch(error => {
+                console.error('Error checking authentication:', error);
+                this.showStatus('Error checking authentication', 'error');
+            });
+    }
+    
+    /**
+     * Show sign-in popup
+     */
+    showSignInPopup() {
+        const popup = document.createElement('div');
+        popup.className = 'auth-popup';
+        popup.innerHTML = `
+            <div class="auth-popup-content">
+                <h3>Sign In Required</h3>
+                <p>Please sign in to upload garment images and use the virtual try-on feature.</p>
+                <div class="auth-popup-buttons">
+                    <button class="btn btn-primary" onclick="window.location.href='/login'">Sign In</button>
+                    <button class="btn btn-secondary" onclick="this.closest('.auth-popup').remove()">Cancel</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
     }
     
     /**

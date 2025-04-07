@@ -1,0 +1,68 @@
+.auth-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.auth-popup-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+
+.auth-popup h3 {
+    margin: 0 0 1rem;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.auth-popup p {
+    margin: 0 0 1.5rem;
+    color: #666;
+    line-height: 1.5;
+}
+
+.auth-popup-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.auth-popup .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.auth-popup .btn-primary {
+    background: #007bff;
+    color: white;
+    border: none;
+}
+
+.auth-popup .btn-primary:hover {
+    background: #0056b3;
+}
+
+.auth-popup .btn-secondary {
+    background: #f8f9fa;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.auth-popup .btn-secondary:hover {
+    background: #e9ecef;
+} 

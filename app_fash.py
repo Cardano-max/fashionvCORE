@@ -804,18 +804,26 @@ def try_on_api():
     """API endpoint for virtual try-on"""
     start_time = time.time()
     
-    # Ensure user is authorized if logged in
-    if current_user.is_authenticated:
-        if not current_user.is_active:
-            return jsonify({
-                "status": "error",
-                "message": "Your account is currently inactive. Please contact support."
-            }), 403
-        if current_user.credits <= 0:
-            return jsonify({
-                "status": "error",
-                "message": "You have no try-on credits left. Please purchase credits to continue."
-            }), 403
+    # Check if user is authenticated
+    if not current_user.is_authenticated:
+        return jsonify({
+            "status": "error",
+            "message": "Please sign in to use the virtual try-on feature",
+            "redirect": url_for('login')
+        }), 401
+    
+    # Ensure user is authorized
+    if not current_user.is_active:
+        return jsonify({
+            "status": "error",
+            "message": "Your account is currently inactive. Please contact support."
+        }), 403
+    
+    if current_user.credits <= 0:
+        return jsonify({
+            "status": "error",
+            "message": "You have no try-on credits left. Please purchase credits to continue."
+        }), 403
     
     # Check if files exist in the request
     if 'person_image' not in request.files or 'garment_image' not in request.files:
@@ -1594,6 +1602,73 @@ def page_not_found(e):
 @app.errorhandler(500)
 def server_error(e):
     return render_template('error.html', code=500, message="Server error"), 500
+
+@app.route('/profile')
+@login_required
+def profile():
+    """User profile page"""
+    return render_template('profile.html')
+
+@app.route('/api/update-profile', methods=['POST'])
+@login_required
+def update_profile():
+    """Update user profile information"""
+    try:
+        username = request.form.get('username')
+        email = request.form.get('email')
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        # Update username if changed
+        if username and username != current_user.username:
+            current_user.username = username
+
+        # Update email if changed
+        if email and email != current_user.email:
+            current_user.email = email
+
+        # Update password if provided
+        if current_password and new_password and confirm_password:
+            if not current_user.check_password(current_password):
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Current password is incorrect'
+                }), 400
+            
+            if new_password != confirm_password:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'New passwords do not match'
+                }), 400
+            
+            current_user.set_password(new_password)
+
+        db.session.commit()
+        return jsonify({
+            'status': 'success',
+            'message': 'Profile updated successfully'
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/check-auth')
+def check_auth():
+    """Check if user is authenticated"""
+    return jsonify({
+        'authenticated': current_user.is_authenticated,
+        'user': {
+            'id': current_user.id if current_user.is_authenticated else None,
+            'username': current_user.username if current_user.is_authenticated else None,
+            'email': current_user.email if current_user.is_authenticated else None,
+            'credits': current_user.credits if current_user.is_authenticated else 0
+        }
+    })
 
 # Only run this when the app is run directly
 if __name__ == '__main__':
