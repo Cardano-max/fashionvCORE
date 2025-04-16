@@ -13,7 +13,7 @@ class Config:
     TESTING = False
     
     # SQLAlchemy settings
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///fashioncore.db')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///tryontrend.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Upload settings
@@ -35,7 +35,7 @@ class Config:
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@fashioncore.com')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@tryontrend.com')
 
 
 class DevelopmentConfig(Config):

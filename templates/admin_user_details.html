@@ -35,6 +35,7 @@
                     <p><strong>Email:</strong> {{ user.email }}</p>
                     <p><strong>Joined:</strong> {{ user.created_at.strftime('%B %d, %Y') }}</p>
                     <p><strong>Last Login:</strong> {% if user.last_login %}{{ user.last_login.strftime('%B %d, %Y at %H:%M') }}{% else %}Never{% endif %}</p>
+                    <p><strong>Remaining Credits:</strong> <span class="credits-badge">{{ user.credits }}</span></p>
                     {% if user.is_admin %}
                     <p><strong>Role:</strong> Administrator</p>
                     {% else %}
@@ -53,6 +54,11 @@
                             <i class="fas fa-check"></i> Unblock User
                         </button>
                         {% endif %}
+                        
+                        <!-- Add Credit Management Button -->
+                        <button class="btn btn-outline btn-add-credits" id="addCreditsBtn" data-user-id="{{ user.id }}" data-current-credits="{{ user.credits }}">
+                            <i class="fas fa-plus-circle"></i> Add Credits
+                        </button>
                     {% endif %}
                 </div>
             </div>
@@ -67,6 +73,11 @@
             <div class="stat-item">
                 <div class="stat-value">{{ unique_garments }}</div>
                 <div class="stat-label">Unique Garments</div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-value">{{ user.credits }}</div>
+                <div class="stat-label">Remaining Credits</div>
             </div>
             
             <div class="stat-item">
@@ -128,6 +139,27 @@
     </div>
 </div>
 
+<!-- Add Credits Modal -->
+<div class="modal" id="addCreditsModal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Credits</h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>Current Credits: <span id="currentCredits">0</span></p>
+            <div class="form-group">
+                <label for="creditsToAdd">Credits to Add:</label>
+                <input type="number" id="creditsToAdd" min="1" value="5" class="form-control">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelAddCredits">Cancel</button>
+            <button class="btn btn-primary" id="confirmAddCredits">Add Credits</button>
+        </div>
+    </div>
+</div>
+
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -172,7 +204,147 @@
                 toggleUserStatus(userId, 'unblock');
             });
         }
+
+        // Add Credits Modal Functionality
+        const addCreditsBtn = document.getElementById('addCreditsBtn');
+        const addCreditsModal = document.getElementById('addCreditsModal');
+        const closeModal = document.querySelector('.close-modal');
+        const cancelAddCredits = document.getElementById('cancelAddCredits');
+        const confirmAddCredits = document.getElementById('confirmAddCredits');
+        const currentCreditsSpan = document.getElementById('currentCredits');
+        const creditsToAddInput = document.getElementById('creditsToAdd');
+        
+        if (addCreditsBtn) {
+            addCreditsBtn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const currentCredits = this.getAttribute('data-current-credits');
+                
+                currentCreditsSpan.textContent = currentCredits;
+                addCreditsModal.style.display = 'block';
+                confirmAddCredits.setAttribute('data-user-id', userId);
+            });
+        }
+        
+        if (closeModal) {
+            closeModal.addEventListener('click', function() {
+                addCreditsModal.style.display = 'none';
+            });
+        }
+        
+        if (cancelAddCredits) {
+            cancelAddCredits.addEventListener('click', function() {
+                addCreditsModal.style.display = 'none';
+            });
+        }
+        
+        if (confirmAddCredits) {
+            confirmAddCredits.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const creditsToAdd = parseInt(creditsToAddInput.value);
+                
+                if (isNaN(creditsToAdd) || creditsToAdd <= 0) {
+                    alert('Please enter a valid number of credits');
+                    return;
+                }
+                
+                fetch(`/admin/users/${userId}/add-credits`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ credits: creditsToAdd })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`${creditsToAdd} credits added successfully!`);
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'An error occurred');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your request');
+                });
+                
+                addCreditsModal.style.display = 'none';
+            });
+        }
     });
 </script>
+
+<style>
+    /* Credits Badge Style */
+    .credits-badge {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 0.2rem 0.8rem;
+        border-radius: 1rem;
+        font-weight: bold;
+    }
+
+    /* Button Styles */
+    .btn-add-credits {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        margin-left: 0.5rem;
+    }
+    .btn-add-credits:hover {
+        background-color: #218838;
+    }
+
+    /* Modal Styles */
+    .modal {
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-content {
+        background-color: white;
+        border-radius: 8px;
+        width: 400px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .modal-header {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 15px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    
+    .close-modal {
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close-modal:hover {
+        color: var(--primary-color);
+    }
+</style>
 {% endblock %}
 {% endblock %}

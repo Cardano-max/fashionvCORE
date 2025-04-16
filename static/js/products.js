@@ -1,5 +1,5 @@
 /**
- * fashionCORE - Products Page JavaScript
+ * tryontrend - Products Page JavaScript
  * Version: 1.0.0
  * Last updated: March 2025
  * 
@@ -14,7 +14,7 @@
  */
 
 // Wait for the DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Initialize the Products controller
     const ProductsController = {
         // DOM Elements
@@ -64,13 +64,13 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Initialize the controller
-        init: function() {
+        init: function () {
             this.bindEvents();
             this.initializeFilters();
             this.handleUrlParams();
             this.initProductDetailPage();
             this.initAnimations();
-            
+
             // Initialize LazyLoad for images (if library is included)
             if (typeof LazyLoad !== 'undefined') {
                 new LazyLoad({
@@ -85,23 +85,23 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Bind all event listeners
-        bindEvents: function() {
+        bindEvents: function () {
             const self = this;
             const els = this.elements;
 
             // Search form submission
             if (els.searchForm) {
-                els.searchForm.addEventListener('submit', function(e) {
+                els.searchForm.addEventListener('submit', function (e) {
                     if (els.searchInput.value.trim() === '') {
                         e.preventDefault(); // Prevent empty search submission
                         self.showToast('Please enter a search term', 'warning');
                     }
                 });
             }
-            
+
             // Search input live filtering (if on products page with JS filtering)
             if (els.searchInput && els.productsGrid && document.body.classList.contains('js-filter-enabled')) {
-                els.searchInput.addEventListener('input', self.debounce(function() {
+                els.searchInput.addEventListener('input', self.debounce(function () {
                     self.state.searchQuery = els.searchInput.value.trim().toLowerCase();
                     self.filterProducts();
                 }, 300));
@@ -110,22 +110,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Category tags
             if (els.categoryTags) {
                 els.categoryTags.forEach(tag => {
-                    tag.addEventListener('click', function(e) {
+                    tag.addEventListener('click', function (e) {
                         if (document.body.classList.contains('js-filter-enabled')) {
                             e.preventDefault();
-                            
+
                             // Remove active class from all tags
                             els.categoryTags.forEach(t => t.classList.remove('active'));
-                            
+
                             // Add active class to clicked tag
                             this.classList.add('active');
-                            
+
                             // Update current category
                             self.state.currentCategory = this.getAttribute('data-category') || null;
-                            
+
                             // Filter products
                             self.filterProducts();
-                            
+
                             // Update URL without page refresh
                             const url = new URL(window.location);
                             if (self.state.currentCategory) {
@@ -142,10 +142,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Filter dropdowns
             if (els.filterBtns) {
                 els.filterBtns.forEach((btn, index) => {
-                    btn.addEventListener('click', function() {
+                    btn.addEventListener('click', function () {
                         // Toggle clicked menu
                         els.filterMenus[index].classList.toggle('show');
-                        
+
                         // Close other menus
                         els.filterMenus.forEach((menu, menuIndex) => {
                             if (menuIndex !== index) {
@@ -154,9 +154,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                     });
                 });
-                
+
                 // Close filter menus when clicking outside
-                document.addEventListener('click', function(e) {
+                document.addEventListener('click', function (e) {
                     if (!e.target.closest('.filter-dropdown')) {
                         els.filterMenus.forEach(menu => {
                             menu.classList.remove('show');
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Sort options
             if (els.sortOptions) {
                 els.sortOptions.forEach(option => {
-                    option.addEventListener('change', function() {
+                    option.addEventListener('change', function () {
                         if (this.checked) {
                             self.state.sortBy = this.value;
                             self.sortProducts();
@@ -179,12 +179,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Price range inputs
             if (els.priceRangeMin && els.priceRangeMax) {
-                els.priceRangeMin.addEventListener('change', function() {
+                els.priceRangeMin.addEventListener('change', function () {
                     self.state.filters.priceRange.min = parseInt(this.value) || 0;
                     self.filterProducts();
                 });
-                
-                els.priceRangeMax.addEventListener('change', function() {
+
+                els.priceRangeMax.addEventListener('change', function () {
                     self.state.filters.priceRange.max = parseInt(this.value) || 100000;
                     self.filterProducts();
                 });
@@ -193,21 +193,21 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add to cart buttons
             if (els.addToCartBtns) {
                 els.addToCartBtns.forEach(btn => {
-                    btn.addEventListener('click', function(e) {
+                    btn.addEventListener('click', function (e) {
                         e.preventDefault();
-                        
+
                         const productId = this.getAttribute('data-product-id');
                         const productName = this.getAttribute('data-product-name');
                         const productPrice = parseFloat(this.getAttribute('data-product-price'));
                         const productImage = this.getAttribute('data-product-image');
                         const productBrand = this.getAttribute('data-product-brand') || '';
-                        
+
                         // Add animation to the button
                         this.classList.add('animate-pulse');
-                        
+
                         // Get the product card for animation
                         const productCard = this.closest('.product-card');
-                        
+
                         // If the cart JavaScript is available, use it
                         if (typeof FashionCoreCart !== 'undefined') {
                             const cart = new FashionCoreCart();
@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 quantity: self.state.quantity || 1
                             });
                         }
-                        
+
                         // Animate product card (if available)
                         if (productCard) {
                             productCard.classList.add('animate-added-to-cart');
@@ -238,12 +238,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 productCard.classList.remove('animate-added-to-cart');
                             }, 700);
                         }
-                        
+
                         // Reset button animation after a delay
                         setTimeout(() => {
                             this.classList.remove('animate-pulse');
                         }, 700);
-                        
+
                         // Show success message
                         self.showToast(`${productName} added to cart!`, 'success');
                     });
@@ -253,9 +253,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Quick view buttons
             if (els.quickViewBtns) {
                 els.quickViewBtns.forEach(btn => {
-                    btn.addEventListener('click', function(e) {
+                    btn.addEventListener('click', function (e) {
                         e.preventDefault();
-                        
+
                         const productId = this.getAttribute('data-product-id');
                         self.openQuickView(productId);
                     });
@@ -266,19 +266,19 @@ document.addEventListener('DOMContentLoaded', function() {
             if (els.productCards) {
                 els.productCards.forEach(card => {
                     // Add hover class on mouseenter
-                    card.addEventListener('mouseenter', function() {
+                    card.addEventListener('mouseenter', function () {
                         this.classList.add('hover');
                     });
-                    
+
                     // Remove hover class on mouseleave
-                    card.addEventListener('mouseleave', function() {
+                    card.addEventListener('mouseleave', function () {
                         this.classList.remove('hover');
                     });
-                    
+
                     // Add click event for cards that link to product detail
                     const productLink = card.querySelector('.product-link');
                     if (productLink) {
-                        card.addEventListener('click', function(e) {
+                        card.addEventListener('click', function (e) {
                             // Only navigate if the click wasn't on a button or another interactive element
                             if (!e.target.closest('button') && !e.target.closest('a:not(.product-link)')) {
                                 window.location.href = productLink.getAttribute('href');
@@ -290,26 +290,26 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Initialize product detail page specific elements
-        initProductDetailPage: function() {
+        initProductDetailPage: function () {
             const self = this;
             const els = this.elements;
-            
+
             // Product thumbnails gallery
             if (els.productThumbnails && els.productMainImage) {
                 els.productThumbnails.forEach(thumb => {
-                    thumb.addEventListener('click', function() {
+                    thumb.addEventListener('click', function () {
                         // Remove active class from all thumbnails
                         els.productThumbnails.forEach(t => t.classList.remove('active'));
-                        
+
                         // Add active class to clicked thumbnail
                         this.classList.add('active');
-                        
+
                         // Update main image
                         const imgSrc = this.querySelector('img').getAttribute('src');
-                        
+
                         // Fade out main image
                         els.productMainImage.style.opacity = '0';
-                        
+
                         // After fade out, update src and fade in
                         setTimeout(() => {
                             els.productMainImage.setAttribute('src', imgSrc);
@@ -321,31 +321,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Quantity controls
             if (els.quantityInput) {
-                els.quantityInput.addEventListener('change', function() {
+                els.quantityInput.addEventListener('change', function () {
                     let value = parseInt(this.value);
-                    
+
                     // Ensure quantity is at least 1
                     if (isNaN(value) || value < 1) {
                         value = 1;
                         this.value = 1;
                     }
-                    
+
                     // Ensure quantity is not more than max (if set)
                     const max = parseInt(this.getAttribute('max'));
                     if (!isNaN(max) && value > max) {
                         value = max;
                         this.value = max;
                     }
-                    
+
                     self.state.quantity = value;
                 });
-                
+
                 // Increase quantity button
                 if (els.quantityIncBtn) {
-                    els.quantityIncBtn.addEventListener('click', function() {
+                    els.quantityIncBtn.addEventListener('click', function () {
                         let currentVal = parseInt(els.quantityInput.value);
                         const max = parseInt(els.quantityInput.getAttribute('max'));
-                        
+
                         if (!isNaN(currentVal)) {
                             if (isNaN(max) || currentVal < max) {
                                 els.quantityInput.value = currentVal + 1;
@@ -357,12 +357,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
                 }
-                
+
                 // Decrease quantity button
                 if (els.quantityDecBtn) {
-                    els.quantityDecBtn.addEventListener('click', function() {
+                    els.quantityDecBtn.addEventListener('click', function () {
                         let currentVal = parseInt(els.quantityInput.value);
-                        
+
                         if (!isNaN(currentVal) && currentVal > 1) {
                             els.quantityInput.value = currentVal - 1;
                             els.quantityInput.dispatchEvent(new Event('change'));
@@ -381,11 +381,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (self.state.wishlist.includes(productId)) {
                     els.wishlistBtn.classList.add('active');
                 }
-                
-                els.wishlistBtn.addEventListener('click', function() {
+
+                els.wishlistBtn.addEventListener('click', function () {
                     const productId = this.getAttribute('data-product-id');
                     const productName = this.getAttribute('data-product-name');
-                    
+
                     // Toggle wishlist state
                     if (self.state.wishlist.includes(productId)) {
                         // Remove from wishlist
@@ -397,15 +397,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         self.state.wishlist.push(productId);
                         this.classList.add('active');
                         this.classList.add('animate-pulse');
-                        
+
                         // Remove animation after a delay
                         setTimeout(() => {
                             this.classList.remove('animate-pulse');
                         }, 700);
-                        
+
                         self.showToast(`${productName} added to wishlist`, 'success');
                     }
-                    
+
                     // Save updated wishlist to localStorage
                     localStorage.setItem('wishlist', JSON.stringify(self.state.wishlist));
                 });
@@ -413,10 +413,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Share button
             if (els.shareBtn) {
-                els.shareBtn.addEventListener('click', function() {
+                els.shareBtn.addEventListener('click', function () {
                     const productName = this.getAttribute('data-product-name');
                     const pageUrl = window.location.href;
-                    
+
                     // If Web Share API is available, use it
                     if (navigator.share) {
                         navigator.share({
@@ -424,12 +424,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             text: `Check out this product: ${productName}`,
                             url: pageUrl
                         })
-                        .then(() => {
-                            self.showToast('Product shared successfully!', 'success');
-                        })
-                        .catch(error => {
-                            console.error('Error sharing:', error);
-                        });
+                            .then(() => {
+                                self.showToast('Product shared successfully!', 'success');
+                            })
+                            .catch(error => {
+                                console.error('Error sharing:', error);
+                            });
                     } else {
                         // Fallback to clipboard copy
                         navigator.clipboard.writeText(pageUrl)
@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             })
                             .catch(err => {
                                 console.error('Failed to copy:', err);
-                                
+
                                 // Ultimate fallback: show link in an alert
                                 prompt('Copy this link to share:', pageUrl);
                             });
@@ -449,16 +449,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Color options
             if (els.colorOptions) {
                 els.colorOptions.forEach(option => {
-                    option.addEventListener('click', function() {
+                    option.addEventListener('click', function () {
                         // Remove active class from all options
                         els.colorOptions.forEach(o => o.classList.remove('active'));
-                        
+
                         // Add active class to clicked option
                         this.classList.add('active');
-                        
+
                         // Update selected color
                         self.state.selectedColor = this.getAttribute('data-color');
-                        
+
                         // If there's a display element for the selected color, update it
                         const colorDisplay = document.querySelector('.selected-color-display');
                         if (colorDisplay) {
@@ -471,22 +471,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Size options
             if (els.sizeOptions) {
                 els.sizeOptions.forEach(option => {
-                    option.addEventListener('click', function() {
+                    option.addEventListener('click', function () {
                         // Check if size is available
                         if (this.classList.contains('disabled')) {
                             self.showToast('This size is currently out of stock', 'warning');
                             return;
                         }
-                        
+
                         // Remove active class from all options
                         els.sizeOptions.forEach(o => o.classList.remove('active'));
-                        
+
                         // Add active class to clicked option
                         this.classList.add('active');
-                        
+
                         // Update selected size
                         self.state.selectedSize = this.getAttribute('data-size');
-                        
+
                         // If there's a display element for the selected size, update it
                         const sizeDisplay = document.querySelector('.selected-size-display');
                         if (sizeDisplay) {
@@ -510,20 +510,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         brand: document.querySelector('.product-brand').textContent,
                         url: window.location.href
                     };
-                    
+
                     // Add to recently viewed (if not already first in the list)
                     if (self.state.recentlyViewed.length === 0 || self.state.recentlyViewed[0].id !== productId) {
                         // Remove product if it's already in the list
                         self.state.recentlyViewed = self.state.recentlyViewed.filter(item => item.id !== productId);
-                        
+
                         // Add product to the beginning of the list
                         self.state.recentlyViewed.unshift(productDetails);
-                        
+
                         // Limit the list to 10 items
                         if (self.state.recentlyViewed.length > 10) {
                             self.state.recentlyViewed = self.state.recentlyViewed.slice(0, 10);
                         }
-                        
+
                         // Save updated list to localStorage
                         localStorage.setItem('recentlyViewed', JSON.stringify(self.state.recentlyViewed));
                     }
@@ -532,55 +532,55 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Initialize filters from URL parameters
-        handleUrlParams: function() {
+        handleUrlParams: function () {
             const urlParams = new URLSearchParams(window.location.search);
-            
+
             // Get category from URL
             const category = urlParams.get('category');
             if (category) {
                 this.state.currentCategory = category;
-                
+
                 // Mark the corresponding category tag as active
                 const categoryTag = document.querySelector(`.category-tag[data-category="${category}"]`);
                 if (categoryTag) {
                     categoryTag.classList.add('active');
                 }
             }
-            
+
             // Get search query from URL
             const search = urlParams.get('search');
             if (search) {
                 this.state.searchQuery = search.toLowerCase();
-                
+
                 // Set search input value
                 if (this.elements.searchInput) {
                     this.elements.searchInput.value = search;
                 }
             }
-            
+
             // Get sort option from URL
             const sort = urlParams.get('sort');
             if (sort) {
                 this.state.sortBy = sort;
-                
+
                 // Set the corresponding sort option as checked
                 const sortOption = document.querySelector(`input[name="sort"][value="${sort}"]`);
                 if (sortOption) {
                     sortOption.checked = true;
                 }
             }
-            
+
             // Get price range from URL
             const minPrice = urlParams.get('min_price');
             const maxPrice = urlParams.get('max_price');
-            
+
             if (minPrice) {
                 this.state.filters.priceRange.min = parseInt(minPrice);
                 if (this.elements.priceRangeMin) {
                     this.elements.priceRangeMin.value = minPrice;
                 }
             }
-            
+
             if (maxPrice) {
                 this.state.filters.priceRange.max = parseInt(maxPrice);
                 if (this.elements.priceRangeMax) {
@@ -590,7 +590,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Initialize filter values and states
-        initializeFilters: function() {
+        initializeFilters: function () {
             // Initialize price range sliders if using noUiSlider
             const priceRangeSlider = document.getElementById('price-range-slider');
             if (priceRangeSlider && window.noUiSlider) {
@@ -603,22 +603,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         'max': 100000
                     },
                     format: {
-                        to: function(value) {
+                        to: function (value) {
                             return Math.round(value);
                         },
-                        from: function(value) {
+                        from: function (value) {
                             return Number(value);
                         }
                     }
                 });
-                
+
                 // Update price range inputs when slider changes
                 priceRangeSlider.noUiSlider.on('update', (values, handle) => {
                     const priceDisplay = document.getElementById('price-display');
                     if (priceDisplay) {
                         priceDisplay.textContent = `₹${values[0]} - ₹${values[1]}`;
                     }
-                    
+
                     if (handle === 0) {
                         if (this.elements.priceRangeMin) {
                             this.elements.priceRangeMin.value = values[0];
@@ -631,19 +631,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.state.filters.priceRange.max = parseInt(values[1]);
                     }
                 });
-                
+
                 // Filter products when slider stops changing
                 priceRangeSlider.noUiSlider.on('change', this.debounce(() => {
                     this.filterProducts();
                 }, 300));
             }
-            
+
             // Initialize filter checkboxes
             document.querySelectorAll('.filter-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', () => {
                     const filterType = checkbox.getAttribute('data-filter-type');
                     const filterValue = checkbox.getAttribute('data-filter-value');
-                    
+
                     if (filterType === 'color') {
                         if (checkbox.checked) {
                             this.state.filters.colors.push(filterValue);
@@ -659,14 +659,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else if (filterType === 'inStock') {
                         this.state.filters.inStock = checkbox.checked;
                     }
-                    
+
                     this.filterProducts();
                 });
             });
         },
 
         // Initialize animations for the products page
-        initAnimations: function() {
+        initAnimations: function () {
             // Product cards entrance animation
             const productCards = document.querySelectorAll('.product-card');
             if (productCards.length > 0) {
@@ -677,25 +677,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         rootMargin: '0px',
                         threshold: 0.1
                     };
-                    
+
                     const observer = new IntersectionObserver((entries, observer) => {
                         entries.forEach(entry => {
                             if (entry.isIntersecting) {
                                 const card = entry.target;
                                 // Get the data-index or use the index from the array
                                 const index = card.getAttribute('data-index') || Array.from(productCards).indexOf(card);
-                                
+
                                 // Stagger the animations
                                 setTimeout(() => {
                                     card.classList.add('animate-fade-in');
                                 }, index * 100);
-                                
+
                                 // Stop observing after animation is added
                                 observer.unobserve(card);
                             }
                         });
                     }, options);
-                    
+
                     // Start observing cards
                     productCards.forEach(card => {
                         observer.observe(card);
@@ -712,14 +712,14 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Filter products based on current state
-        filterProducts: function() {
+        filterProducts: function () {
             if (!this.elements.productsGrid || !document.body.classList.contains('js-filter-enabled')) {
                 return;
             }
-            
+
             const productCards = this.elements.productsGrid.querySelectorAll('.product-card');
             let visibleCount = 0;
-            
+
             productCards.forEach(card => {
                 const category = card.getAttribute('data-category') || '';
                 const productName = card.getAttribute('data-name') || '';
@@ -729,26 +729,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 const productColors = (card.getAttribute('data-colors') || '').split(',');
                 const productSizes = (card.getAttribute('data-sizes') || '').split(',');
                 const inStock = card.getAttribute('data-in-stock') === 'true';
-                
+
                 // Check if product passes all filters
                 const passesCategory = !this.state.currentCategory || category.toLowerCase() === this.state.currentCategory.toLowerCase();
-                const passesSearch = !this.state.searchQuery || 
-                    productName.toLowerCase().includes(this.state.searchQuery) || 
-                    productBrand.toLowerCase().includes(this.state.searchQuery) || 
+                const passesSearch = !this.state.searchQuery ||
+                    productName.toLowerCase().includes(this.state.searchQuery) ||
+                    productBrand.toLowerCase().includes(this.state.searchQuery) ||
                     productDescription.toLowerCase().includes(this.state.searchQuery);
-                const passesPriceRange = productPrice >= this.state.filters.priceRange.min && 
+                const passesPriceRange = productPrice >= this.state.filters.priceRange.min &&
                     productPrice <= this.state.filters.priceRange.max;
-                const passesColors = this.state.filters.colors.length === 0 || 
+                const passesColors = this.state.filters.colors.length === 0 ||
                     this.state.filters.colors.some(color => productColors.includes(color));
-                const passesSizes = this.state.filters.sizes.length === 0 || 
+                const passesSizes = this.state.filters.sizes.length === 0 ||
                     this.state.filters.sizes.some(size => productSizes.includes(size));
                 const passesInStock = !this.state.filters.inStock || inStock;
-                
+
                 // Show or hide the product card
                 if (passesCategory && passesSearch && passesPriceRange && passesColors && passesSizes && passesInStock) {
                     card.style.display = '';
                     visibleCount++;
-                    
+
                     // Animate card entrance
                     card.classList.add('animate-fade-in');
                 } else {
@@ -756,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     card.classList.remove('animate-fade-in');
                 }
             });
-            
+
             // Show "no products" message if no products are visible
             const noProductsMessage = document.querySelector('.no-products');
             if (noProductsMessage) {
@@ -766,26 +766,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     noProductsMessage.style.display = 'none';
                 }
             }
-            
+
             // Update filter counts
             this.updateFilterCounts();
-            
+
             // After filtering, sort products again
             this.sortProducts();
         },
 
         // Sort products based on current sort option
-        sortProducts: function() {
+        sortProducts: function () {
             if (!this.elements.productsGrid || !document.body.classList.contains('js-filter-enabled')) {
                 return;
             }
-            
+
             const productsGrid = this.elements.productsGrid;
             const productCards = Array.from(productsGrid.querySelectorAll('.product-card'));
-            
+
             // Only sort visible products
             const visibleProducts = productCards.filter(card => card.style.display !== 'none');
-            
+
             // Sort products according to selected sort option
             visibleProducts.sort((a, b) => {
                 switch (this.state.sortBy) {
@@ -805,7 +805,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         return 0;
                 }
             });
-            
+
             // Re-append sorted cards to maintain order
             visibleProducts.forEach(card => {
                 productsGrid.appendChild(card);
@@ -813,21 +813,21 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Update filter option count displays
-        updateFilterCounts: function() {
+        updateFilterCounts: function () {
             document.querySelectorAll('.filter-count').forEach(countElem => {
                 const filterType = countElem.getAttribute('data-filter-type');
                 const filterValue = countElem.getAttribute('data-filter-value');
-                
+
                 if (!filterType || !filterValue) return;
-                
+
                 // Count products that match this filter
                 let count = 0;
                 const productCards = this.elements.productsGrid.querySelectorAll('.product-card');
-                
+
                 productCards.forEach(card => {
                     // Skip products that are filtered out by other criteria
                     if (card.style.display === 'none') return;
-                    
+
                     // Check if product matches this filter
                     if (filterType === 'category') {
                         const category = card.getAttribute('data-category') || '';
@@ -846,34 +846,34 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 });
-                
+
                 // Update count display
                 countElem.textContent = `(${count})`;
             });
         },
 
         // Open quick view modal for a product
-        openQuickView: function(productId) {
+        openQuickView: function (productId) {
             const self = this;
-            
+
             // Show loading overlay
             const loadingOverlay = document.getElementById('loading-overlay');
             if (loadingOverlay) {
                 loadingOverlay.style.display = 'flex';
             }
-            
+
             // Fetch product data (in a real app, this would be an AJAX call)
             setTimeout(() => {
                 // For demo, we'll get data from the DOM
                 const productCard = document.querySelector(`.product-card[data-product-id="${productId}"]`);
-                
+
                 if (productCard) {
                     const productName = productCard.getAttribute('data-name');
                     const productBrand = productCard.getAttribute('data-brand');
                     const productPrice = productCard.getAttribute('data-price');
                     const productImage = productCard.querySelector('.product-image img').getAttribute('src');
                     const productDesc = productCard.getAttribute('data-description');
-                    
+
                     // Create and show quick view modal
                     const quickViewHtml = `
                         <div class="modal quick-view-modal" id="quickViewModal">
@@ -912,16 +912,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                         </div>
                     `;
-                    
+
                     // Add modal to the DOM
                     const modalContainer = document.createElement('div');
                     modalContainer.innerHTML = quickViewHtml;
                     document.body.appendChild(modalContainer.firstChild);
-                    
+
                     // Show modal
                     const quickViewModal = document.getElementById('quickViewModal');
                     quickViewModal.classList.add('show');
-                    
+
                     // Add event listeners
                     const closeBtn = document.getElementById('closeQuickView');
                     closeBtn.addEventListener('click', () => {
@@ -930,13 +930,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             quickViewModal.remove();
                         }, 300);
                     });
-                    
+
                     // Add to cart button in quick view
                     const addToCartBtn = quickViewModal.querySelector('.add-to-cart-btn');
-                    addToCartBtn.addEventListener('click', function() {
+                    addToCartBtn.addEventListener('click', function () {
                         // Add animation to the button
                         this.classList.add('animate-pulse');
-                        
+
                         // Add to cart logic
                         if (typeof FashionCoreCart !== 'undefined') {
                             const cart = new FashionCoreCart();
@@ -959,16 +959,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                 quantity: 1
                             });
                         }
-                        
+
                         // Reset button animation after a delay
                         setTimeout(() => {
                             this.classList.remove('animate-pulse');
                         }, 700);
-                        
+
                         // Show success message
                         self.showToast(`${productName} added to cart!`, 'success');
                     });
-                    
+
                     // Close modal when clicking outside
                     quickViewModal.addEventListener('click', (e) => {
                         if (e.target === quickViewModal) {
@@ -979,7 +979,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
                 }
-                
+
                 // Hide loading overlay
                 if (loadingOverlay) {
                     loadingOverlay.style.display = 'none';
@@ -988,13 +988,13 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Basic cart functionality (fallback if cart.js is not available)
-        addToCart: function(item) {
+        addToCart: function (item) {
             // Get cart items from localStorage
             let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-            
+
             // Check if item already exists
             const existingItemIndex = cartItems.findIndex(i => i.id === item.id);
-            
+
             if (existingItemIndex > -1) {
                 // Update quantity if item exists
                 cartItems[existingItemIndex].quantity += item.quantity;
@@ -1002,10 +1002,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add new item
                 cartItems.push(item);
             }
-            
+
             // Save updated cart
             localStorage.setItem('cartItems', JSON.stringify(cartItems));
-            
+
             // Update cart count in header
             const cartCountElement = document.getElementById('cart-count');
             if (cartCountElement) {
@@ -1014,7 +1014,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Show toast notification
-        showToast: function(message, type = 'info') {
+        showToast: function (message, type = 'info') {
             // Check if toast container exists, create if not
             let toastContainer = document.querySelector('.toast-container');
             if (!toastContainer) {
@@ -1022,17 +1022,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 toastContainer.className = 'toast-container';
                 document.body.appendChild(toastContainer);
             }
-            
+
             // Create toast element
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
-            
+
             // Set icon based on type
             let icon = 'info-circle';
             if (type === 'success') icon = 'check-circle';
             if (type === 'error') icon = 'times-circle';
             if (type === 'warning') icon = 'exclamation-triangle';
-            
+
             // Create toast content
             toast.innerHTML = `
                 <div class="toast-icon"><i class="fas fa-${icon}"></i></div>
@@ -1042,10 +1042,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button class="toast-close">&times;</button>
                 <div class="toast-progress"></div>
             `;
-            
+
             // Add toast to container
             toastContainer.appendChild(toast);
-            
+
             // Add close event to toast
             const closeBtn = toast.querySelector('.toast-close');
             closeBtn.addEventListener('click', () => {
@@ -1054,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     toast.remove();
                 }, 300);
             });
-            
+
             // Auto-remove toast after 5 seconds
             setTimeout(() => {
                 if (toast.parentNode) {
@@ -1067,9 +1067,9 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Debounce function for performance optimization
-        debounce: function(func, wait) {
+        debounce: function (func, wait) {
             let timeout;
-            return function() {
+            return function () {
                 const context = this;
                 const args = arguments;
                 clearTimeout(timeout);

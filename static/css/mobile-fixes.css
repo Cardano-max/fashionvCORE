@@ -1,462 +1,517 @@
 /* =========================================================
- * fashionCORE - Mobile Responsiveness Fixes
+ * tryontrend - Mobile Responsiveness Fixes
  * Version: 1.0.0
  * Last updated: March 2025
  * ========================================================= */
 
 /* Global Mobile Fixes */
 @media screen and (max-width: 768px) {
-    /* Prevent horizontal overflow */
-    html, body {
-      overflow-x: hidden;
-      width: 100%;
-      position: relative;
-    }
-    
-    /* Adjust base font sizes for better readability */
-    html {
-      font-size: 58%;
-    }
-    
-    /* Ensure container doesn't overflow */
-    .container {
-      width: 100%;
-      padding-left: 15px;
-      padding-right: 15px;
-      overflow-x: hidden;
-    }
-    
-    /* Fix any fixed-width elements */
-    img, video, canvas, table {
-      max-width: 100% !important;
-      height: auto !important;
-    }
-    
-    /* Better tap targets */
-    button, a, input, select, textarea {
-      min-height: 44px;
-      min-width: 44px;
-    }
-    
-    /* Ensure forms are responsive */
-    input, select, textarea {
-      max-width: 100%;
-    }
-    
-    /* Utility class to hide elements on mobile */
-    .hide-on-mobile {
-      display: none !important;
-    }
-    
-    /* Better spacing on mobile */
-    .mt-mobile-3 { margin-top: 1.2rem !important; }
-    .mb-mobile-3 { margin-bottom: 1.2rem !important; }
-    .pt-mobile-3 { padding-top: 1.2rem !important; }
-    .pb-mobile-3 { padding-bottom: 1.2rem !important; }
-  }
-  
-  /* Header & Navigation Fixes */
-  @media screen and (max-width: 768px) {
-    /* Make header more compact */
-    .main-header {
-      height: var(--mobile-header-height, 6rem);
-    }
-    
-    .header-container {
-      padding: 0 10px;
-    }
-    
-    /* Fix logo size */
-    .logo-text {
-      font-size: 1.8rem;
-    }
-    
-    /* Improve mobile menu */
-    .main-nav {
-      position: fixed;
-      top: var(--mobile-header-height, 6rem);
-      left: -100%;
-      width: 100%;
-      height: calc(100vh - var(--mobile-header-height, 6rem));
-      background-color: var(--bg-primary, #ffffff);
-      z-index: 1000;
-      overflow-y: auto;
-      transition: left 0.3s ease;
-      padding: 2rem;
-    }
-    
-    .main-nav.active {
-      left: 0;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    }
-    
-    .main-nav ul {
-      flex-direction: column;
-      width: 100%;
-      gap: 0;
-    }
-    
-    .main-nav li {
-      width: 100%;
-    }
-    
-    .main-nav a {
-      display: block;
-      padding: 1.5rem;
-      width: 100%;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-    
-    /* Make auth buttons more compact */
-    .auth-buttons {
-      gap: 0.5rem;
-    }
-    
-    .auth-buttons .btn {
-      padding: 0.8rem 1.2rem;
-      font-size: 1.4rem;
-    }
-  }
-  
-  /* Hero Section Fixes */
-  @media screen and (max-width: 768px) {
-    .hero {
-      min-height: 500px;
-      padding: 4rem 0;
-    }
-    
-    .hero-content {
-      padding: 0 2rem;
-    }
-    
-    .hero h1 {
-      font-size: 3.6rem;
-      margin-bottom: 1.5rem;
-    }
-    
-    .hero p {
-      font-size: 1.8rem;
-      margin-bottom: 2.5rem;
-    }
-  }
-  
-  /* Workflow Steps Fixes */
-  @media screen and (max-width: 768px) {
-    .workflow-steps {
-      flex-direction: column;
-      gap: 3rem;
-    }
-    
-    .step {
-      width: 100%;
-      max-width: none;
-    }
-    
-    .step-connector {
-      display: none;
-    }
-  }
-  
-  /* Product Cards Fixes */
-  @media screen and (max-width: 768px) {
-    .products-grid {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 1.5rem;
-    }
-    
-    .product-card {
-      min-height: unset;
-    }
-    
-    .product-image {
-      height: 200px;
-    }
-    
-    .product-info {
-      padding: 1.2rem;
-    }
-    
-    .product-info h4 {
-      font-size: 1.6rem;
-      margin-bottom: 0.5rem;
-    }
-    
-    .product-brand,
-    .product-desc {
-      font-size: 1.2rem;
-    }
-    
-    .product-price {
-      font-size: 1.6rem;
-      margin-bottom: 0.8rem;
-    }
-  }
-  
-  /* Features Section Fixes */
-  @media screen and (max-width: 768px) {
-    .features-grid {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-    
-    .feature-card {
-      padding: 2.5rem 1.5rem;
-    }
-    
-    .feature-icon {
-      width: 6rem;
-      height: 6rem;
-      font-size: 2.4rem;
-      margin-bottom: 1.5rem;
-    }
-  }
-  
-  /* CTA Section Fixes */
-  @media screen and (max-width: 768px) {
-    .cta-section {
-      padding: 6rem 0;
-    }
-    
-    .cta-content h2 {
-      font-size: 3rem;
-      margin-bottom: 1.5rem;
-    }
-    
-    .cta-content p {
-      font-size: 1.8rem;
-      margin-bottom: 3rem;
-    }
-  }
-  
-  /* CEO Section Fixes */
-  @media screen and (max-width: 768px) {
-    .ceo-grid {
-      grid-template-columns: 1fr;
-      gap: 3rem;
-    }
-    
-    .ceo-stats {
-      flex-direction: column;
-      gap: 2rem;
-    }
-    
-    .testimonials-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-  
-  /* Footer Fixes */
-  @media screen and (max-width: 768px) {
-    .footer-links {
-      grid-template-columns: 1fr 1fr;
-      gap: 3rem;
-    }
-    
-    .footer-social {
-      gap: 1rem;
-    }
-    
-    .social-icon {
-      width: 3.6rem;
-      height: 3.6rem;
-      font-size: 1.6rem;
-    }
-  }
-  
-  /* Try-On Page Fixes */
-  @media screen and (max-width: 768px) {
-    .upload-cards {
-      grid-template-columns: 1fr;
-    }
-    
-    .upload-area {
-      padding: 2rem 1.5rem;
-    }
-    
-    .comparison-container {
-      flex-direction: column;
-    }
-    
-    .image-container {
-      width: 100%;
-      height: auto;
-    }
-  }
-  
-  /* Forms and Tables Fixes */
-  @media screen and (max-width: 768px) {
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-    
-    .table-responsive {
-      margin-bottom: 1.5rem;
-    }
-    
-    .table th, 
-    .table td {
-      padding: 0.8rem;
-      font-size: 1.4rem;
-    }
-  }
-  
-  /* Admin Dashboard Fixes */
-  @media screen and (max-width: 768px) {
-    .admin-stats,
-    .admin-tabs .nav-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-    
-    .stat-card {
-      padding: 1.5rem;
-    }
-    
-    .stat-value {
-      font-size: 2.4rem;
-    }
-    
-    .data-table {
-      font-size: 1.2rem;
-    }
-    
-    .data-table th,
-    .data-table td {
-      padding: 0.8rem;
-    }
-    
-    .action-btn {
-      padding: 0.5rem;
-      font-size: 1.2rem;
-      margin-right: 0.2rem;
-    }
-    
-    /* Handle table overflow */
-    .tab-content {
-      overflow-x: auto;
-    }
-  }
-  
-  /* Fix for 3JS background on mobile */
-  @media screen and (max-width: 768px) {
-    .threejs-background {
-      opacity: 0.3;
-    }
-  }
-  
-  /* Small Mobile Specific Fixes */
-  @media screen and (max-width: 480px) {
-    html {
-      font-size: 55%;
-    }
-    
-    .hero h1 {
-      font-size: 3rem;
-    }
-    
-    .hero p {
-      font-size: 1.6rem;
-    }
-    
-    .logo-text {
-      font-size: 1.6rem;
-    }
-    
-    .auth-buttons .btn {
-      padding: 0.6rem 1rem;
-      font-size: 1.3rem;
-    }
-    
-    .products-grid {
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    }
-    
-    .product-image {
-      height: 160px;
-    }
-    
-    .footer-links {
-      grid-template-columns: 1fr;
-    }
+
+  /* Prevent horizontal overflow */
+  html,
+  body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
   }
 
-  /* Try-On Steps Container Mobile Fix */
+  /* Adjust base font sizes for better readability */
+  html {
+    font-size: 58%;
+  }
+
+  /* Ensure container doesn't overflow */
+  .container {
+    width: 100%;
+    padding-left: 15px;
+    padding-right: 15px;
+    overflow-x: hidden;
+  }
+
+  /* Fix any fixed-width elements */
+  img,
+  video,
+  canvas,
+  table {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Better tap targets */
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Ensure forms are responsive */
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+
+  /* Utility class to hide elements on mobile */
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  /* Better spacing on mobile */
+  .mt-mobile-3 {
+    margin-top: 1.2rem !important;
+  }
+
+  .mb-mobile-3 {
+    margin-bottom: 1.2rem !important;
+  }
+
+  .pt-mobile-3 {
+    padding-top: 1.2rem !important;
+  }
+
+  .pb-mobile-3 {
+    padding-bottom: 1.2rem !important;
+  }
+}
+
+/* Header & Navigation Fixes */
+@media screen and (max-width: 768px) {
+
+  /* Make header more compact */
+  .main-header {
+    height: var(--mobile-header-height, 6rem);
+  }
+
+  .header-container {
+    padding: 0 10px;
+  }
+
+  /* Fix logo size */
+  .logo-text {
+    font-size: 1.8rem;
+  }
+
+  /* Improve mobile menu */
+  .main-nav {
+    position: fixed;
+    top: var(--mobile-header-height, 6rem);
+    left: -100%;
+    width: 100%;
+    height: calc(100vh - var(--mobile-header-height, 6rem));
+    background-color: var(--bg-primary, #ffffff);
+    z-index: 1000;
+    overflow-y: auto;
+    transition: left 0.3s ease;
+    padding: 2rem;
+  }
+
+  .main-nav.active {
+    left: 0;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .main-nav ul {
+    flex-direction: column;
+    width: 100%;
+    gap: 0;
+  }
+
+  .main-nav li {
+    width: 100%;
+  }
+
+  .main-nav a {
+    display: block;
+    padding: 1.5rem;
+    width: 100%;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  /* Mobile auth buttons */
+  .mobile-auth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .mobile-auth-buttons .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 1.2rem;
+    font-size: 1.6rem;
+  }
+
+  /* Hide desktop auth buttons on mobile */
+  .auth-buttons {
+    display: none;
+  }
+
+  /* Mobile menu toggle button */
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.4rem;
+    height: 4.4rem;
+    background: transparent;
+    border: none;
+    font-size: 2.4rem;
+    color: var(--primary-color);
+    cursor: pointer;
+    z-index: 1001;
+  }
+
+  .mobile-menu-toggle.active {
+    color: var(--primary-dark);
+  }
+}
+
+/* Hero Section Fixes */
+@media screen and (max-width: 768px) {
+  .hero {
+    min-height: 500px;
+    padding: 4rem 0;
+  }
+
+  .hero-content {
+    padding: 0 2rem;
+  }
+
+  .hero h1 {
+    font-size: 3.6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero p {
+    font-size: 1.8rem;
+    margin-bottom: 2.5rem;
+  }
+}
+
+/* Workflow Steps Fixes */
+@media screen and (max-width: 768px) {
+  .workflow-steps {
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .step {
+    width: 100%;
+    max-width: none;
+  }
+
+  .step-connector {
+    display: none;
+  }
+}
+
+/* Product Cards Fixes */
+@media screen and (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .product-card {
+    min-height: unset;
+  }
+
+  .product-image {
+    height: 200px;
+  }
+
+  .product-info {
+    padding: 1.2rem;
+  }
+
+  .product-info h4 {
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .product-brand,
+  .product-desc {
+    font-size: 1.2rem;
+  }
+
+  .product-price {
+    font-size: 1.6rem;
+    margin-bottom: 0.8rem;
+  }
+}
+
+/* Features Section Fixes */
+@media screen and (max-width: 768px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .feature-card {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .feature-icon {
+    width: 6rem;
+    height: 6rem;
+    font-size: 2.4rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* CTA Section Fixes */
+@media screen and (max-width: 768px) {
+  .cta-section {
+    padding: 6rem 0;
+  }
+
+  .cta-content h2 {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .cta-content p {
+    font-size: 1.8rem;
+    margin-bottom: 3rem;
+  }
+}
+
+/* CEO Section Fixes */
+@media screen and (max-width: 768px) {
+  .ceo-grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .ceo-stats {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Footer Fixes */
+@media screen and (max-width: 768px) {
+  .footer-links {
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+
+  .footer-social {
+    gap: 1rem;
+  }
+
+  .social-icon {
+    width: 3.6rem;
+    height: 3.6rem;
+    font-size: 1.6rem;
+  }
+}
+
+/* Try-On Page Fixes */
+@media screen and (max-width: 768px) {
+  .upload-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-area {
+    padding: 2rem 1.5rem;
+  }
+
+  .comparison-container {
+    flex-direction: column;
+  }
+
+  .image-container {
+    width: 100%;
+    height: auto;
+  }
+}
+
+/* Forms and Tables Fixes */
+@media screen and (max-width: 768px) {
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .table-responsive {
+    margin-bottom: 1.5rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.8rem;
+    font-size: 1.4rem;
+  }
+}
+
+/* Admin Dashboard Fixes */
+@media screen and (max-width: 768px) {
+
+  .admin-stats,
+  .admin-tabs .nav-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.5rem;
+  }
+
+  .stat-value {
+    font-size: 2.4rem;
+  }
+
+  .data-table {
+    font-size: 1.2rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.8rem;
+  }
+
+  .action-btn {
+    padding: 0.5rem;
+    font-size: 1.2rem;
+    margin-right: 0.2rem;
+  }
+
+  /* Handle table overflow */
+  .tab-content {
+    overflow-x: auto;
+  }
+}
+
+/* Fix for 3JS background on mobile */
+@media screen and (max-width: 768px) {
+  .threejs-background {
+    opacity: 0.3;
+  }
+}
+
+/* Small Mobile Specific Fixes */
+@media screen and (max-width: 480px) {
+  html {
+    font-size: 55%;
+  }
+
+  .hero h1 {
+    font-size: 3rem;
+  }
+
+  .hero p {
+    font-size: 1.6rem;
+  }
+
+  .logo-text {
+    font-size: 1.6rem;
+  }
+
+  .auth-buttons .btn {
+    padding: 0.6rem 1rem;
+    font-size: 1.3rem;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+
+  .product-image {
+    height: 160px;
+  }
+
+  .footer-links {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Try-On Steps Container Mobile Fix */
 @media screen and (max-width: 768px) {
   .steps-container {
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 4rem;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 4rem;
   }
-  
+
   .step {
-      width: 100%;
-      max-width: 90%;
-      margin: 0 auto 2rem;
+    width: 100%;
+    max-width: 90%;
+    margin: 0 auto 2rem;
   }
-  
+
   /* Keep last step from having extra margin */
   .step:last-child {
-      margin-bottom: 0;
+    margin-bottom: 0;
   }
-  
+
   /* Adjust step number size slightly for mobile */
   .step-number {
-      width: 4.5rem;
-      height: 4.5rem;
-      font-size: 2.2rem;
+    width: 4.5rem;
+    height: 4.5rem;
+    font-size: 2.2rem;
   }
-  
+
   /* Ensure the try-on header is properly sized */
   .try-on-header h1 {
-      font-size: 3rem;
+    font-size: 3rem;
   }
-  
+
   .try-on-header p {
-      font-size: 1.6rem;
+    font-size: 1.6rem;
   }
 }
 
 /* Enhanced Footer Mobile Fixes */
 @media screen and (max-width: 768px) {
+
   /* Ensure footer content doesn't overflow */
   footer {
-      overflow-x: hidden;
-      width: 100%;
+    overflow-x: hidden;
+    width: 100%;
   }
-  
+
   .footer-content {
-      padding: 3rem 1.5rem;
-      width: 100%;
+    padding: 3rem 1.5rem;
+    width: 100%;
   }
-  
+
   /* Better column layout for mobile */
   .footer-links {
-      grid-template-columns: 1fr;
-      gap: 2.5rem;
-      margin-bottom: 3rem;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    margin-bottom: 3rem;
   }
-  
+
   /* Adjust column padding */
   .footer-column {
-      padding: 0 1rem;
+    padding: 0 1rem;
   }
-  
+
   /* Center footer bottom content */
   .footer-bottom {
-      flex-direction: column;
-      text-align: center;
-      gap: 1rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
   }
-  
+
   /* Fix social links spacing */
   .footer-social {
-      margin: 2rem 0;
+    margin: 2rem 0;
   }
-  
+
   /* Make footer logo smaller */
   .footer-logo .logo-text {
-      font-size: 2rem;
+    font-size: 2rem;
   }
 }
-

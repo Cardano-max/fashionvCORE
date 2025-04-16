@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}fashionCORE - Admin Login{% endblock %}
+{% block title %}tryontrend - Admin Login{% endblock %}
 
 {% block additional_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
@@ -101,7 +101,7 @@
         
         <div class="admin-notice">
             <i class="fas fa-shield-alt"></i>
-            <span>This area is restricted to authorized fashionCORE administrators only.</span>
+            <span>This area is restricted to authorized tryontrend administrators only.</span>
         </div>
         
         {% with messages = get_flashed_messages(with_categories=true) %}

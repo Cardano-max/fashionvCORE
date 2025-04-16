@@ -1,5 +1,5 @@
 """
-Admin routes and functionality for fashionCORE application
+Admin routes and functionality for tryontrend application
 
 This module handles admin-specific routes, including:
 - Admin authentication

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#4361ee">
-    <title>{% block title %}fashionCORE - Virtual Try-On Software{% endblock %}</title>
+    <title>{% block title %}tryontrend - Virtual Try-On Software{% endblock %}</title>
     
     <!-- Preload critical resources -->
     <link rel="preload" href="{{ url_for('static', filename='css/enhanced.css') }}" as="style">
@@ -24,6 +24,36 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/enhanced.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-fixes.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    
+    <style>
+        /* Mobile Auth Buttons - Only visible on mobile */
+        .mobile-auth-buttons {
+            display: none;
+        }
+        
+        @media screen and (max-width: 768px) {
+            .mobile-auth-buttons {
+                display: flex;
+                flex-direction: column;
+                padding: 1.5rem;
+                gap: 1rem;
+                margin-top: 1rem;
+                border-top: 1px solid rgba(0,0,0,0.05);
+            }
+            
+            .mobile-auth-buttons .btn {
+                width: 100%;
+                text-align: center;
+                padding: 1.2rem;
+                font-size: 1.6rem;
+            }
+            
+            /* Hide desktop auth buttons on mobile */
+            .auth-buttons {
+                display: none;
+            }
+        }
+    </style>
     
     {% block additional_head %}{% endblock %}
 </head>
@@ -52,6 +82,34 @@
                     <li><a href="{{ url_for('terms_of_service') }}">Terms of Service</a></li>
                     <li><a href="#">Data Security</a></li>
                 </ul>
+                
+                <!-- Mobile Auth Buttons - Only visible on mobile -->
+                <div class="mobile-auth-buttons">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.is_admin %}
+                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline">
+                                <i class="fas fa-shield-alt"></i> Admin
+                            </a>
+                        {% endif %}
+                        <a href="{{ url_for('profile') }}" class="btn btn-outline">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                        <a href="{{ url_for('cart') }}" class="btn btn-outline">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span id="mobile-cart-count">0</span>
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="btn btn-primary">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-outline">
+                            <i class="fas fa-sign-in-alt"></i> Log In
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i> Sign Up
+                        </a>
+                    {% endif %}
+                </div>
             </nav>
             <div class="auth-buttons">
                 {% if current_user.is_authenticated %}
@@ -157,8 +215,8 @@
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2025 fashionCORE. All rights reserved.</p>
-                <p class="disclaimer">Powered by fashionCORE-Try-On</p>
+                <p>&copy; 2025 tryontrend. All rights reserved.</p>
+                <p class="disclaimer">Powered by tryontrend-Try-On</p>
             </div>
         </div>
     </footer>
@@ -190,9 +248,12 @@
 
             // Update cart count from localStorage if available
             const cartCountElement = document.getElementById('cart-count');
-            if (cartCountElement) {
+            const mobileCartCountElement = document.getElementById('mobile-cart-count');
+            
+            if (cartCountElement || mobileCartCountElement) {
                 const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-                cartCountElement.textContent = cartItems.length;
+                if (cartCountElement) cartCountElement.textContent = cartItems.length;
+                if (mobileCartCountElement) mobileCartCountElement.textContent = cartItems.length;
             }
             
             // Add 3D tilt effect to product cards

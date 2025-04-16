@@ -36,7 +36,7 @@ logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secure_secret_key')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.root_path, 'fashioncore.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.root_path, 'tryontrend.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Try-on configuration
@@ -285,7 +285,7 @@ last_api_call_time = 0
 
 def process_images(person_image_path, garment_image_path):
     """
-    Process the images using the fashionCORE AI API and return the result image.
+    Process the images using the tryontrend AI API and return the result image.
     
     Args:
         person_image_path: Path to the person image file
@@ -328,7 +328,7 @@ def process_images(person_image_path, garment_image_path):
             "Authorization": f"Bearer {auth_token}"
         }
         
-        logger.info("Creating fashionCORE AI try-on task")
+        logger.info("Creating tryontrend AI try-on task")
         try:
             response = session.post(
                 f"{app.config['KLING_API_URL']}/v1/images/kolors-virtual-try-on",
@@ -337,19 +337,19 @@ def process_images(person_image_path, garment_image_path):
                 timeout=app.config['KLING_REQUEST_TIMEOUT']
             )
         except requests.exceptions.ConnectTimeout:
-            logger.error(f"Connection timeout while connecting to fashionCORE AI API")
+            logger.error(f"Connection timeout while connecting to tryontrend AI API")
             return {"status": "error", "message": "Could not connect to try-on service. Please try again later."}
         except requests.exceptions.ConnectionError:
-            logger.error(f"Connection error while connecting to fashionCORE AI API")
+            logger.error(f"Connection error while connecting to tryontrend AI API")
             return {"status": "error", "message": "Connection to try-on service failed. Please check your internet connection."}
         except requests.exceptions.RequestException as e:
-            logger.error(f"Request exception while connecting to fashionCORE AI API: {str(e)}")
+            logger.error(f"Request exception while connecting to tryontrend AI API: {str(e)}")
             return {"status": "error", "message": "An error occurred connecting to the try-on service."}
         
         try:
             response_data = response.json()
         except ValueError:
-            logger.error(f"Invalid JSON response from fashionCORE AI API")
+            logger.error(f"Invalid JSON response from tryontrend AI API")
             return {"status": "error", "message": "Received invalid response from try-on service."}
         
         if response.status_code != 200 or response_data.get('code', -1) != 0:
@@ -486,11 +486,11 @@ def init_db():
     logger.info("Starting database initialization")
     try:
         # Create admin user if not exists
-        admin = User.query.filter_by(email='admin@fashioncore.com').first()
+        admin = User.query.filter_by(email='admin@tryontrend.com').first()
         if not admin:
             admin = User(
                 username='admin',
-                email='admin@fashioncore.com',
+                email='admin@tryontrend.com',
                 is_admin=True,
                 is_active=True,
                 auth_provider='local'
@@ -605,7 +605,7 @@ def index():
 # Kling AI Try-on routes
 @app.route('/try-on-kling/<int:product_id>', methods=['GET'])
 def try_on_kling_page(product_id):
-    """Try-on page for a specific product using fashionCORE AI"""
+    """Try-on page for a specific product using tryontrend AI"""
     product = Product.query.get_or_404(product_id)
     # Check if user is logged in and has credits
     has_credits = False
@@ -616,7 +616,7 @@ def try_on_kling_page(product_id):
 
 @app.route('/try-on-kling', methods=['GET'])
 def try_on_kling_generic():
-    """Generic try-on page without a specific product using fashionCORE AI"""
+    """Generic try-on page without a specific product using tryontrend AI"""
     # Check if user is logged in and has credits
     has_credits = False
     if current_user.is_authenticated and current_user.is_active:
@@ -626,7 +626,7 @@ def try_on_kling_generic():
 
 @app.route('/api/try-on-kling', methods=['POST'])
 def try_on_kling_api():
-    """API endpoint for virtual try-on using fashionCORE AI"""
+    """API endpoint for virtual try-on using tryontrend AI"""
     start_time = time.time()
     
     # Ensure user is authorized if logged in
@@ -1524,6 +1524,41 @@ def admin_toggle_api_key(key_id):
         'message': f"API key has been {'activated' if api_key.is_active else 'deactivated'} successfully"
     })
 
+@app.route('/admin/users/<int:user_id>/add-credits', methods=['POST'])
+@admin_required
+def admin_add_credits(user_id):
+    """Add credits to a user account (admin only)"""
+    # Get user to add credits to
+    user = User.query.get_or_404(user_id)
+    
+    try:
+        # Get credits amount from request
+        data = request.get_json()
+        credits_to_add = int(data.get('credits', 0))
+        
+        if credits_to_add <= 0:
+            return jsonify({
+                'success': False,
+                'message': 'Please provide a valid number of credits to add.'
+            }), 400
+        
+        # Add credits to user
+        user.credits += credits_to_add
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Added {credits_to_add} credits to {user.username}',
+            'new_credit_balance': user.credits
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Error adding credits: {str(e)}'
+        }), 500
+
 @app.route('/debug-paths')
 def debug_paths():
     """Debug route to check paths"""
@@ -1673,7 +1708,7 @@ def check_auth():
 # Only run this when the app is run directly
 if __name__ == '__main__':
     # Check if the database exists and initialize it if needed
-    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fashioncore.db')
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tryontrend.db')
     if not os.path.exists(db_path):
         with app.app_context():
             db.create_all()

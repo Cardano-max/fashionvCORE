@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}API Documentation - fashionCORE{% endblock %}
+{% block title %}API Documentation - tryontrend{% endblock %}
 
 {% block additional_head %}
 <style>
@@ -439,8 +439,8 @@
             <!-- API Content -->
             <div class="api-content">
                 <div class="api-header">
-                    <h1>fashionCORE API Documentation</h1>
-                    <p>This documentation provides information about the fashionCORE API, which allows you to integrate virtual try-on functionality into your applications. The API is available to Pro and Enterprise plan subscribers.</p>
+                    <h1>tryontrend API Documentation</h1>
+                    <p>This documentation provides information about the tryontrend API, which allows you to integrate virtual try-on functionality into your applications. The API is available to Pro and Enterprise plan subscribers.</p>
                 </div>
                 
                 <!-- Introduction Section -->
@@ -449,11 +449,11 @@
                     
                     <div class="api-subsection">
                         <h3 class="api-subsection-title">Overview</h3>
-                        <p>The fashionCORE API is a RESTful API that allows you to integrate virtual try-on functionality into your applications. The API provides endpoints for processing images, managing products, and retrieving user information.</p>
+                        <p>The tryontrend API is a RESTful API that allows you to integrate virtual try-on functionality into your applications. The API provides endpoints for processing images, managing products, and retrieving user information.</p>
                         
                         <p>All API requests are made to the following base URL:</p>
                         <div class="code-example">
-                            <code class="code-sample">https://api.fashioncore.com/v1</code>
+                            <code class="code-sample">https://api.tryontrend.com/v1</code>
                         </div>
                     </div>
                     
@@ -471,7 +471,7 @@
                     
                     <div class="api-subsection">
                         <h3 class="api-subsection-title">API Keys</h3>
-                        <p>To authenticate with the fashionCORE API, you need to include your API key in the request headers. You can obtain your API key from your account dashboard.</p>
+                        <p>To authenticate with the tryontrend API, you need to include your API key in the request headers. You can obtain your API key from your account dashboard.</p>
                         
                         <div class="code-example">
                             <code class="code-sample">X-API-Key: your_api_key_here</code>
@@ -567,7 +567,7 @@
                                     <div class="response-example">
                                         <pre class="response-json">{
   <span class="code-key">"status"</span>: <span class="code-string">"success"</span>,
-  <span class="code-key">"result_url"</span>: <span class="code-string">"https://api.fashioncore.com/results/result_12345.png"</span>,
+  <span class="code-key">"result_url"</span>: <span class="code-string">"https://api.tryontrend.com/results/result_12345.png"</span>,
   <span class="code-key">"try_on_id"</span>: <span class="code-string">"try_on_12345"</span>
 }</pre>
                                     </div>
@@ -587,7 +587,7 @@
                                 <div class="api-example">
                                     <h4 class="api-example-title">Example Request (cURL)</h4>
                                     <div class="code-example">
-                                        <pre class="code-sample">curl -X POST https://api.fashioncore.com/v1/try-on \
+                                        <pre class="code-sample">curl -X POST https://api.tryontrend.com/v1/try-on \
   -H "X-API-Key: your_api_key_here" \
   -F "person_image=@/path/to/person.jpg" \
   -F "garment_image=@/path/to/garment.jpg"</pre>
@@ -658,7 +658,7 @@
       <span class="code-key">"name"</span>: <span class="code-string">"Kanchipuram Silk Saree"</span>,
       <span class="code-key">"description"</span>: <span class="code-string">"Beautiful traditional Kanchipuram silk saree with zari work."</span>,
       <span class="code-key">"price"</span>: <span class="code-number">18999.00</span>,
-      <span class="code-key">"image_url"</span>: <span class="code-string">"https://api.fashioncore.com/images/silk-saree.jpg"</span>,
+      <span class="code-key">"image_url"</span>: <span class="code-string">"https://api.tryontrend.com/images/silk-saree.jpg"</span>,
       <span class="code-key">"category"</span>: <span class="code-string">"Saree"</span>,
       <span class="code-key">"brand"</span>: <span class="code-string">"Pothys"</span>
     },
@@ -667,7 +667,7 @@
       <span class="code-key">"name"</span>: <span class="code-string">"Designer Anarkali Suit"</span>,
       <span class="code-key">"description"</span>: <span class="code-string">"Elegant designer Anarkali suit with exquisite embroidery."</span>,
       <span class="code-key">"price"</span>: <span class="code-number">12499.00</span>,
-      <span class="code-key">"image_url"</span>: <span class="code-string">"https://api.fashioncore.com/images/anarkali.jpg"</span>,
+      <span class="code-key">"image_url"</span>: <span class="code-string">"https://api.tryontrend.com/images/anarkali.jpg"</span>,
       <span class="code-key">"category"</span>: <span class="code-string">"Anarkali"</span>,
       <span class="code-key">"brand"</span>: <span class="code-string">"Meena Bazaar"</span>
     }
@@ -783,17 +783,17 @@ X-RateLimit-Reset: 1619682000</pre>
                         <p>We provide official SDK libraries for popular programming languages to make integration easier:</p>
                         
                         <ul>
-                            <li><strong>JavaScript:</strong> <a href="#">npm install fashioncore-js</a></li>
-                            <li><strong>Python:</strong> <a href="#">pip install fashioncore-python</a></li>
-                            <li><strong>PHP:</strong> <a href="#">composer require fashioncore/fashioncore-php</a></li>
+                            <li><strong>JavaScript:</strong> <a href="#">npm install tryontrend-js</a></li>
+                            <li><strong>Python:</strong> <a href="#">pip install tryontrend-python</a></li>
+                            <li><strong>PHP:</strong> <a href="#">composer require tryontrend/tryontrend-php</a></li>
                         </ul>
                         
                         <div class="api-example">
                             <h4 class="api-example-title">JavaScript Example</h4>
                             <div class="code-example">
                                 <pre class="code-sample">// Initialize the client
-const fashioncore = require('fashioncore-js');
-const client = new fashioncore.Client('your_api_key_here');
+const tryontrend = require('tryontrend-js');
+const client = new tryontrend.Client('your_api_key_here');
 
 // Generate a try-on image
 async function generateTryOn() {
@@ -812,10 +812,10 @@ async function generateTryOn() {
                             
                             <h4 class="api-example-title">Python Example</h4>
                             <div class="code-example">
-                                <pre class="code-sample">import fashioncore
+                                <pre class="code-sample">import tryontrend
 
 # Initialize the client
-client = fashioncore.Client(api_key='your_api_key_here')
+client = tryontrend.Client(api_key='your_api_key_here')
 
 # Generate a try-on image
 try:

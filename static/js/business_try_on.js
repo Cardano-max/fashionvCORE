@@ -1,5 +1,5 @@
 /**
- * fashionCORE Business Try-On JavaScript
+ * tryontrend Business Try-On JavaScript
  * 
  * This script handles the business-focused virtual try-on functionality, including:
  * - Model selection
@@ -19,14 +19,14 @@ class FashionCoreBusinessTryOn {
             modelGridId: 'modelGrid',
             poseSelectorId: 'poseSelector',
             backgroundSelectorId: 'backgroundSelector',
-            
+
             garmentUploadAreaId: 'garmentUploadArea',
             garmentBrowseBtnId: 'garmentBrowseBtn',
             garmentImageInputId: 'garmentImageInput',
             garmentPreviewContainerId: 'garmentPreviewContainer',
             garmentPreviewId: 'garmentPreview',
             garmentRemoveBtnId: 'garmentRemoveBtn',
-            
+
             generateBtnId: 'generateBtn',
             statusMessageId: 'statusMessage',
             resultSectionId: 'resultSection',
@@ -34,23 +34,23 @@ class FashionCoreBusinessTryOn {
             downloadBtnId: 'downloadBtn',
             shareBtnId: 'shareBtn',
             tryAgainBtnId: 'tryAgainBtn',
-            
+
             shareModalId: 'shareModal',
             closeShareModalId: 'closeShareModal',
             shareLinkId: 'shareLink',
             copyLinkBtnId: 'copyLinkBtn',
-            
+
             loadingOverlayId: 'loadingOverlay',
             loadingMessageId: 'loadingMessage',
             loadingSubMessageId: 'loadingSubMessage',
-            
+
             onSuccess: null,
             onError: null
         };
-        
+
         // Merge options with default settings
         Object.assign(this.settings, options);
-        
+
         // Initialize state
         this.state = {
             selectedModel: null,
@@ -59,37 +59,37 @@ class FashionCoreBusinessTryOn {
             garmentImage: null,
             resultUrl: null
         };
-        
+
         // Initialize elements
         this.elements = {};
-        
+
         // Initialize the try-on functionality
         this.init();
     }
-    
+
     /**
      * Initialize the try-on functionality
      */
     init() {
         // Get DOM elements
         this.getElements();
-        
+
         // Set up event listeners
         this.setupEventListeners();
     }
-    
+
     /**
      * Get DOM elements
      */
     getElements() {
         const s = this.settings;
         const e = this.elements;
-        
+
         // Selection elements
         e.modelGrid = document.getElementById(s.modelGridId);
         e.poseSelector = document.getElementById(s.poseSelectorId);
         e.backgroundSelector = document.getElementById(s.backgroundSelectorId);
-        
+
         // Garment upload elements
         e.garmentUploadArea = document.getElementById(s.garmentUploadAreaId);
         e.garmentBrowseBtn = document.getElementById(s.garmentBrowseBtnId);
@@ -97,7 +97,7 @@ class FashionCoreBusinessTryOn {
         e.garmentPreviewContainer = document.getElementById(s.garmentPreviewContainerId);
         e.garmentPreview = document.getElementById(s.garmentPreviewId);
         e.garmentRemoveBtn = document.getElementById(s.garmentRemoveBtnId);
-        
+
         // Action elements
         e.generateBtn = document.getElementById(s.generateBtnId);
         e.statusMessage = document.getElementById(s.statusMessageId);
@@ -106,19 +106,19 @@ class FashionCoreBusinessTryOn {
         e.downloadBtn = document.getElementById(s.downloadBtnId);
         e.shareBtn = document.getElementById(s.shareBtnId);
         e.tryAgainBtn = document.getElementById(s.tryAgainBtnId);
-        
+
         // Share modal elements
         e.shareModal = document.getElementById(s.shareModalId);
         e.closeShareModal = document.getElementById(s.closeShareModalId);
         e.shareLink = document.getElementById(s.shareLinkId);
         e.copyLinkBtn = document.getElementById(s.copyLinkBtnId);
-        
+
         // Loading elements
         e.loadingOverlay = document.getElementById(s.loadingOverlayId);
         e.loadingMessage = document.getElementById(s.loadingMessageId);
         e.loadingSubMessage = document.getElementById(s.loadingSubMessageId);
     }
-    
+
     /**
      * Set up event listeners
      */
@@ -132,7 +132,7 @@ class FashionCoreBusinessTryOn {
                 });
             });
         }
-        
+
         // Pose selection
         if (this.elements.poseSelector) {
             const poseOptions = this.elements.poseSelector.querySelectorAll('.pose-option');
@@ -142,7 +142,7 @@ class FashionCoreBusinessTryOn {
                 });
             });
         }
-        
+
         // Background selection
         if (this.elements.backgroundSelector) {
             const bgOptions = this.elements.backgroundSelector.querySelectorAll('.bg-option');
@@ -152,52 +152,52 @@ class FashionCoreBusinessTryOn {
                 });
             });
         }
-        
+
         // Setup garment upload
         this.setupGarmentUpload();
-        
+
         // Generate button
         if (this.elements.generateBtn) {
             this.elements.generateBtn.addEventListener('click', () => {
                 this.generateTryOn();
             });
         }
-        
+
         // Result actions
         if (this.elements.downloadBtn) {
             this.elements.downloadBtn.addEventListener('click', () => {
                 this.downloadResult();
             });
         }
-        
+
         if (this.elements.shareBtn) {
             this.elements.shareBtn.addEventListener('click', () => {
                 this.openShareModal();
             });
         }
-        
+
         if (this.elements.tryAgainBtn) {
             this.elements.tryAgainBtn.addEventListener('click', () => {
                 this.resetToGenerator();
             });
         }
-        
+
         // Share modal
         if (this.elements.closeShareModal) {
             this.elements.closeShareModal.addEventListener('click', () => {
                 this.closeShareModal();
             });
         }
-        
+
         if (this.elements.copyLinkBtn) {
             this.elements.copyLinkBtn.addEventListener('click', () => {
                 this.copyShareLink();
             });
         }
-        
+
         // Setup share options
         this.setupShareOptions();
-        
+
         // Close modals when clicking outside
         window.addEventListener('click', (e) => {
             if (e.target === this.elements.shareModal) {
@@ -205,7 +205,7 @@ class FashionCoreBusinessTryOn {
             }
         });
     }
-    
+
     /**
      * Select a model
      */
@@ -215,17 +215,17 @@ class FashionCoreBusinessTryOn {
         modelCards.forEach(card => {
             card.classList.remove('selected');
         });
-        
+
         // Add active class to selected model card
         modelCard.classList.add('selected');
-        
+
         // Update state
         this.state.selectedModel = modelCard.getAttribute('data-model-id');
-        
+
         // Check if can generate
         this.checkCanGenerate();
     }
-    
+
     /**
      * Select a pose
      */
@@ -235,17 +235,17 @@ class FashionCoreBusinessTryOn {
         poseOptions.forEach(option => {
             option.classList.remove('selected');
         });
-        
+
         // Add active class to selected pose option
         poseOption.classList.add('selected');
-        
+
         // Update state
         this.state.selectedPose = poseOption.getAttribute('data-pose-id');
-        
+
         // Check if can generate
         this.checkCanGenerate();
     }
-    
+
     /**
      * Select a background
      */
@@ -255,21 +255,21 @@ class FashionCoreBusinessTryOn {
         bgOptions.forEach(option => {
             option.classList.remove('selected');
         });
-        
+
         // Add active class to selected background option
         bgOption.classList.add('selected');
-        
+
         // Update state
         this.state.selectedBackground = {
             id: bgOption.getAttribute('data-bg-id'),
             type: bgOption.getAttribute('data-bg-type'),
             value: bgOption.getAttribute('data-bg-value')
         };
-        
+
         // Check if can generate
         this.checkCanGenerate();
     }
-    
+
     /**
      * Setup garment upload functionality
      */
@@ -280,18 +280,18 @@ class FashionCoreBusinessTryOn {
                 this.elements.garmentImageInput.click();
             });
         }
-        
+
         // Drag and drop
         if (this.elements.garmentUploadArea) {
             this.elements.garmentUploadArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 this.elements.garmentUploadArea.classList.add('dragover');
             });
-            
+
             this.elements.garmentUploadArea.addEventListener('dragleave', () => {
                 this.elements.garmentUploadArea.classList.remove('dragover');
             });
-            
+
             this.elements.garmentUploadArea.addEventListener('drop', (e) => {
                 e.preventDefault();
                 this.elements.garmentUploadArea.classList.remove('dragover');
@@ -300,7 +300,7 @@ class FashionCoreBusinessTryOn {
                 }
             });
         }
-        
+
         // File input change
         if (this.elements.garmentImageInput) {
             this.elements.garmentImageInput.addEventListener('change', () => {
@@ -309,7 +309,7 @@ class FashionCoreBusinessTryOn {
                 }
             });
         }
-        
+
         // Remove button
         if (this.elements.garmentRemoveBtn) {
             this.elements.garmentRemoveBtn.addEventListener('click', () => {
@@ -317,7 +317,7 @@ class FashionCoreBusinessTryOn {
             });
         }
     }
-    
+
     /**
      * Handle garment image upload
      */
@@ -326,7 +326,7 @@ class FashionCoreBusinessTryOn {
             this.showStatus('Please upload an image file', 'error');
             return;
         }
-        
+
         // Check if user is authenticated
         fetch('/api/check-auth')
             .then(response => response.json())
@@ -336,7 +336,7 @@ class FashionCoreBusinessTryOn {
                     this.showSignInPopup();
                     return;
                 }
-                
+
                 // User is authenticated, proceed with upload
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -350,7 +350,7 @@ class FashionCoreBusinessTryOn {
                         this.elements.garmentPreview.appendChild(previewImg);
                         this.elements.garmentPreviewContainer.style.display = 'block';
                         this.elements.garmentUploadArea.style.display = 'none';
-                        
+
                         this.checkCanGenerate();
                     };
                     img.src = e.target.result;
@@ -362,7 +362,7 @@ class FashionCoreBusinessTryOn {
                 this.showStatus('Error checking authentication', 'error');
             });
     }
-    
+
     /**
      * Show sign-in popup
      */
@@ -379,10 +379,10 @@ class FashionCoreBusinessTryOn {
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(popup);
     }
-    
+
     /**
      * Remove garment image
      */
@@ -391,10 +391,10 @@ class FashionCoreBusinessTryOn {
         this.elements.garmentPreviewContainer.style.display = 'none';
         this.elements.garmentUploadArea.style.display = 'flex';
         this.elements.garmentImageInput.value = '';
-        
+
         this.checkCanGenerate();
     }
-    
+
     /**
      * Check if try-on can be generated
      */
@@ -405,20 +405,20 @@ class FashionCoreBusinessTryOn {
             this.state.selectedBackground !== null &&
             this.state.garmentImage !== null
         );
-        
+
         if (this.elements.generateBtn) {
             this.elements.generateBtn.disabled = !canGenerate;
-            
+
             if (canGenerate) {
                 this.elements.generateBtn.classList.add('active');
             } else {
                 this.elements.generateBtn.classList.remove('active');
             }
         }
-        
+
         return canGenerate;
     }
-    
+
     /**
      * Generate try-on image
      */
@@ -427,12 +427,12 @@ class FashionCoreBusinessTryOn {
             this.showStatus('Please complete all steps before generating', 'error');
             return;
         }
-        
+
         // Show loading overlay
         if (this.elements.loadingOverlay) {
             this.elements.loadingOverlay.style.display = 'flex';
         }
-        
+
         // Create form data
         const formData = new FormData();
         formData.append('model_id', this.state.selectedModel);
@@ -440,109 +440,109 @@ class FashionCoreBusinessTryOn {
         formData.append('background_type', this.state.selectedBackground.type);
         formData.append('background_value', this.state.selectedBackground.value);
         formData.append('garment_image', this.state.garmentImage);
-        
+
         // Send API request
         fetch(this.settings.apiEndpoint, {
             method: 'POST',
             body: formData
         })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => {
-                    throw new Error(data.message || `Server responded with ${response.status}`);
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Hide loading overlay
-            if (this.elements.loadingOverlay) {
-                this.elements.loadingOverlay.style.display = 'none';
-            }
-            
-            if (data.status === 'success') {
-                this.state.resultUrl = data.result_url;
-                
-                // Update result image
-                if (this.elements.resultImage) {
-                    this.elements.resultImage.src = data.result_url;
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || `Server responded with ${response.status}`);
+                    });
                 }
-                
-                // Update download button
-                if (this.elements.downloadBtn) {
-                    this.elements.downloadBtn.href = data.result_url;
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading overlay
+                if (this.elements.loadingOverlay) {
+                    this.elements.loadingOverlay.style.display = 'none';
                 }
-                
-                // Show result section
-                if (this.elements.resultSection) {
-                    this.elements.resultSection.style.display = 'block';
+
+                if (data.status === 'success') {
+                    this.state.resultUrl = data.result_url;
+
+                    // Update result image
+                    if (this.elements.resultImage) {
+                        this.elements.resultImage.src = data.result_url;
+                    }
+
+                    // Update download button
+                    if (this.elements.downloadBtn) {
+                        this.elements.downloadBtn.href = data.result_url;
+                    }
+
+                    // Show result section
+                    if (this.elements.resultSection) {
+                        this.elements.resultSection.style.display = 'block';
+                    }
+
+                    // Set share link
+                    if (this.elements.shareLink) {
+                        this.elements.shareLink.value = window.location.origin + data.result_url;
+                    }
+
+                    // Scroll to result
+                    if (this.elements.resultSection) {
+                        this.elements.resultSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+
+                    this.showStatus('Your professional image has been generated successfully!', 'success');
+
+                    // Call the onSuccess callback if provided
+                    if (this.settings.onSuccess) {
+                        this.settings.onSuccess(data);
+                    }
+                } else {
+                    this.showStatus('Error: ' + (data.message || 'Failed to generate image'), 'error');
+
+                    // Call the onError callback if provided
+                    if (this.settings.onError) {
+                        this.settings.onError(data);
+                    }
                 }
-                
-                // Set share link
-                if (this.elements.shareLink) {
-                    this.elements.shareLink.value = window.location.origin + data.result_url;
+            })
+            .catch(error => {
+                console.error("API Error:", error);
+
+                // Hide loading overlay
+                if (this.elements.loadingOverlay) {
+                    this.elements.loadingOverlay.style.display = 'none';
                 }
-                
-                // Scroll to result
-                if (this.elements.resultSection) {
-                    this.elements.resultSection.scrollIntoView({ behavior: 'smooth' });
-                }
-                
-                this.showStatus('Your professional image has been generated successfully!', 'success');
-                
-                // Call the onSuccess callback if provided
-                if (this.settings.onSuccess) {
-                    this.settings.onSuccess(data);
-                }
-            } else {
-                this.showStatus('Error: ' + (data.message || 'Failed to generate image'), 'error');
-                
+
+                this.showStatus('Error: ' + error.message, 'error');
+
                 // Call the onError callback if provided
                 if (this.settings.onError) {
-                    this.settings.onError(data);
+                    this.settings.onError({ status: 'error', message: error.message });
                 }
-            }
-        })
-        .catch(error => {
-            console.error("API Error:", error);
-            
-            // Hide loading overlay
-            if (this.elements.loadingOverlay) {
-                this.elements.loadingOverlay.style.display = 'none';
-            }
-            
-            this.showStatus('Error: ' + error.message, 'error');
-            
-            // Call the onError callback if provided
-            if (this.settings.onError) {
-                this.settings.onError({ status: 'error', message: error.message });
-            }
-        });
+            });
     }
-    
+
     /**
      * Show status message
      */
     showStatus(message, type = 'info') {
         if (!this.elements.statusMessage) return;
-        
+
         this.elements.statusMessage.textContent = message;
         this.elements.statusMessage.className = 'status-message ' + type;
-        
+
         // Clear after 5 seconds
         setTimeout(() => {
             this.elements.statusMessage.textContent = '';
             this.elements.statusMessage.className = 'status-message';
         }, 5000);
     }
-    
+
     /**
      * Download result
      */
     downloadResult() {
         // This is handled automatically by the href attribute of the download button
     }
-    
+
     /**
      * Reset to generator view
      */
@@ -550,41 +550,41 @@ class FashionCoreBusinessTryOn {
         if (this.elements.resultSection) {
             this.elements.resultSection.style.display = 'none';
         }
-        
+
         // Scroll to try-on section
         const tryOnSection = document.getElementById('business-try-on');
         if (tryOnSection) {
             tryOnSection.scrollIntoView({ behavior: 'smooth' });
         }
     }
-    
+
     /**
      * Open share modal
      */
     openShareModal() {
         if (!this.elements.shareModal) return;
-        
+
         this.elements.shareModal.style.display = 'block';
     }
-    
+
     /**
      * Close share modal
      */
     closeShareModal() {
         if (!this.elements.shareModal) return;
-        
+
         this.elements.shareModal.style.display = 'none';
     }
-    
+
     /**
      * Copy share link
      */
     copyShareLink() {
         if (!this.elements.shareLink) return;
-        
+
         this.elements.shareLink.select();
         document.execCommand('copy');
-        
+
         if (this.elements.copyLinkBtn) {
             const originalText = this.elements.copyLinkBtn.textContent;
             this.elements.copyLinkBtn.textContent = 'Copied!';
@@ -593,21 +593,21 @@ class FashionCoreBusinessTryOn {
             }, 2000);
         }
     }
-    
+
     /**
      * Setup share options
      */
     setupShareOptions() {
         const shareButtons = document.querySelectorAll('.social-share-btn');
-        
+
         shareButtons.forEach(button => {
             button.addEventListener('click', () => {
                 if (!this.elements.shareLink || !this.state.resultUrl) return;
-                
+
                 const url = encodeURIComponent(this.elements.shareLink.value);
-                const title = encodeURIComponent('Check out my professional product image created with fashionCORE!');
+                const title = encodeURIComponent('Check out my professional product image created with tryontrend!');
                 let shareUrl = '';
-                
+
                 if (button.classList.contains('facebook')) {
                     shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
                 } else if (button.classList.contains('twitter')) {
@@ -617,7 +617,7 @@ class FashionCoreBusinessTryOn {
                 } else if (button.classList.contains('linkedin')) {
                     shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
                 }
-                
+
                 if (shareUrl) {
                     window.open(shareUrl, '_blank');
                 }
@@ -627,7 +627,7 @@ class FashionCoreBusinessTryOn {
 }
 
 // Initialize the business try-on functionality when the DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Initialize the business try-on functionality with default settings
     window.businessTryOn = new FashionCoreBusinessTryOn();
 });

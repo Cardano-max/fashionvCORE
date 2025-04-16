@@ -14,7 +14,7 @@ from datetime import datetime
 
 def run_migration():
     # Path to the database file
-    db_path = 'fashioncore.db'
+    db_path = 'tryontrend.db'
     
     # Full path with the current directory
     full_db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), db_path)
