@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/enhanced.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-fixes.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/video-popup.css') }}">
     
     <style>
         /* Mobile Auth Buttons - Only visible on mobile */
@@ -60,6 +61,21 @@
 <body>
     <!-- Three.js Background Container -->
     <div class="threejs-background"></div>
+    
+    <!-- Video Popup Modal -->
+    <div id="promoVideoModal" class="video-modal">
+        <div class="video-modal-content">
+            <div class="video-container">
+                <video id="promoVideo" controls>
+                    <source src="{{ url_for('static', filename='videos/Tryonternd_promotion_vid.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <button id="closeVideoBtn" class="close-video-btn" style="display: none;">
+                <i class="fas fa-times"></i> Close
+            </button>
+        </div>
+    </div>
     
     <!-- Header with Navigation -->
     <header class="main-header">
@@ -300,6 +316,60 @@
             if (targetNode) {
                 observer.observe(targetNode, { childList: true, subtree: true });
             }
+
+            // Promo Video Modal Logic
+            const promoVideoModal = document.getElementById('promoVideoModal');
+            const promoVideo = document.getElementById('promoVideo');
+            const closeVideoBtn = document.getElementById('closeVideoBtn');
+            
+            // Function to show the modal
+            function showVideoModal() {
+                if (promoVideoModal) {
+                    promoVideoModal.style.display = 'flex';
+                    if (promoVideo) {
+                        promoVideo.play();
+                        
+                        // Show close button after 10 seconds
+                        setTimeout(() => {
+                            if (closeVideoBtn) {
+                                closeVideoBtn.style.display = 'block';
+                            }
+                        }, 10000);
+                    }
+                }
+            }
+            
+            // Function to close the modal
+            function closeVideoModal() {
+                if (promoVideoModal) {
+                    promoVideoModal.style.display = 'none';
+                    if (promoVideo) {
+                        promoVideo.pause();
+                        promoVideo.currentTime = 0;
+                    }
+                }
+            }
+            
+            // Close modal when close button is clicked
+            if (closeVideoBtn) {
+                closeVideoBtn.addEventListener('click', closeVideoModal);
+            }
+            
+            // Check if user just logged in
+            const justLoggedIn = localStorage.getItem('justLoggedIn');
+            if (justLoggedIn === 'true' && '{{ request.path }}' === '/') {
+                // Show the promo video modal
+                showVideoModal();
+                // Reset the flag
+                localStorage.removeItem('justLoggedIn');
+            }
+            
+            // Also close modal when user clicks outside the content
+            window.addEventListener('click', function(event) {
+                if (event.target === promoVideoModal) {
+                    closeVideoModal();
+                }
+            });
         });
     </script>
     

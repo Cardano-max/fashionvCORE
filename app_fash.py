@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for, flash, session, send_from_directory
+from flask import Flask, request, jsonify, render_template, redirect, url_for, flash, session, send_from_directory, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -84,6 +84,8 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
 # Create static directory for payment method images if it doesn't exist
 os.makedirs(os.path.join(app.root_path, 'static', 'images', 'payments'), exist_ok=True)
+# Create static directory for videos if it doesn't exist
+os.makedirs(os.path.join(app.root_path, 'static', 'videos'), exist_ok=True)
 
 # Initialize database
 db = SQLAlchemy(app)
@@ -1080,8 +1082,11 @@ def login():
             db.session.commit()
             
             login_user(user, remember=remember)
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('index'))
+            
+            # Set flag for showing promo video
+            response = make_response(redirect(request.args.get('next') or url_for('index')))
+            response.set_cookie('show_promo_video', 'true', max_age=60)  # Cookie valid for 60 seconds
+            return response
         else:
             flash('Invalid email or password', 'danger')
             
@@ -1170,9 +1175,10 @@ def google_callback():
         login_user(user)
         logger.info(f"Logged in user with Google: {user.email}")
         
-        # Redirect to appropriate page
-        next_page = session.pop('next', None)
-        return redirect(next_page or url_for('index'))
+        # Set flag for showing promo video
+        response = make_response(redirect(session.pop('next', None) or url_for('index')))
+        response.set_cookie('show_promo_video', 'true', max_age=60)  # Cookie valid for 60 seconds
+        return response
         
     except Exception as e:
         logger.error(f"Google OAuth error: {str(e)}")

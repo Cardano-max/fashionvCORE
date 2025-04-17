@@ -182,3 +182,45 @@
     </div>
 </section>
 {% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check for the promotion video cookie
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+        
+        const showPromoVideo = getCookie('show_promo_video');
+        if (showPromoVideo === 'true') {
+            // Show the promo video modal
+            const promoVideoModal = document.getElementById('promoVideoModal');
+            const promoVideo = document.getElementById('promoVideo');
+            const closeVideoBtn = document.getElementById('closeVideoBtn');
+            
+            if (promoVideoModal) {
+                promoVideoModal.style.display = 'flex';
+                if (promoVideo) {
+                    promoVideo.play();
+                    
+                    // Show close button after 10 seconds
+                    setTimeout(() => {
+                        if (closeVideoBtn) {
+                            closeVideoBtn.style.display = 'block';
+                        }
+                    }, 10000);
+                }
+            }
+            
+            // Set localStorage flag for persistence across page reloads
+            localStorage.setItem('justLoggedIn', 'true');
+            
+            // Remove the cookie
+            document.cookie = 'show_promo_video=; Max-Age=-99999999;';
+        }
+    });
+</script>
+{% endblock %}
