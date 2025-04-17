@@ -36,7 +36,18 @@ logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secure_secret_key')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.root_path, 'tryontrend.db')
+
+# Handle potential SQLAlchemy URI format differences
+def get_database_url():
+    """Get database URL and fix potential Railway formatting issues"""
+    uri = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(app.root_path, 'tryontrend.db'))
+    # Handle potential "postgres://" format from Railway (which SQLAlchemy doesn't accept)
+    if uri.startswith('postgres://'):
+        uri = uri.replace('postgres://', 'postgresql://', 1)
+    return uri
+
+# Replace the existing SQLALCHEMY_DATABASE_URI line with this:
+app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Try-on configuration
@@ -224,6 +235,48 @@ class PaymentTransaction(db.Model):
     response_data = db.Column(db.Text)  # JSON response from payment provider
     order = db.relationship('Order')
     user = db.relationship('User')
+
+# Function to ensure database is initialized
+def ensure_database():
+    """Ensure database is initialized"""
+    try:
+        logger.info("Running database initialization check")
+        # Create tables if they don't exist
+        db.create_all()
+        
+        # Ensure admin user exists
+        admin = User.query.filter_by(email='admin@tryontrend.com').first()
+        if not admin:
+            logger.info("Creating admin user during initialization")
+            admin = User(
+                username='admin',
+                email='admin@tryontrend.com',
+                is_admin=True,
+                is_active=True,
+                auth_provider='local'
+            )
+            admin.set_password('adminpassword')
+            db.session.add(admin)
+            db.session.commit()
+            logger.info("Admin user created successfully")
+        
+        # Basic product initialization
+        if Product.query.count() == 0:
+            logger.info("Initializing products")
+            init_db()
+    except Exception as e:
+        logger.error(f"Database initialization error: {str(e)}")
+
+# Replace before_first_request with before_request and add a check
+db_initialized = False
+
+@app.before_request
+def check_database_initialized():
+    """Check if database is initialized before handling requests"""
+    global db_initialized
+    if not db_initialized:
+        ensure_database()
+        db_initialized = True
 
 # User loader for Flask-Login
 @login_manager.user_loader
@@ -574,7 +627,6 @@ def debug_db():
 
 # Main Routes
 
-# Make sure to initialize database before the first index page load
 @app.route('/')
 def index():
     try:
@@ -1707,12 +1759,9 @@ def check_auth():
 
 # Only run this when the app is run directly
 if __name__ == '__main__':
-    # Check if the database exists and initialize it if needed
-    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tryontrend.db')
-    if not os.path.exists(db_path):
-        with app.app_context():
-            db.create_all()
-            init_db()
+    # Ensure database is initialized when app starts
+    with app.app_context():
+        ensure_database()
     
     # Start the application
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
