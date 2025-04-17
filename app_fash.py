@@ -23,6 +23,7 @@ from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth  # For Google OAuth
 import logging
 import json
+import threading
 
 # Configure more detailed logging
 logging.basicConfig(
@@ -267,6 +268,57 @@ def ensure_database():
     except Exception as e:
         logger.error(f"Database initialization error: {str(e)}")
 
+# Background task to clean up old images
+def cleanup_old_images():
+    """Background task to clean up images older than 24 hours"""
+    while True:
+        try:
+            logger.info("Running image cleanup task")
+            
+            # Calculate the cutoff time (24 hours ago)
+            cutoff_time = datetime.utcnow() - timedelta(hours=24)
+            
+            # Clean up uploads folder
+            uploads_folder = app.config['UPLOAD_FOLDER']
+            for filename in os.listdir(uploads_folder):
+                file_path = os.path.join(uploads_folder, filename)
+                file_modified = datetime.fromtimestamp(os.path.getmtime(file_path))
+                
+                if file_modified < cutoff_time:
+                    # Check if file is referenced in the database before deleting
+                    person_refs = TryOnHistory.query.filter_by(person_image_path=filename).count()
+                    garment_refs = TryOnHistory.query.filter_by(garment_image_path=filename).count()
+                    
+                    if person_refs == 0 and garment_refs == 0:
+                        try:
+                            os.remove(file_path)
+                            logger.info(f"Deleted old upload: {filename}")
+                        except Exception as e:
+                            logger.error(f"Error deleting upload {filename}: {str(e)}")
+            
+            # Clean up results folder
+            results_folder = app.config['RESULTS_FOLDER']
+            for filename in os.listdir(results_folder):
+                file_path = os.path.join(results_folder, filename)
+                file_modified = datetime.fromtimestamp(os.path.getmtime(file_path))
+                
+                if file_modified < cutoff_time:
+                    # Check if file is referenced in the database before deleting
+                    result_refs = TryOnHistory.query.filter_by(result_path=filename).count()
+                    
+                    if result_refs == 0:
+                        try:
+                            os.remove(file_path)
+                            logger.info(f"Deleted old result: {filename}")
+                        except Exception as e:
+                            logger.error(f"Error deleting result {filename}: {str(e)}")
+                    
+        except Exception as e:
+            logger.error(f"Error in cleanup task: {str(e)}")
+            
+        # Sleep for 1 hour before next cleanup
+        time.sleep(3600)
+
 # Replace before_first_request with before_request and add a check
 db_initialized = False
 
@@ -304,7 +356,7 @@ def allowed_file(filename):
 
 def save_uploaded_file(file, prefix):
     """Save an uploaded file with a unique name and return the path"""
-    filename = f"{prefix}_{uuid.uuid4().hex}.{file.filename.rsplit('.', 1)[1].lower()}"
+    filename = f"{prefix}_{uuid.uuid4().hex}.{secure_filename(file.filename).rsplit('.', 1)[1].lower()}"
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(filepath)
     return filepath
@@ -349,7 +401,8 @@ def process_images(person_image_path, garment_image_path):
     """
     global last_api_call_time
     result_id = f"{uuid.uuid4().hex}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    result_file_path = os.path.join(app.config['RESULTS_FOLDER'], f"result_{result_id}.png")
+    result_filename = f"result_{result_id}.png"
+    result_file_path = os.path.join(app.config['RESULTS_FOLDER'], result_filename)
     
     # Create a requests session with retry logic
     session = get_requests_session()
@@ -483,7 +536,7 @@ def process_images(person_image_path, garment_image_path):
                     logger.info(f"Result image saved to {result_file_path}")
                     return {
                         "status": "success", 
-                        "result_path": result_file_path,
+                        "result_path": result_filename,  # Return just the filename, not full path
                         "task_id": task_id
                     }
                 except requests.exceptions.RequestException as e:
@@ -654,6 +707,21 @@ def index():
     return render_template('index.html', featured_products=featured_products)
 
 
+# Routes to serve uploaded files and results
+@app.route('/results/<path:filename>')
+def serve_result(filename):
+    """Serve result images"""
+    # Make sure we're using absolute path and secure the filename
+    results_folder = os.path.abspath(app.config['RESULTS_FOLDER'])
+    return send_from_directory(results_folder, secure_filename(filename))
+
+@app.route('/uploads/<path:filename>')
+def serve_upload(filename):
+    """Serve uploaded images"""
+    # Make sure we're using absolute path and secure the filename
+    uploads_folder = os.path.abspath(app.config['UPLOAD_FOLDER'])
+    return send_from_directory(uploads_folder, secure_filename(filename))
+
 # Kling AI Try-on routes
 @app.route('/try-on-kling/<int:product_id>', methods=['GET'])
 def try_on_kling_page(product_id):
@@ -712,9 +780,15 @@ def try_on_kling_api():
         }), 400
     
     try:
-        # Save uploaded files
-        person_path = save_uploaded_file(person_image, 'person')
-        garment_path = save_uploaded_file(garment_image, 'garment')
+        # Save uploaded files with secure filenames
+        person_filename = f"person_{uuid.uuid4().hex}.{secure_filename(person_image.filename).rsplit('.', 1)[1].lower()}"
+        garment_filename = f"garment_{uuid.uuid4().hex}.{secure_filename(garment_image.filename).rsplit('.', 1)[1].lower()}"
+        
+        person_path = os.path.join(app.config['UPLOAD_FOLDER'], person_filename)
+        garment_path = os.path.join(app.config['UPLOAD_FOLDER'], garment_filename)
+        
+        person_image.save(person_path)
+        garment_image.save(garment_path)
         
         # Process the images
         result = process_images(person_path, garment_path)
@@ -723,8 +797,7 @@ def try_on_kling_api():
         response_time = int((time.time() - start_time) * 1000)  # ms
         
         if result["status"] == "success":
-            result_path = result["result_path"]
-            result_filename = os.path.basename(result_path)
+            result_filename = result["result_path"]
             
             # If user is logged in, deduct a credit and save try-on history
             if current_user.is_authenticated:
@@ -732,26 +805,32 @@ def try_on_kling_api():
                 
                 # Get product ID if provided
                 product_id = request.form.get('product_id', None)
+                if product_id:
+                    try:
+                        product_id = int(product_id)
+                    except ValueError:
+                        product_id = None
                 
                 # Save try-on history
                 try_on_record = TryOnHistory(
                     user_id=current_user.id,
                     product_id=product_id,
                     result_path=result_filename,
-                    person_image_path=os.path.basename(person_path),
-                    garment_image_path=os.path.basename(garment_path),
+                    person_image_path=person_filename,
+                    garment_image_path=garment_filename,
                     kling_task_id=result.get("task_id", "")  # Store Kling AI task ID
                 )
                 
                 db.session.add(try_on_record)
                 db.session.commit()
+                logger.info(f"Saved Kling try-on history record for user {current_user.id}")
             
             # Track API usage
             track_api_usage('/api/try-on-kling', 'POST', 200, response_time)
                 
             return jsonify({
                 "status": "success", 
-                "result_url": f"/results/{result_filename}"
+                "result_url": url_for('serve_result', filename=result_filename)
             })
         else:
             # Track failed API usage
@@ -763,6 +842,7 @@ def try_on_kling_api():
         # Track exception in API usage
         response_time = int((time.time() - start_time) * 1000)  # ms
         track_api_usage('/api/try-on-kling', 'POST', 500, response_time)
+        logger.error(f"Kling try-on error: {str(e)}")
         
         return jsonify({
             "status": "error", 
@@ -895,9 +975,15 @@ def try_on_api():
         }), 400
     
     try:
-        # Save uploaded files
-        person_path = save_uploaded_file(person_image, 'person')
-        garment_path = save_uploaded_file(garment_image, 'garment')
+        # Save uploaded files with secure filenames
+        person_filename = f"person_{uuid.uuid4().hex}.{secure_filename(person_image.filename).rsplit('.', 1)[1].lower()}"
+        garment_filename = f"garment_{uuid.uuid4().hex}.{secure_filename(garment_image.filename).rsplit('.', 1)[1].lower()}"
+        
+        person_path = os.path.join(app.config['UPLOAD_FOLDER'], person_filename)
+        garment_path = os.path.join(app.config['UPLOAD_FOLDER'], garment_filename)
+        
+        person_image.save(person_path)
+        garment_image.save(garment_path)
         
         # Process the images
         result = process_images(person_path, garment_path)
@@ -906,8 +992,7 @@ def try_on_api():
         response_time = int((time.time() - start_time) * 1000)  # ms
         
         if result["status"] == "success":
-            result_path = result["result_path"]
-            result_filename = os.path.basename(result_path)
+            result_filename = result["result_path"]
             
             # If user is logged in, deduct a credit and save try-on history
             if current_user.is_authenticated:
@@ -915,26 +1000,32 @@ def try_on_api():
                 
                 # Get product ID if provided
                 product_id = request.form.get('product_id', None)
+                if product_id:
+                    try:
+                        product_id = int(product_id)
+                    except ValueError:
+                        product_id = None
                 
                 # Save try-on history
                 try_on_record = TryOnHistory(
                     user_id=current_user.id,
                     product_id=product_id,
                     result_path=result_filename,
-                    person_image_path=os.path.basename(person_path),
-                    garment_image_path=os.path.basename(garment_path),
+                    person_image_path=person_filename,
+                    garment_image_path=garment_filename,
                     kling_task_id=result.get("task_id", "")  # Store Kling AI task ID
                 )
                 
                 db.session.add(try_on_record)
                 db.session.commit()
+                logger.info(f"Saved try-on history record for user {current_user.id}")
             
             # Track API usage
             track_api_usage('/api/try-on', 'POST', 200, response_time)
                 
             return jsonify({
                 "status": "success", 
-                "result_url": f"/results/{result_filename}"
+                "result_url": url_for('serve_result', filename=result_filename)
             })
         else:
             # Track failed API usage
@@ -946,6 +1037,7 @@ def try_on_api():
         # Track exception in API usage
         response_time = int((time.time() - start_time) * 1000)  # ms
         track_api_usage('/api/try-on', 'POST', 500, response_time)
+        logger.error(f"Try-on error: {str(e)}")
         
         return jsonify({
             "status": "error", 
@@ -1164,13 +1256,6 @@ def logout():
     logout_user()
     flash('You have been logged out', 'info')
     return redirect(url_for('index'))
-
-@app.route('/results/<path:filename>')
-def serve_result(filename):
-    """Serve result images"""
-    # Make sure we're using absolute path
-    results_folder = os.path.abspath(app.config['RESULTS_FOLDER'])
-    return send_from_directory(results_folder, filename)
 
 # Checkout and Payment Routes
 @app.route('/checkout')
@@ -1756,6 +1841,10 @@ def check_auth():
             'credits': current_user.credits if current_user.is_authenticated else 0
         }
     })
+
+# Start the cleanup thread when app starts
+cleanup_thread = threading.Thread(target=cleanup_old_images, daemon=True)
+cleanup_thread.start()
 
 # Only run this when the app is run directly
 if __name__ == '__main__':

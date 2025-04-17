@@ -1,159 +1,267 @@
-{% extends "base.html" %}
-
-{% block title %}Try-On Details - Admin{% endblock %}
-
+{% extends "base.html" %} {% block title %}Try-On Details - Admin{% endblock %}
 {% block additional_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-{% endblock %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/admin.css') }}"
+/>
+<style>
+  /* Additional styles for the comparison images */
+  .comparison-image {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-{% block content %}
+  .comparison-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .comparison-error {
+    color: #dc3545;
+    text-align: center;
+    padding: 20px;
+  }
+
+  /* Improved download button */
+  .download-section {
+    margin-top: 30px;
+    text-align: center;
+  }
+
+  .download-section .btn {
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+</style>
+{% endblock %} {% block content %}
 <div class="admin-container">
-    <div class="admin-header">
-        <h1>Try-On Details</h1>
-        <a href="{{ url_for('admin_dashboard') }}" class="back-link">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
+  <div class="admin-header">
+    <h1>Try-On Details</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="back-link">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <div class="tryon-details-section">
+    <div class="tryon-info-header">
+      <div>
+        <h2>Try-On #{{ tryon.id }}</h2>
+        <div class="tryon-meta">
+          <span
+            ><i class="far fa-calendar-alt"></i> {{
+            tryon.created_at.strftime('%B %d, %Y at %H:%M') }}</span
+          >
+          {% if tryon.product %}
+          <span><i class="fas fa-tag"></i> {{ tryon.product.name }}</span>
+          {% else %}
+          <span><i class="fas fa-tshirt"></i> Custom Garment</span>
+          {% endif %}
+          <span
+            ><i class="fas fa-server"></i> Task ID: {{ tryon.kling_task_id
+            }}</span
+          >
+        </div>
+      </div>
+
+      <a
+        href="{{ url_for('admin_user_details', user_id=tryon.user_id) }}"
+        class="tryon-user-badge"
+      >
+        <div class="tryon-user-avatar">
+          {{ tryon.user.username[0].upper() }}
+        </div>
+        <div>{{ tryon.user.username }}</div>
+      </a>
     </div>
-    
-    <div class="tryon-details-section">
-        <div class="tryon-info-header">
-            <div>
-                <h2>Try-On #{{ tryon.id }}</h2>
-                <div class="tryon-meta">
-                    <span><i class="far fa-calendar-alt"></i> {{ tryon.created_at.strftime('%B %d, %Y at %H:%M') }}</span>
-                    {% if tryon.product %}
-                    <span><i class="fas fa-tag"></i> {{ tryon.product.name }}</span>
-                    {% else %}
-                    <span><i class="fas fa-tshirt"></i> Custom Garment</span>
-                    {% endif %}
-                    <span><i class="fas fa-server"></i> Task ID: {{ tryon.kling_task_id }}</span>
-                </div>
-            </div>
-            
-            <a href="{{ url_for('admin_user_details', user_id=tryon.user_id) }}" class="tryon-user-badge">
-                <div class="tryon-user-avatar">{{ tryon.user.username[0].upper() }}</div>
-                <div>{{ tryon.user.username }}</div>
-            </a>
+
+    <div class="tryon-comparison">
+      <div class="comparison-item">
+        <div class="comparison-image">
+          <img
+            src="{{ url_for('serve_upload', filename=tryon.person_image_path) }}"
+            alt="Person Image"
+            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'comparison-error\'><i class=\'fas fa-exclamation-circle\'></i><p>Image not found</p></div>'"
+          />
         </div>
-        
-        <div class="tryon-comparison">
-            <div class="comparison-item">
-                <div class="comparison-image">
-                    <img src="{{ url_for('static', filename='uploads/' + tryon.person_image_path) }}" alt="Person Image">
-                </div>
-                <div class="comparison-label">Person</div>
-            </div>
-            
-            <div class="comparison-item">
-                <div class="comparison-image">
-                    <img src="{{ url_for('static', filename='uploads/' + tryon.garment_image_path) }}" alt="Garment Image">
-                </div>
-                <div class="comparison-label">Garment</div>
-            </div>
-            
-            <div class="comparison-item">
-                <div class="comparison-image">
-                    <img src="{{ url_for('static', filename='results/' + tryon.result_path) }}" alt="Result Image">
-                </div>
-                <div class="comparison-label">Result</div>
-            </div>
+        <div class="comparison-label">Person</div>
+      </div>
+
+      <div class="comparison-item">
+        <div class="comparison-image">
+          <img
+            src="{{ url_for('serve_upload', filename=tryon.garment_image_path) }}"
+            alt="Garment Image"
+            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'comparison-error\'><i class=\'fas fa-exclamation-circle\'></i><p>Image not found</p></div>'"
+          />
         </div>
-        
-        <div class="tryon-details">
-            <div class="detail-card">
-                <h3>Technical Details</h3>
-                <ul class="detail-list">
-                    <li class="detail-item">
-                        <span class="detail-label">Task ID</span>
-                        <span class="detail-value">{{ tryon.kling_task_id }}</span>
-                    </li>
-                    <li class="detail-item">
-                        <span class="detail-label">Person Image</span>
-                        <span class="detail-value">{{ tryon.person_image_path }}</span>
-                    </li>
-                    <li class="detail-item">
-                        <span class="detail-label">Garment Image</span>
-                        <span class="detail-value">{{ tryon.garment_image_path }}</span>
-                    </li>
-                    <li class="detail-item">
-                        <span class="detail-label">Result Image</span>
-                        <span class="detail-value">{{ tryon.result_path }}</span>
-                    </li>
-                    <li class="detail-item">
-                        <span class="detail-label">Processing Time</span>
-                        <span class="detail-value">{{ processing_time }} seconds</span>
-                    </li>
-                </ul>
-            </div>
-            
-            <div class="detail-card">
-                <h3>User Information</h3>
-                <ul class="detail-list">
-                    <li class="detail-item">
-                        <span class="detail-label">Username</span>
-                        <span class="detail-value">{{ tryon.user.username }}</span>
-                    </li>
-                    <li class="detail-item">
-                        <span class="detail-label">Email</span>
-                        <span class="detail-value">{{ tryon.user.email }}</span>
-                    </li>
-                    <li class="detail-item">
-                        <span class="detail-label">User ID</span>
-                        <span class="detail-value">{{ tryon.user.id }}</span>
-                    </li>
-                    <li class="detail-item">
-                        <span class="detail-label">User Status</span>
-                        <span class="detail-value">{% if tryon.user.is_active %}Active{% else %}Blocked{% endif %}</span>
-                    </li>
-                    <li class="detail-item">
-                        <span class="detail-label">Total Try-Ons</span>
-                        <span class="detail-value">{{ user_tryon_count }}</span>
-                    </li>
-                </ul>
-            </div>
+        <div class="comparison-label">Garment</div>
+      </div>
+
+      <div class="comparison-item">
+        <div class="comparison-image">
+          <img
+            src="{{ url_for('serve_result', filename=tryon.result_path) }}"
+            alt="Result Image"
+            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'comparison-error\'><i class=\'fas fa-exclamation-circle\'></i><p>Image not found</p></div>'"
+          />
         </div>
-        
-        <div class="download-section">
-            <a href="{{ url_for('static', filename='results/' + tryon.result_path) }}" download class="btn btn-primary">
-                <i class="fas fa-download"></i> Download Result Image
-            </a>
-        </div>
+        <div class="comparison-label">Result</div>
+      </div>
     </div>
-    
-    <div class="user-activity-section">
-        <h3>User Activity Timeline</h3>
-        
-        <div class="activity-timeline">
-            <div class="timeline-item">
-                <div class="timeline-date">{{ tryon.created_at.strftime('%B %d, %Y at %H:%M') }}</div>
-                <div class="timeline-content">{{ tryon.user.username }} started a new try-on session.</div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="timeline-date">{{ (tryon.created_at + timedelta(seconds=10)).strftime('%B %d, %Y at %H:%M:%S') }}</div>
-                <div class="timeline-content">Uploaded person image ({{ tryon.person_image_path }}).</div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="timeline-date">{{ (tryon.created_at + timedelta(seconds=15)).strftime('%B %d, %Y at %H:%M:%S') }}</div>
-                <div class="timeline-content">Uploaded garment image ({{ tryon.garment_image_path }}).</div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="timeline-date">{{ (tryon.created_at + timedelta(seconds=20)).strftime('%B %d, %Y at %H:%M:%S') }}</div>
-                <div class="timeline-content">Started processing with tryontrend algorithm.</div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="timeline-date">{{ (tryon.created_at + timedelta(seconds=processing_time)).strftime('%B %d, %Y at %H:%M:%S') }}</div>
-                <div class="timeline-content">Try-on completed successfully - result generated.</div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="timeline-date">{{ (tryon.created_at + timedelta(seconds=processing_time + 5)).strftime('%B %d, %Y at %H:%M:%S') }}</div>
-                <div class="timeline-content">Result displayed to user.</div>
-            </div>
-        </div>
+
+    <div class="tryon-details">
+      <div class="detail-card">
+        <h3>Technical Details</h3>
+        <ul class="detail-list">
+          <li class="detail-item">
+            <span class="detail-label">Task ID</span>
+            <span class="detail-value">{{ tryon.kling_task_id }}</span>
+          </li>
+          <li class="detail-item">
+            <span class="detail-label">Person Image</span>
+            <span class="detail-value">{{ tryon.person_image_path }}</span>
+          </li>
+          <li class="detail-item">
+            <span class="detail-label">Garment Image</span>
+            <span class="detail-value">{{ tryon.garment_image_path }}</span>
+          </li>
+          <li class="detail-item">
+            <span class="detail-label">Result Image</span>
+            <span class="detail-value">{{ tryon.result_path }}</span>
+          </li>
+          <li class="detail-item">
+            <span class="detail-label">Processing Time</span>
+            <span class="detail-value">{{ processing_time }} seconds</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="detail-card">
+        <h3>User Information</h3>
+        <ul class="detail-list">
+          <li class="detail-item">
+            <span class="detail-label">Username</span>
+            <span class="detail-value">{{ tryon.user.username }}</span>
+          </li>
+          <li class="detail-item">
+            <span class="detail-label">Email</span>
+            <span class="detail-value">{{ tryon.user.email }}</span>
+          </li>
+          <li class="detail-item">
+            <span class="detail-label">User ID</span>
+            <span class="detail-value">{{ tryon.user.id }}</span>
+          </li>
+          <li class="detail-item">
+            <span class="detail-label">User Status</span>
+            <span class="detail-value"
+              >{% if tryon.user.is_active %}Active{% else %}Blocked{% endif
+              %}</span
+            >
+          </li>
+          <li class="detail-item">
+            <span class="detail-label">Total Try-Ons</span>
+            <span class="detail-value">{{ user_tryon_count }}</span>
+          </li>
+        </ul>
+      </div>
     </div>
+
+    <div class="download-section">
+      <a
+        href="{{ url_for('serve_result', filename=tryon.result_path) }}"
+        download
+        class="btn btn-primary"
+      >
+        <i class="fas fa-download"></i> Download Result Image
+      </a>
+    </div>
+  </div>
+
+  <div class="user-activity-section">
+    <h3>User Activity Timeline</h3>
+
+    <div class="activity-timeline">
+      <div class="timeline-item">
+        <div class="timeline-date">
+          {{ tryon.created_at.strftime('%B %d, %Y at %H:%M') }}
+        </div>
+        <div class="timeline-content">
+          {{ tryon.user.username }} started a new try-on session.
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-date">
+          {{ (tryon.created_at + timedelta(seconds=10)).strftime('%B %d, %Y at
+          %H:%M:%S') }}
+        </div>
+        <div class="timeline-content">
+          Uploaded person image ({{ tryon.person_image_path }}).
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-date">
+          {{ (tryon.created_at + timedelta(seconds=15)).strftime('%B %d, %Y at
+          %H:%M:%S') }}
+        </div>
+        <div class="timeline-content">
+          Uploaded garment image ({{ tryon.garment_image_path }}).
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-date">
+          {{ (tryon.created_at + timedelta(seconds=20)).strftime('%B %d, %Y at
+          %H:%M:%S') }}
+        </div>
+        <div class="timeline-content">
+          Started processing with tryontrend algorithm.
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-date">
+          {{ (tryon.created_at +
+          timedelta(seconds=processing_time)).strftime('%B %d, %Y at %H:%M:%S')
+          }}
+        </div>
+        <div class="timeline-content">
+          Try-on completed successfully - result generated.
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-date">
+          {{ (tryon.created_at + timedelta(seconds=processing_time +
+          5)).strftime('%B %d, %Y at %H:%M:%S') }}
+        </div>
+        <div class="timeline-content">Result displayed to user.</div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+  // Simple script to check if images exist and handle failures nicely
+  document.addEventListener("DOMContentLoaded", function () {
+    const images = document.querySelectorAll(".comparison-image img");
+
+    images.forEach((img) => {
+      img.addEventListener("load", function () {
+        // Successfully loaded
+        this.style.display = "block";
+      });
+
+      // Error handling is handled via the onerror attribute
+    });
+  });
+</script>
 {% endblock %}
