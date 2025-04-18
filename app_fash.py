@@ -248,12 +248,12 @@ def ensure_database():
         db.create_all()
         
         # Ensure admin user exists
-        admin = User.query.filter_by(email='admin@tryontrend.com').first()
+        admin = User.query.filter_by(email='Shahkaushal26@gmail.com').first()
         if not admin:
             logger.info("Creating admin user during initialization")
             admin = User(
                 username='admin',
-                email='admin@tryontrend.com',
+                email='Shahkaushal26@gmail.com',
                 is_admin=True,
                 is_active=True,
                 auth_provider='local'
@@ -594,11 +594,11 @@ def init_db():
     logger.info("Starting database initialization")
     try:
         # Create admin user if not exists
-        admin = User.query.filter_by(email='admin@tryontrend.com').first()
+        admin = User.query.filter_by(email='Shahkaushal26@gmail.com').first()
         if not admin:
             admin = User(
                 username='admin',
-                email='admin@tryontrend.com',
+                email='Shahkaushal26@gmail.com',
                 is_admin=True,
                 is_active=True,
                 auth_provider='local'
