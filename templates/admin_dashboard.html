@@ -122,8 +122,7 @@ endblock %} {% block additional_head %}
     padding: 1.5rem;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--gray-lighter);
-    height: 400px; /* Fixed height for chart containers */
-    margin-bottom: 1.5rem;
+    height: 400px; /* Fixed height */
   }
   
   .chart-container h4 {
@@ -133,7 +132,7 @@ endblock %} {% block additional_head %}
   }
   
   canvas {
-    max-height: 330px; /* Constrain canvas height */
+    max-height: 330px !important; /* Force constrained height */
   }
   
   .analytics-section {
@@ -803,10 +802,10 @@ endblock %} {% block additional_head %}
     window.visitsChart = new Chart(visitsCtx, {
       type: 'line',
       data: {
-        labels: [], // Will be populated in updateCharts
+        labels: [], // Will be populated with real data
         datasets: [{
           label: 'Daily Visits',
-          data: [],
+          data: [], // Will be populated with real data
           backgroundColor: 'rgba(67, 97, 238, 0.1)',
           borderColor: '#4361ee',
           borderWidth: 2,
@@ -848,7 +847,7 @@ endblock %} {% block additional_head %}
         labels: ['Try-On', 'Product View', 'Account Creation', 'Purchase', 'Shares'],
         datasets: [{
           label: 'Usage Count',
-          data: [1280, 3560, 320, 150, 90],
+          data: [0, 0, 0, 0, 0], // Will be populated with real data
           backgroundColor: [
             '#4361ee',
             '#f72585',
@@ -877,14 +876,22 @@ endblock %} {% block additional_head %}
         }
       }
     });
+    
+    // Load initial data
+    fetchAnalyticsData(30);
   }
   
   function fetchAnalyticsData(days) {
-    // Make an AJAX call to get real data from backend
+    // Make an AJAX call to get REAL data from backend
     fetch(`/admin/analytics/data?days=${days}`)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
       .then(data => {
-        // Update metrics with real data
+        // Update all metrics with real data
         if (document.getElementById("total-visits")) {
           document.getElementById("total-visits").textContent = data.visits.toLocaleString();
         }
@@ -901,52 +908,52 @@ endblock %} {% block additional_head %}
           document.getElementById("conversion-rate").textContent = data.conversion_rate.toFixed(1);
         }
         
-        // Update visit changes
+        // Update change indicators
         if (document.getElementById("visits-change")) {
-          const visitsChange = document.getElementById("visits-change");
-          visitsChange.textContent = (data.visits_change >= 0 ? '+' : '') + data.visits_change + '%';
-          visitsChange.className = 'metric-change ' + (data.visits_change >= 0 ? 'positive' : 'negative');
+          const element = document.getElementById("visits-change");
+          element.textContent = (data.visits_change >= 0 ? '+' : '') + data.visits_change + '%';
+          element.className = `metric-change ${data.visits_change >= 0 ? 'positive' : 'negative'}`;
         }
         
-        // Update tryon changes
         if (document.getElementById("tryons-change")) {
-          const tryonsChange = document.getElementById("tryons-change");
-          tryonsChange.textContent = (data.tryons_change >= 0 ? '+' : '') + data.tryons_change + '%';
-          tryonsChange.className = 'metric-change ' + (data.tryons_change >= 0 ? 'positive' : 'negative');
+          const element = document.getElementById("tryons-change");
+          element.textContent = (data.tryons_change >= 0 ? '+' : '') + data.tryons_change + '%';
+          element.className = `metric-change ${data.tryons_change >= 0 ? 'positive' : 'negative'}`;
         }
         
-        // Update user changes
         if (document.getElementById("users-change")) {
-          const usersChange = document.getElementById("users-change");
-          usersChange.textContent = (data.users_change >= 0 ? '+' : '') + data.users_change + '%';
-          usersChange.className = 'metric-change ' + (data.users_change >= 0 ? 'positive' : 'negative');
+          const element = document.getElementById("users-change");
+          element.textContent = (data.users_change >= 0 ? '+' : '') + data.users_change + '%';
+          element.className = `metric-change ${data.users_change >= 0 ? 'positive' : 'negative'}`;
         }
         
-        // Update charts with real data
-        updateChartsWithRealData(data);
+        if (document.getElementById("conversion-change")) {
+          const element = document.getElementById("conversion-change");
+          element.textContent = (data.conversion_change >= 0 ? '+' : '') + data.conversion_change + '%';
+          element.className = `metric-change ${data.conversion_change >= 0 ? 'positive' : 'negative'}`;
+        }
+        
+        // Update charts with real data from API
+        updateCharts(data);
       })
       .catch(error => {
         console.error('Error fetching analytics data:', error);
-        // Fallback to mock data if API fails
-        updateChartsWithMockData(days);
       });
   }
   
-  function updateChartsWithRealData(data) {
-    if (!window.visitsChart || !window.featureUsageChart) return;
-    
-    // Update visits chart with real data
-    if (data.daily_visits) {
+  function updateCharts(data) {
+    // Update Visits Over Time chart with real data
+    if (window.visitsChart && data.daily_visits) {
       const labels = data.daily_visits.map(item => item.date);
-      const values = data.daily_visits.map(item => item.visits);
+      const visitValues = data.daily_visits.map(item => item.visits);
       
       window.visitsChart.data.labels = labels;
-      window.visitsChart.data.datasets[0].data = values;
+      window.visitsChart.data.datasets[0].data = visitValues;
       window.visitsChart.update();
     }
     
-    // Update feature usage chart with real data
-    if (data.feature_usage) {
+    // Update Feature Usage chart with real data
+    if (window.featureUsageChart && data.feature_usage) {
       window.featureUsageChart.data.datasets[0].data = [
         data.feature_usage.tryons || 0,
         data.feature_usage.product_views || 0,
@@ -956,54 +963,6 @@ endblock %} {% block additional_head %}
       ];
       window.featureUsageChart.update();
     }
-  }
-  
-  function updateChartsWithMockData(days) {
-    if (!window.visitsChart || !window.featureUsageChart) return;
-    
-    // Generate mock data for charts
-    const labels = [];
-    const data = [];
-    const currentDate = new Date();
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(currentDate.getDate() - i);
-      
-      // Format date as MM/DD
-      const month = date.getMonth() + 1;
-      const day = date.getDate();
-      labels.push(`${month}/${day}`);
-      
-      // Generate random data
-      let value;
-      if (days <= 30) {
-        value = Math.floor(Math.random() * 100) + 100;
-      } else {
-        const baseValue = 150;
-        const trend = Math.sin(i / (days/5)) * 50; 
-        const noise = Math.random() * 30 - 15;
-        value = Math.floor(baseValue + trend + noise);
-      }
-      
-      data.push(value);
-    }
-    
-    // Update visits chart
-    window.visitsChart.data.labels = labels;
-    window.visitsChart.data.datasets[0].data = data;
-    window.visitsChart.update();
-    
-    // Update feature usage chart
-    const multiplier = days / 30;
-    window.featureUsageChart.data.datasets[0].data = [
-      Math.floor(1280 * multiplier),
-      Math.floor(3560 * multiplier),
-      Math.floor(320 * multiplier),
-      Math.floor(150 * multiplier),
-      Math.floor(90 * multiplier)
-    ];
-    window.featureUsageChart.update();
   }
 </script>
 {% endblock %}

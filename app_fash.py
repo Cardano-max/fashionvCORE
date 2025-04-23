@@ -1922,6 +1922,133 @@ def admin_export_users():
 cleanup_thread = threading.Thread(target=cleanup_old_images, daemon=True)
 cleanup_thread.start()
 
+@app.route('/admin/analytics/data')
+@admin_required
+def admin_analytics_data():
+    """Get real analytics data for the dashboard"""
+    try:
+        days = request.args.get('days', '30')
+        try:
+            days = int(days)
+        except ValueError:
+            days = 30
+            
+        # Calculate the date range
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+        
+        # Get real visits data (API usage as proxy)
+        visits = ApiUsage.query.filter(ApiUsage.timestamp >= start_date).count()
+        
+        # Get real try-on data
+        tryons = TryOnHistory.query.filter(TryOnHistory.created_at >= start_date).count()
+        
+        # Get real new users data
+        new_users = User.query.filter(User.created_at >= start_date).count()
+        
+        # Get REAL daily visit data for chart
+        daily_visits = []
+        for day in range(days):
+            day_date = start_date + timedelta(days=day)
+            next_day = day_date + timedelta(days=1)
+            
+            # Count actual daily visits
+            day_visits = ApiUsage.query.filter(
+                ApiUsage.timestamp >= day_date,
+                ApiUsage.timestamp < next_day
+            ).count()
+            
+            daily_visits.append({
+                'date': day_date.strftime('%m/%d'),
+                'visits': day_visits
+            })
+            
+        # Calculate previous period stats for change percentage
+        prev_start_date = start_date - timedelta(days=days)
+        prev_visits = ApiUsage.query.filter(
+            ApiUsage.timestamp >= prev_start_date,
+            ApiUsage.timestamp < start_date
+        ).count()
+        
+        prev_tryons = TryOnHistory.query.filter(
+            TryOnHistory.created_at >= prev_start_date,
+            TryOnHistory.created_at < start_date
+        ).count()
+        
+        prev_new_users = User.query.filter(
+            User.created_at >= prev_start_date,
+            User.created_at < start_date
+        ).count()
+        
+        # Calculate real change percentages
+        visits_change = calculate_change_percent(visits, prev_visits)
+        tryons_change = calculate_change_percent(tryons, prev_tryons)
+        users_change = calculate_change_percent(new_users, prev_new_users)
+        
+        # Get REAL feature usage data
+        feature_usage = {
+            'tryons': tryons,
+            'product_views': ApiUsage.query.filter(
+                ApiUsage.timestamp >= start_date,
+                ApiUsage.endpoint.like('%/product/%')
+            ).count(),
+            'account_creation': User.query.filter(
+                User.created_at >= start_date
+            ).count(),
+            'purchases': Order.query.filter(
+                Order.created_at >= start_date,
+                Order.status == 'completed'
+            ).count(),
+            'shares': ApiUsage.query.filter(
+                ApiUsage.timestamp >= start_date,
+                ApiUsage.endpoint.like('%/share%')
+            ).count()  # Count API calls related to shares
+        }
+        
+        # Calculate real conversion rate if possible
+        conversion_rate = 0
+        if tryons > 0:
+            purchases = Order.query.filter(
+                Order.created_at >= start_date,
+                Order.status == 'completed'
+            ).count()
+            conversion_rate = round((purchases / tryons) * 100, 1)
+        
+        # Calculate conversion rate change
+        prev_conversion = 0
+        if prev_tryons > 0:
+            prev_purchases = Order.query.filter(
+                Order.created_at >= prev_start_date,
+                Order.created_at < start_date,
+                Order.status == 'completed'
+            ).count()
+            prev_conversion = (prev_purchases / prev_tryons) * 100
+        
+        conversion_change = calculate_change_percent(conversion_rate, prev_conversion)
+        
+        # Return the actual data as JSON
+        return jsonify({
+            'visits': visits,
+            'tryons': tryons,
+            'new_users': new_users,
+            'visits_change': visits_change,
+            'tryons_change': tryons_change,
+            'users_change': users_change,
+            'conversion_rate': conversion_rate,
+            'conversion_change': conversion_change,
+            'daily_visits': daily_visits,
+            'feature_usage': feature_usage
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def calculate_change_percent(current, previous):
+    """Calculate percentage change between two periods"""
+    if previous == 0:
+        return 100 if current > 0 else 0
+    return round(((current - previous) / previous) * 100, 1)
+
 # Only run this when the app is run directly
 if __name__ == '__main__':
     # Ensure database is initialized when app starts
