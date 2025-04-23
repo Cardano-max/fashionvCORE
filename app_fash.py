@@ -24,6 +24,7 @@ from authlib.integrations.flask_client import OAuth  # For Google OAuth
 import logging
 import json
 import threading
+import paypalrestsdk
 
 # Configure more detailed logging
 logging.basicConfig(
@@ -78,6 +79,12 @@ logger.info(f"Google Client Secret configured: {'Yes' if app.config['GOOGLE_CLIE
 app.config['STRIPE_PUBLIC_KEY'] = os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_51O1x2xSI8ZUHBs6Zoi9nrDMB8F1TbN5RqQQkZjDGH9WlvKXaF7QXCpKPcnwRDAFJSNcSOTFp9K3iOkYzf6lSJsYl00CGfMdL1Y')
 app.config['STRIPE_SECRET_KEY'] = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_51O1x2xSI8ZUHBs6ZCMVbMbWGWpyYK7F3ODJ0PzZszDXEsLmI3bDYYmMmNkI8vXGWy2tNaPCGYF7sIrw0nTrkmwwY00xIubNmjq')
 stripe.api_key = app.config['STRIPE_SECRET_KEY']
+
+# Add these to your app configuration section
+app.config['PAYPAL_CLIENT_ID'] = os.environ.get('PAYPAL_CLIENT_ID', '')
+app.config['PAYPAL_CLIENT_SECRET'] = os.environ.get('PAYPAL_CLIENT_SECRET', '')
+app.config['RAZORPAY_KEY_ID'] = os.environ.get('RAZORPAY_KEY_ID', '')
+app.config['RAZORPAY_KEY_SECRET'] = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 # Create upload and results folders if they don't exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -1330,6 +1337,11 @@ def process_payment():
         db.session.add(transaction)
         db.session.commit()
         
+        # Add this function to extract cart items from JSON and create OrderItem records
+        cart_items_json = request.form.get('cart_items')
+        if cart_items_json:
+            save_order_items(order.id, cart_items_json)
+        
         logger.info(f"Payment successful: {payment_intent.id}")
         return jsonify({
             "success": True,
@@ -1365,7 +1377,7 @@ def process_payment():
 @app.route('/process-upi-payment', methods=['POST'])
 @login_required
 def process_upi_payment():
-    """Process UPI payment"""
+    """Process UPI payment with simulated integration"""
     try:
         # Get payment details
         upi_id = request.form.get('upi_id')
@@ -1374,17 +1386,35 @@ def process_upi_payment():
         
         logger.info(f"Processing UPI payment for user: {current_user.email}")
         
-        # In a real application, this would integrate with a UPI payment provider
-        # For this demo, we'll simulate a successful payment
+        # In a real-world scenario, you would integrate with a UPI provider API
+        # This could be RazorPay, Cashfree, PayU, etc. that offer UPI payment options
         
-        # Create a unique transaction ID
+        # Example with RazorPay (you'd need to install the razorpay package)
+        # import razorpay
+        # client = razorpay.Client(auth=(app.config.get('RAZORPAY_KEY_ID'), app.config.get('RAZORPAY_KEY_SECRET')))
+        
+        # Create a unique transaction ID - in real implementation, this would come from the provider
         transaction_id = f"upi_{uuid.uuid4().hex}"
+        
+        # Example RazorPay code (commented out as it's just an example)
+        # payment_data = {
+        #     'amount': int(amount * 100),  # in paisa
+        #     'currency': 'INR',
+        #     'payment_capture': 1,
+        #     'notes': {
+        #         'upi_id': upi_id,
+        #         'provider': upi_provider,
+        #         'user_email': current_user.email
+        #     }
+        # }
+        # payment = client.order.create(data=payment_data)
+        # transaction_id = payment['id']
         
         # Create order from cart
         shipping_address = format_address(request.form)
         order = Order(
             user_id=current_user.id,
-            status='completed',
+            status='completed',  # In a real implementation, this might start as 'pending'
             total_amount=amount,
             payment_method='upi',
             payment_id=transaction_id,
@@ -1404,12 +1434,19 @@ def process_upi_payment():
             provider=upi_provider,
             transaction_id=transaction_id,
             amount=amount,
-            status='completed'
+            status='completed'  # In a real implementation, might start as 'pending'
         )
         
         db.session.add(transaction)
         db.session.commit()
         
+        # Add this function to extract cart items from JSON and create OrderItem records
+        cart_items_json = request.form.get('cart_items')
+        if cart_items_json:
+            save_order_items(order.id, cart_items_json)
+        
+        # In a real integration, you might return data for a payment page or app redirection
+        # For this example, we'll simulate success
         logger.info(f"UPI Payment successful: {transaction_id}")
         return jsonify({
             "success": True,
@@ -1424,55 +1461,145 @@ def process_upi_payment():
             "success": False,
             "message": "An error occurred processing your UPI payment. Please try again."
         }), 500
-        
+
 @app.route('/process-paypal-payment', methods=['POST'])
 @login_required
 def process_paypal_payment():
-    """Process PayPal payment"""
-    # In a real app, this would redirect to PayPal checkout
-    # For demo purposes, we'll simulate a successful payment and redirect to a completion page
-    
+    """Process PayPal payment with actual PayPal integration"""
     try:
         amount = float(request.form.get('amount', 0))
         
-        # Create a unique transaction ID
-        transaction_id = f"paypal_{uuid.uuid4().hex}"
+        # Create a PayPal order
+        # You'll need to set up PayPal SDK, this is a simplified example
+        paypalrestsdk.configure({
+            "mode": "sandbox", # or "live"
+            "client_id": app.config.get('PAYPAL_CLIENT_ID'),
+            "client_secret": app.config.get('PAYPAL_CLIENT_SECRET')
+        })
         
-        # Create order from cart
-        shipping_address = format_address(request.form)
-        order = Order(
-            user_id=current_user.id,
-            status='completed',
-            total_amount=amount,
-            payment_method='paypal',
-            payment_id=transaction_id,
-            shipping_address=shipping_address,
-            contact_email=current_user.email,
-            contact_phone=request.form.get('phone')
-        )
+        # Create the PayPal payment
+        payment = paypalrestsdk.Payment({
+            "intent": "sale",
+            "payer": {
+                "payment_method": "paypal"
+            },
+            "redirect_urls": {
+                "return_url": url_for('paypal_return', _external=True),
+                "cancel_url": url_for('checkout', _external=True)
+            },
+            "transactions": [{
+                "item_list": {
+                    "items": [{
+                        "name": "TryOnTrend Order",
+                        "sku": f"ORDER-{int(time.time())}",
+                        "price": str(amount),
+                        "currency": "INR",
+                        "quantity": 1
+                    }]
+                },
+                "amount": {
+                    "total": str(amount),
+                    "currency": "INR"
+                },
+                "description": "TryOnTrend Fashion Purchase"
+            }]
+        })
         
-        db.session.add(order)
-        db.session.commit()
-        
-        # Record payment transaction
-        transaction = PaymentTransaction(
-            order_id=order.id,
-            user_id=current_user.id,
-            payment_method='paypal',
-            provider='paypal',
-            transaction_id=transaction_id,
-            amount=amount,
-            status='completed'
-        )
-        
-        db.session.add(transaction)
-        db.session.commit()
-        
-        return redirect(url_for('checkout_complete', order_id=order.id))
-        
+        # Create the payment in PayPal
+        if payment.create():
+            # Extract the approval URL to redirect the user
+            for link in payment.links:
+                if link.rel == "approval_url":
+                    approval_url = link.href
+                    
+                    # Store payment info in session for later use
+                    session['paypal_payment_id'] = payment.id
+                    
+                    # Create a pending order
+                    shipping_address = format_address(request.form)
+                    order = Order(
+                        user_id=current_user.id,
+                        status='pending',
+                        total_amount=amount,
+                        payment_method='paypal',
+                        payment_id=payment.id,
+                        shipping_address=shipping_address,
+                        contact_email=current_user.email,
+                        contact_phone=request.form.get('phone')
+                    )
+                    
+                    db.session.add(order)
+                    db.session.commit()
+                    
+                    # Store order ID in session
+                    session['order_id'] = order.id
+                    
+                    # Redirect to PayPal
+                    return redirect(approval_url)
+        else:
+            logger.error(f"PayPal payment creation failed: {payment.error}")
+            flash('An error occurred processing your PayPal payment. Please try again.', 'danger')
+            return redirect(url_for('checkout'))
+            
     except Exception as e:
         logger.error(f"PayPal Payment error: {str(e)}")
         flash('An error occurred processing your PayPal payment. Please try again.', 'danger')
+        return redirect(url_for('checkout'))
+
+@app.route('/paypal-return')
+@login_required
+def paypal_return():
+    """Handle PayPal payment return"""
+    payment_id = session.get('paypal_payment_id')
+    order_id = session.get('order_id')
+    payer_id = request.args.get('PayerID')
+    
+    if not (payment_id and payer_id and order_id):
+        flash('Payment information missing. Please try again.', 'danger')
+        return redirect(url_for('checkout'))
+    
+    try:
+        import paypalrestsdk
+        
+        # Retrieve the payment object
+        payment = paypalrestsdk.Payment.find(payment_id)
+        
+        # Execute the payment
+        if payment.execute({"payer_id": payer_id}):
+            # Update the order status
+            order = Order.query.get(order_id)
+            if order:
+                order.status = 'completed'
+                
+                # Record payment transaction
+                transaction = PaymentTransaction(
+                    order_id=order.id,
+                    user_id=current_user.id,
+                    payment_method='paypal',
+                    provider='paypal',
+                    transaction_id=payment_id,
+                    amount=order.total_amount,
+                    status='completed',
+                    response_data=str(payment)
+                )
+                
+                db.session.add(transaction)
+                db.session.commit()
+                
+                # Clear session data
+                session.pop('paypal_payment_id', None)
+                session.pop('order_id', None)
+                
+                # Redirect to checkout complete page
+                return redirect(url_for('checkout_complete', order_id=order.id))
+        else:
+            logger.error(f"PayPal payment execution failed: {payment.error}")
+            flash('Payment execution failed. Please try again.', 'danger')
+            return redirect(url_for('checkout'))
+            
+    except Exception as e:
+        logger.error(f"PayPal return error: {str(e)}")
+        flash('An error occurred processing your payment. Please try again.', 'danger')
         return redirect(url_for('checkout'))
 
 @app.route('/checkout-complete')
@@ -2048,6 +2175,28 @@ def calculate_change_percent(current, previous):
     if previous == 0:
         return 100 if current > 0 else 0
     return round(((current - previous) / previous) * 100, 1)
+
+# Add this function to extract cart items from JSON and create OrderItem records
+def save_order_items(order_id, cart_items_json):
+    """Parse cart items JSON and create OrderItem records"""
+    try:
+        cart_items = json.loads(cart_items_json)
+        for item in cart_items:
+            # Create order item
+            order_item = OrderItem(
+                order_id=order_id,
+                product_id=item.get('id'),
+                quantity=item.get('quantity', 1),
+                price=item.get('price', 0)
+            )
+            db.session.add(order_item)
+        
+        db.session.commit()
+        logger.info(f"Saved {len(cart_items)} items for order {order_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Error saving order items: {str(e)}")
+        return False
 
 # Only run this when the app is run directly
 if __name__ == '__main__':

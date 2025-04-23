@@ -717,6 +717,7 @@
                     formData.append('payment_type', 'card');
                     formData.append('payment_method_id', paymentMethod.id);
                     formData.append('amount', amount);
+                    formData.append('cart_items', localStorage.getItem('cartItems'));
                     
                     // Send to server
                     const response = await fetch('{{ url_for("process_payment") }}', {
@@ -780,6 +781,7 @@
                     formData.append('upi_id', upiId);
                     formData.append('upi_provider', upiProvider);
                     formData.append('amount', amount);
+                    formData.append('cart_items', localStorage.getItem('cartItems'));
                     
                     // Send to server
                     const response = await fetch('{{ url_for("process_upi_payment") }}', {
