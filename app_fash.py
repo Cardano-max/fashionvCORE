@@ -25,6 +25,8 @@ import logging
 import json
 import threading
 import paypalrestsdk
+import random
+from flask_mail import Mail, Message
 
 # Configure more detailed logging
 logging.basicConfig(
@@ -245,6 +247,14 @@ class PaymentTransaction(db.Model):
     response_data = db.Column(db.Text)  # JSON response from payment provider
     order = db.relationship('Order')
     user = db.relationship('User')
+
+class OTP(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), nullable=False)
+    otp_code = db.Column(db.String(6), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    is_used = db.Column(db.Boolean, default=False)
 
 # Function to ensure database is initialized
 def ensure_database():
@@ -1115,15 +1125,17 @@ def login_google():
         if next_url:
             session['next'] = next_url
         
-        # For local development
-        if request.host.startswith('127.0.0.1') or request.host.startswith('localhost'):
-            redirect_uri = url_for('google_callback', _external=True)
-            logger.info(f"Local redirect URI: {redirect_uri}")
+        # Get the proper redirect URI based on the request
+        if app.config.get('GOOGLE_REDIRECT_URI'):
+            redirect_uri = app.config.get('GOOGLE_REDIRECT_URI')
         else:
-            # For production
-            redirect_uri = "https://fashionvcore-production.up.railway.app/login/google/callback"
-            logger.info(f"Production redirect URI: {redirect_uri}")
-            
+            redirect_uri = url_for('google_callback', _external=True)
+        
+        logger.info(f"Using redirect URI: {redirect_uri}")
+        
+        # Store the redirect URI in the session to ensure consistency
+        session['redirect_uri'] = redirect_uri
+        
         return google.authorize_redirect(redirect_uri)
     except Exception as e:
         logger.error(f"Error initiating Google auth: {str(e)}")
@@ -1229,44 +1241,47 @@ def admin_login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """User registration page"""
+    """Register a new user"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
         
     if request.method == 'POST':
-        username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        terms = 'terms' in request.form
         
-        # Validation
-        if not terms:
-            flash('You must agree to the Terms of Service and Privacy Policy', 'danger')
-            return render_template('auth/register.html')
-            
         # Check if user already exists
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered', 'danger')
-            return render_template('auth/register.html')
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('Email already registered. Please log in.', 'warning')
+            return redirect(url_for('login'))
             
-        if User.query.filter_by(username=username).first():
-            flash('Username already taken', 'danger')
-            return render_template('auth/register.html')
-            
-        # Create new user
-        new_user = User(
-            username=username, 
-            email=email,
-            auth_provider='local'
-        )
-        new_user.set_password(password)
+        # Generate and store OTP
+        otp_code = generate_otp()
+        expiry_time = datetime.utcnow() + timedelta(minutes=15)
         
-        db.session.add(new_user)
+        # Delete any existing OTPs for this email
+        OTP.query.filter_by(email=email).delete()
+        
+        # Create new OTP record
+        new_otp = OTP(
+            email=email,
+            otp_code=otp_code,
+            expires_at=expiry_time
+        )
+        
+        # Store password in session temporarily
+        session['temp_password'] = password
+        
+        db.session.add(new_otp)
         db.session.commit()
         
-        flash('Account created successfully! You can now log in.', 'success')
-        return redirect(url_for('login'))
-        
+        # Send verification email
+        if send_verification_email(email, otp_code):
+            # Redirect to OTP verification page
+            return redirect(url_for('verify_otp', email=email))
+        else:
+            flash('Failed to send verification email. Please try again.', 'danger')
+            
     return render_template('auth/register.html')
 
 @app.route('/logout')
@@ -2197,6 +2212,134 @@ def save_order_items(order_id, cart_items_json):
     except Exception as e:
         logger.error(f"Error saving order items: {str(e)}")
         return False
+
+def generate_otp():
+    """Generate a 6-digit OTP"""
+    return ''.join(random.choices('0123456789', k=6))
+
+def send_verification_email(email, otp):
+    """Send verification email with OTP"""
+    subject = "Your TryOnTrend Verification Code"
+    body = f"""
+    <html>
+    <body>
+        <h2>Welcome to TryOnTrend!</h2>
+        <p>Your verification code is: <strong>{otp}</strong></p>
+        <p>This code will expire in 15 minutes.</p>
+        <p>If you didn't request this code, please ignore this email.</p>
+    </body>
+    </html>
+    """
+    
+    try:
+        msg = Message(
+            subject=subject,
+            recipients=[email],
+            html=body
+        )
+        mail.send(msg)
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send verification email: {str(e)}")
+        return False
+
+@app.route('/verify-otp/<email>', methods=['GET', 'POST'])
+def verify_otp(email):
+    """Verify OTP and create user account"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+        
+    if request.method == 'POST':
+        entered_otp = request.form.get('otp')
+        
+        # Verify OTP
+        otp_record = OTP.query.filter_by(
+            email=email, 
+            otp_code=entered_otp, 
+            is_used=False
+        ).first()
+        
+        if not otp_record:
+            flash('Invalid OTP. Please try again.', 'danger')
+            return render_template('auth/verify_otp.html', email=email)
+            
+        # Check if OTP is expired
+        if datetime.utcnow() > otp_record.expires_at:
+            flash('OTP has expired. Please request a new one.', 'danger')
+            return redirect(url_for('register'))
+            
+        # Mark OTP as used
+        otp_record.is_used = True
+        
+        # Create user account
+        password = session.get('temp_password')
+        if not password:
+            flash('Session expired. Please register again.', 'danger')
+            return redirect(url_for('register'))
+            
+        # Create username from email (before the @ symbol)
+        username = email.split('@')[0]
+        # If the username already exists, append numbers until unique
+        base_username = username
+        counter = 1
+        while User.query.filter_by(username=username).first():
+            username = f"{base_username}{counter}"
+            counter += 1
+            
+        new_user = User(
+            email=email,
+            username=username,
+            auth_provider='local'
+        )
+        new_user.set_password(password)
+        
+        # Clear session data
+        session.pop('temp_password', None)
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        # Log the user in
+        login_user(new_user)
+        flash('Account created successfully!', 'success')
+        
+        return redirect(url_for('index'))
+        
+    return render_template('auth/verify_otp.html', email=email)
+
+@app.route('/resend-otp/<email>')
+def resend_otp(email):
+    """Resend OTP verification code"""
+    # Check if user already exists
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        flash('Email already registered. Please log in.', 'warning')
+        return redirect(url_for('login'))
+    
+    # Generate new OTP
+    otp_code = generate_otp()
+    expiry_time = datetime.utcnow() + timedelta(minutes=15)
+    
+    # Delete any existing OTPs for this email
+    OTP.query.filter_by(email=email).delete()
+    
+    # Create new OTP record
+    new_otp = OTP(
+        email=email,
+        otp_code=otp_code,
+        expires_at=expiry_time
+    )
+    
+    db.session.add(new_otp)
+    db.session.commit()
+    
+    # Send verification email
+    if send_verification_email(email, otp_code):
+        flash('Verification code has been resent.', 'success')
+    else:
+        flash('Failed to send verification code. Please try again.', 'danger')
+        
+    return redirect(url_for('verify_otp', email=email))
 
 # Only run this when the app is run directly
 if __name__ == '__main__':
