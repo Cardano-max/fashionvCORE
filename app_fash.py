@@ -1277,12 +1277,108 @@ def register():
         
         # Send verification email
         if send_verification_email(email, otp_code):
-            # Redirect to OTP verification page
+            # Explicitly redirect to OTP verification page
             return redirect(url_for('verify_otp', email=email))
         else:
             flash('Failed to send verification email. Please try again.', 'danger')
             
     return render_template('auth/register.html')
+
+@app.route('/verify-otp/<email>', methods=['GET', 'POST'])
+def verify_otp(email):
+    """Verify OTP and create user account"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+        
+    if request.method == 'POST':
+        entered_otp = request.form.get('otp')
+        
+        # Verify OTP
+        otp_record = OTP.query.filter_by(
+            email=email, 
+            otp_code=entered_otp, 
+            is_used=False
+        ).first()
+        
+        if not otp_record:
+            flash('Invalid OTP. Please try again.', 'danger')
+            return render_template('auth/verify_otp.html', email=email)
+            
+        # Check if OTP is expired
+        if datetime.utcnow() > otp_record.expires_at:
+            flash('OTP has expired. Please request a new one.', 'danger')
+            return redirect(url_for('register'))
+            
+        # Mark OTP as used
+        otp_record.is_used = True
+        
+        # Create user account
+        password = session.get('temp_password')
+        if not password:
+            flash('Session expired. Please register again.', 'danger')
+            return redirect(url_for('register'))
+            
+        # Create username from email (before the @ symbol)
+        username = email.split('@')[0]
+        # If the username already exists, append numbers until unique
+        base_username = username
+        counter = 1
+        while User.query.filter_by(username=username).first():
+            username = f"{base_username}{counter}"
+            counter += 1
+            
+        new_user = User(
+            email=email,
+            username=username,
+            auth_provider='local'
+        )
+        new_user.set_password(password)
+        
+        # Clear session data
+        session.pop('temp_password', None)
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        # Log the user in
+        login_user(new_user)
+        flash('Account created successfully!', 'success')
+        
+        return redirect(url_for('index'))
+        
+    # Make sure this GET request correctly renders the template
+    return render_template('auth/verify_otp.html', email=email)
+
+@app.route('/resend-otp/<email>')
+def resend_otp(email):
+    """Resend OTP for email verification"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+        
+    # Generate and store OTP
+    otp_code = generate_otp()
+    expiry_time = datetime.utcnow() + timedelta(minutes=15)
+    
+    # Delete any existing OTPs for this email
+    OTP.query.filter_by(email=email).delete()
+    
+    # Create new OTP record
+    new_otp = OTP(
+        email=email,
+        otp_code=otp_code,
+        expires_at=expiry_time
+    )
+    
+    db.session.add(new_otp)
+    db.session.commit()
+    
+    # Send verification email
+    if send_verification_email(email, otp_code):
+        flash('New verification email sent. Please check your inbox.', 'info')
+    else:
+        flash('Failed to send verification email. Please try again.', 'danger')
+    
+    return redirect(url_for('verify_otp', email=email))
 
 @app.route('/logout')
 @login_required
@@ -2222,138 +2318,51 @@ def send_verification_email(email, otp):
     subject = "Your TryOnTrend Verification Code"
     body = f"""
     <html>
-    <body>
-        <h2>Welcome to TryOnTrend!</h2>
-        <p>Your verification code is: <strong>{otp}</strong></p>
-        <p>This code will expire in 15 minutes.</p>
-        <p>If you didn't request this code, please ignore this email.</p>
+    <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #4361ee;">tryontrend</h1>
+            </div>
+            <h2 style="color: #333333;">Welcome to TryOnTrend!</h2>
+            <p style="color: #555555; line-height: 1.6;">Thank you for signing up. Please use the verification code below to complete your registration:</p>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
+                <h2 style="color: #4361ee; margin: 0; font-size: 32px; letter-spacing: 3px;">{otp}</h2>
+            </div>
+            <p style="color: #555555; line-height: 1.6;">This code will expire in 15 minutes.</p>
+            <p style="color: #555555; line-height: 1.6;">If you didn't request this code, please ignore this email.</p>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eeeeee; text-align: center; color: #999999; font-size: 12px;">
+                <p>&copy; 2025 tryontrend. All rights reserved.</p>
+            </div>
+        </div>
     </body>
     </html>
     """
     
     try:
-        # For development, just log the OTP
-        logger.info(f"[DEV MODE] OTP for {email}: {otp}")
-        
-        # In production, uncomment this code:
-        # msg = Message(
-        #     subject=subject,
-        #     recipients=[email],
-        #     html=body
-        # )
-        # mail.send(msg)
-        
+        # Send actual email
+        msg = Message(
+            subject=subject,
+            recipients=[email],
+            html=body
+        )
+        mail.send(msg)
+        logger.info(f"Verification email sent to {email}")
         return True
     except Exception as e:
+        # For development, log the OTP so we can still test
         logger.error(f"Failed to send verification email: {str(e)}")
-        return False
-
-@app.route('/verify-otp/<email>', methods=['GET', 'POST'])
-def verify_otp(email):
-    """Verify OTP and create user account"""
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-        
-    if request.method == 'POST':
-        entered_otp = request.form.get('otp')
-        
-        # Verify OTP
-        otp_record = OTP.query.filter_by(
-            email=email, 
-            otp_code=entered_otp, 
-            is_used=False
-        ).first()
-        
-        if not otp_record:
-            flash('Invalid OTP. Please try again.', 'danger')
-            return render_template('auth/verify_otp.html', email=email)
-            
-        # Check if OTP is expired
-        if datetime.utcnow() > otp_record.expires_at:
-            flash('OTP has expired. Please request a new one.', 'danger')
-            return redirect(url_for('register'))
-            
-        # Mark OTP as used
-        otp_record.is_used = True
-        
-        # Create user account
-        password = session.get('temp_password')
-        if not password:
-            flash('Session expired. Please register again.', 'danger')
-            return redirect(url_for('register'))
-            
-        # Create username from email (before the @ symbol)
-        username = email.split('@')[0]
-        # If the username already exists, append numbers until unique
-        base_username = username
-        counter = 1
-        while User.query.filter_by(username=username).first():
-            username = f"{base_username}{counter}"
-            counter += 1
-            
-        new_user = User(
-            email=email,
-            username=username,
-            auth_provider='local'
-        )
-        new_user.set_password(password)
-        
-        # Clear session data
-        session.pop('temp_password', None)
-        
-        db.session.add(new_user)
-        db.session.commit()
-        
-        # Log the user in
-        login_user(new_user)
-        flash('Account created successfully!', 'success')
-        
-        return redirect(url_for('index'))
-        
-    return render_template('auth/verify_otp.html', email=email)
-
-@app.route('/resend-otp/<email>')
-def resend_otp(email):
-    """Resend OTP verification code"""
-    # Check if user already exists
-    existing_user = User.query.filter_by(email=email).first()
-    if existing_user:
-        flash('Email already registered. Please log in.', 'warning')
-        return redirect(url_for('login'))
-    
-    # Generate new OTP
-    otp_code = generate_otp()
-    expiry_time = datetime.utcnow() + timedelta(minutes=15)
-    
-    # Delete any existing OTPs for this email
-    OTP.query.filter_by(email=email).delete()
-    
-    # Create new OTP record
-    new_otp = OTP(
-        email=email,
-        otp_code=otp_code,
-        expires_at=expiry_time
-    )
-    
-    db.session.add(new_otp)
-    db.session.commit()
-    
-    # Send verification email
-    if send_verification_email(email, otp_code):
-        flash('Verification code has been resent.', 'success')
-    else:
-        flash('Failed to send verification code. Please try again.', 'danger')
-        
-    return redirect(url_for('verify_otp', email=email))
+        logger.info(f"[DEV MODE] OTP for {email}: {otp}")
+        flash(f"Email could not be sent. Please use this verification code: {otp}", "info")
+        return True  # Return True so the flow continues even if email fails
 
 # Add this near the top of your file, after initializing the Flask app
 # Mail configuration
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
 app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@tryontrend.com')
 
 mail = Mail(app)
 

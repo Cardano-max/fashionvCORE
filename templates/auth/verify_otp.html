@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Email - tryontrend{% endblock %}
+
+{% block additional_head %}
+<style>
+    .auth-container {
+        max-width: 500px;
+        margin: 4rem auto;
+        padding: 2rem;
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-header h1 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .auth-header p {
+        color: var(--gray);
+    }
+    
+    .otp-form {
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    
+    .otp-input {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .otp-digit {
+        width: 50px;
+        height: 60px;
+        font-size: 1.8rem;
+        text-align: center;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-md);
+        margin: 0 5px;
+    }
+    
+    .auth-footer {
+        margin-top: 2rem;
+        text-align: center;
+    }
+    
+    .auth-footer p {
+        font-size: 0.9rem;
+        color: var(--gray);
+    }
+    
+    .resend-link {
+        display: inline-block;
+        margin-top: 1rem;
+        color: var(--primary-color);
+    }
+    
+    .verify-info {
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: var(--radius-md);
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Verify Your Email</h1>
+            <p>We've sent a verification code to <strong>{{ email }}</strong></p>
+        </div>
+        
+        <div class="verify-info">
+            <p>Please check your email inbox (and spam folder) for a 6-digit verification code.</p>
+        </div>
+        
+        <form method="POST" class="otp-form">
+            <div class="otp-input">
+                <input type="text" name="otp" maxlength="6" pattern="[0-9]{6}" title="Please enter a 6-digit code" class="form-control" placeholder="Enter 6-digit code" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">Verify & Create Account</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Didn't receive the code?</p>
+            <a href="{{ url_for('resend_otp', email=email) }}" class="resend-link">Resend Code</a>
+            
+            <p style="margin-top: 1.5rem;">Wrong email? <a href="{{ url_for('register') }}">Go back</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
