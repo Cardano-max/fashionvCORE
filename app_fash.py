@@ -272,19 +272,23 @@ def ensure_database():
 
 # Background task to clean up old images
 def cleanup_old_images():
-    """Background task to clean up images older than 24 hours"""
+    """Background task to clean up ONLY unreferenced images that are NOT user uploads or garment images"""
     while True:
         try:
-            logger.info("Running image cleanup task")
+            logger.info("Running selective image cleanup task")
             
-            # Calculate the cutoff time (24 hours ago)
-            cutoff_time = datetime.utcnow() - timedelta(hours=24)
-            
-            # Clean up uploads folder
+            # Clean up uploads folder - BUT NEVER DELETE PERSON OR GARMENT IMAGES
             uploads_folder = app.config['UPLOAD_FOLDER']
             for filename in os.listdir(uploads_folder):
                 file_path = os.path.join(uploads_folder, filename)
+                
+                # Skip person and garment images completely - never delete these
+                if filename.startswith('person_') or filename.startswith('garment_'):
+                    continue
+                    
+                # For other files, check if older than 24 hours and not referenced
                 file_modified = datetime.fromtimestamp(os.path.getmtime(file_path))
+                cutoff_time = datetime.utcnow() - timedelta(hours=24)
                 
                 if file_modified < cutoff_time:
                     # Check if file is referenced in the database before deleting
@@ -294,15 +298,18 @@ def cleanup_old_images():
                     if person_refs == 0 and garment_refs == 0:
                         try:
                             os.remove(file_path)
-                            logger.info(f"Deleted old upload: {filename}")
+                            logger.info(f"Deleted unreferenced file: {filename}")
                         except Exception as e:
-                            logger.error(f"Error deleting upload {filename}: {str(e)}")
+                            logger.error(f"Error deleting file {filename}: {str(e)}")
             
-            # Clean up results folder
+            # Results folder - don't delete result images that are in database
             results_folder = app.config['RESULTS_FOLDER']
             for filename in os.listdir(results_folder):
                 file_path = os.path.join(results_folder, filename)
+                
+                # Only check older files
                 file_modified = datetime.fromtimestamp(os.path.getmtime(file_path))
+                cutoff_time = datetime.utcnow() - timedelta(hours=24)
                 
                 if file_modified < cutoff_time:
                     # Check if file is referenced in the database before deleting
@@ -311,7 +318,7 @@ def cleanup_old_images():
                     if result_refs == 0:
                         try:
                             os.remove(file_path)
-                            logger.info(f"Deleted old result: {filename}")
+                            logger.info(f"Deleted unreferenced result: {filename}")
                         except Exception as e:
                             logger.error(f"Error deleting result {filename}: {str(e)}")
                     
@@ -1769,8 +1776,42 @@ def create_admin_command(email, username, password):
         
         db.session.commit()
 
+@click.command('set-admin-credentials')
+def set_admin_credentials():
+    """Set specific admin credentials"""
+    try:
+        # Check if admin with this email exists
+        admin_email = "Shahkaushal26@gmail.com"
+        admin_password = "admintryontrend@123"
+        
+        admin = User.query.filter_by(email=admin_email).first()
+        
+        if admin:
+            # Update existing admin
+            admin.set_password(admin_password)
+            admin.is_admin = True
+            db.session.commit()
+            print(f"Updated admin credentials for {admin_email}")
+        else:
+            # Create new admin
+            new_admin = User(
+                username="admin",
+                email=admin_email,
+                is_admin=True
+            )
+            new_admin.set_password(admin_password)
+            db.session.add(new_admin)
+            db.session.commit()
+            print(f"Created new admin user with email {admin_email}")
+            
+        print("Admin credentials set successfully!")
+        
+    except Exception as e:
+        print(f"Error setting admin credentials: {str(e)}")
+
 app.cli.add_command(init_db_command)
 app.cli.add_command(create_admin_command)
+app.cli.add_command(set_admin_credentials)
 
 # Error handlers
 @app.errorhandler(404)
@@ -1847,6 +1888,35 @@ def check_auth():
             'credits': current_user.credits if current_user.is_authenticated else 0
         }
     })
+
+@app.route('/admin/export-users')
+@admin_required
+def admin_export_users():
+    """Export user emails and contact info as CSV"""
+    try:
+        # Get all users
+        users = User.query.all()
+        
+        # Create CSV content
+        csv_content = "id,username,email,created_at,last_login,is_active,credits\n"
+        for user in users:
+            # Format dates properly or use empty string if None
+            created_at = user.created_at.strftime('%Y-%m-%d %H:%M:%S') if user.created_at else ""
+            last_login = user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else ""
+            
+            # Add user data to CSV
+            csv_content += f"{user.id},{user.username},{user.email},{created_at},{last_login},{user.is_active},{user.credits}\n"
+        
+        # Create response with CSV data
+        response = make_response(csv_content)
+        response.headers["Content-Disposition"] = "attachment; filename=users_export.csv"
+        response.headers["Content-Type"] = "text/csv"
+        
+        return response
+        
+    except Exception as e:
+        flash(f'Error exporting users: {str(e)}', 'error')
+        return redirect(url_for('admin_dashboard'))
 
 # Start the cleanup thread when app starts
 cleanup_thread = threading.Thread(target=cleanup_old_images, daemon=True)
