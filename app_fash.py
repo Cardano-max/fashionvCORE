@@ -2232,12 +2232,17 @@ def send_verification_email(email, otp):
     """
     
     try:
-        msg = Message(
-            subject=subject,
-            recipients=[email],
-            html=body
-        )
-        mail.send(msg)
+        # For development, just log the OTP
+        logger.info(f"[DEV MODE] OTP for {email}: {otp}")
+        
+        # In production, uncomment this code:
+        # msg = Message(
+        #     subject=subject,
+        #     recipients=[email],
+        #     html=body
+        # )
+        # mail.send(msg)
+        
         return True
     except Exception as e:
         logger.error(f"Failed to send verification email: {str(e)}")
@@ -2340,6 +2345,17 @@ def resend_otp(email):
         flash('Failed to send verification code. Please try again.', 'danger')
         
     return redirect(url_for('verify_otp', email=email))
+
+# Add this near the top of your file, after initializing the Flask app
+# Mail configuration
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+
+mail = Mail(app)
 
 # Only run this when the app is run directly
 if __name__ == '__main__':
