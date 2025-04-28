@@ -28,3 +28,4 @@ flask-mail==0.9.1
 paypalrestsdk==1.13.1
 six
 pyOpenSSL
+psycopg2-binary==2.9.9

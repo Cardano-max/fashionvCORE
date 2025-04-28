@@ -37,16 +37,6 @@
         margin-bottom: 1.5rem;
     }
     
-    .otp-digit {
-        width: 50px;
-        height: 60px;
-        font-size: 1.8rem;
-        text-align: center;
-        border: 1px solid var(--gray-light);
-        border-radius: var(--radius-md);
-        margin: 0 5px;
-    }
-    
     .auth-footer {
         margin-top: 2rem;
         text-align: center;
@@ -62,15 +52,6 @@
         margin-top: 1rem;
         color: var(--primary-color);
     }
-    
-    .verify-info {
-        padding: 1rem;
-        background-color: #f8f9fa;
-        border-radius: var(--radius-md);
-        margin-bottom: 1.5rem;
-        font-size: 0.9rem;
-        color: #6c757d;
-    }
 </style>
 {% endblock %}
 
@@ -80,10 +61,6 @@
         <div class="auth-header">
             <h1>Verify Your Email</h1>
             <p>We've sent a verification code to <strong>{{ email }}</strong></p>
-        </div>
-        
-        <div class="verify-info">
-            <p>Please check your email inbox (and spam folder) for a 6-digit verification code.</p>
         </div>
         
         <form method="POST" class="otp-form">

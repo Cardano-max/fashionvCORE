@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}User Activity Timeline - Admin{% endblock %}
+
+{% block additional_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>User Activity Timeline</h1>
+    <a href="{{ url_for('admin.dashboard') }}" class="back-link">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <div class="user-activity-section">
+    <div class="search-box">
+      <input
+        type="text"
+        id="activitySearchInput"
+        placeholder="Search by user or action"
+      />
+      <button id="activitySearchBtn"><i class="fas fa-search"></i></button>
+    </div>
+    
+    <div class="table-responsive">
+      <table class="data-table" id="activityTable">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>User</th>
+            <th>Email</th>
+            <th>Action</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="activityTableBody">
+          {% for activity in activities %}
+          <tr>
+            <td>{{ activity.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ activity.user.username if activity.user else 'Anonymous' }}</td>
+            <td>{{ activity.user.email if activity.user else 'N/A' }}</td>
+            <td>{{ activity.action }}</td>
+            <td>{{ activity.details }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="pagination">
+      <div class="page-item"><a class="page-link" href="#">Prev</a></div>
+      <div class="page-item active"><a class="page-link" href="#">1</a></div>
+      <div class="page-item"><a class="page-link" href="#">2</a></div>
+      <div class="page-item"><a class="page-link" href="#">3</a></div>
+      <div class="page-item"><a class="page-link" href="#">Next</a></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Setup activity search functionality
+    const activitySearchInput = document.getElementById("activitySearchInput");
+    const activitySearchBtn = document.getElementById("activitySearchBtn");
+    
+    if (activitySearchInput && activitySearchBtn) {
+      activitySearchBtn.addEventListener("click", filterActivity);
+      activitySearchInput.addEventListener("keyup", function (e) {
+        if (e.key === "Enter") {
+          filterActivity();
+        }
+      });
+    }
+  });
+  
+  function filterActivity() {
+    const filter = document.getElementById("activitySearchInput").value.toUpperCase();
+    const rows = document.querySelectorAll("#activityTableBody tr");
+    
+    rows.forEach((row) => {
+      const username = row.cells[1].textContent.toUpperCase();
+      const email = row.cells[2].textContent.toUpperCase();
+      const action = row.cells[3].textContent.toUpperCase();
+      const details = row.cells[4].textContent.toUpperCase();
+      
+      if (username.includes(filter) || email.includes(filter) || 
+          action.includes(filter) || details.includes(filter)) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+  }
+</script>
+{% endblock %}
