@@ -2345,10 +2345,3 @@ if __name__ == '__main__':
     
     # Start the application
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
-
-@app.route('/init-db')
-def init_db_route():
-    from app_fash import db
-    db.create_all()
-    return "Database initialized!"
-#ok
